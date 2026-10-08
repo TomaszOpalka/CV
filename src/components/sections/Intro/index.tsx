@@ -1,0 +1,97 @@
+'use client';
+
+import Image from 'next/image';
+import { useRef, type CSSProperties } from 'react';
+
+import { profile } from '@/content/profile';
+import { useHeadingScramble } from '@/hooks/useHeadingScramble';
+import { useIntro } from '@/hooks/useIntro';
+
+import styles from './index.module.scss';
+
+function stagger(index: number): CSSProperties {
+  return { '--i': index } as CSSProperties;
+}
+
+/**
+ * Hero: a grid of digits that reacts to the pointer, explodes on click and re-assembles into
+ * the author's portrait, which then turns into the real photo next to the "about me" text.
+ * The heading and text are in the DOM from the first render (SEO, screen readers); the canvas is decoration.
+ */
+export function Intro() {
+  const rootRef = useRef<HTMLElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const counterRef = useRef<HTMLSpanElement>(null);
+  const nameRef = useRef<HTMLSpanElement>(null);
+
+  const { portrait, name, role, about } = profile;
+  const { state, press, skip } = useIntro({
+    rootRef,
+    canvasRef,
+    frameRef,
+    counterRef,
+    imageSrc: portrait.src,
+    focalY: portrait.focalY,
+  });
+  useHeadingScramble(nameRef, name, state);
+
+  const playing = state !== 'done';
+
+  return (
+    <section ref={rootRef} className={styles.root} data-state={state} aria-labelledby="hero-title">
+      {playing && (
+        <button type="button" className={styles.skip} data-intro-ignore onClick={skip}>
+          Pomiń intro
+        </button>
+      )}
+
+      <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+
+      <div className={styles.inner}>
+        <div className={styles.text}>
+          <p className={styles.eyebrow} style={stagger(0)}>
+            {role}
+          </p>
+          <h1 id="hero-title" className={styles.title} aria-label={name} style={stagger(1)}>
+            <span ref={nameRef}>{name}</span>
+          </h1>
+          {about.map((paragraph, index) => (
+            <p key={paragraph} className={styles.about} style={stagger(index + 2)}>
+              {paragraph}
+            </p>
+          ))}
+        </div>
+
+        <div ref={frameRef} className={styles.frame}>
+          <Image
+            className={styles.photo}
+            src={portrait.src}
+            alt={portrait.alt}
+            width={portrait.width}
+            height={portrait.height}
+            style={{ objectPosition: `50% ${portrait.focalY * 100}%` }}
+            priority
+            unoptimized
+          />
+        </div>
+      </div>
+
+      <p className={styles.counter} aria-hidden="true">
+        <span ref={counterRef}>000</span>
+      </p>
+
+      {state === 'idle' && (
+        <button
+          type="button"
+          className={styles.prompt}
+          onClick={press}
+          aria-label="Uruchom animację"
+        >
+          <span className={styles.promptMouse}>[ kliknij ]</span>
+          <span className={styles.promptTouch}>[ dotknij ]</span>
+        </button>
+      )}
+    </section>
+  );
+}

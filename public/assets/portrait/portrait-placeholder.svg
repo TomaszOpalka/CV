@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <!-- PLACEHOLDER: replace with the real photo (see docs/ASSETS.md). Neutral head-and-shoulders silhouette in grayscale. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#8a8a8a"/>
+      <stop offset="0.55" stop-color="#4a4a4a"/>
+      <stop offset="1" stop-color="#1c1c1c"/>
+    </radialGradient>
+    <radialGradient id="face" cx="42%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#f2f2f2"/>
+      <stop offset="0.6" stop-color="#bdbdbd"/>
+      <stop offset="1" stop-color="#7c7c7c"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9a9a9a"/>
+      <stop offset="1" stop-color="#2e2e2e"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#222"/>
+      <stop offset="1" stop-color="#555"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#bg)"/>
+  <!-- shoulders -->
+  <path d="M40 1000 C60 800 200 740 330 722 L470 722 C600 740 740 800 760 1000 Z" fill="url(#body)"/>
+  <!-- neck -->
+  <path d="M322 640 L322 740 C350 770 450 770 478 740 L478 640 Z" fill="#8f8f8f"/>
+  <!-- head -->
+  <ellipse cx="400" cy="440" rx="168" ry="215" fill="url(#face)"/>
+  <!-- hair -->
+  <path d="M232 420 C220 250 330 190 410 190 C500 190 590 260 568 420 C550 330 500 290 410 288 C320 290 262 340 232 420 Z" fill="url(#hair)"/>
+  <!-- eyes, brows, mouth: soft darker marks for contrast -->
+  <ellipse cx="340" cy="440" rx="24" ry="11" fill="#4a4a4a"/>
+  <ellipse cx="460" cy="440" rx="24" ry="11" fill="#4a4a4a"/>
+  <rect x="304" y="404" width="72" height="9" rx="4" fill="#3a3a3a"/>
+  <rect x="424" y="404" width="72" height="9" rx="4" fill="#3a3a3a"/>
+  <path d="M356 560 C390 590 410 590 444 560" stroke="#555" stroke-width="12" fill="none" stroke-linecap="round"/>
+</svg>

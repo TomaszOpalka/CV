@@ -1,0 +1,256 @@
+@use '@/styles/abstracts' as *;
+
+// Stages (data-state): boot -> idle -> exploding -> morphing -> revealing -> done.
+// The text and the photo frame always take part in the layout (so the engine can measure them)
+// but stay invisible until the intro reaches `revealing`.
+
+.root {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--gray-1000);
+
+  // The intro owns touch gestures (swipes repel digits); normal scrolling returns when it is done.
+  touch-action: none;
+
+  &[data-state='done'] {
+    touch-action: auto;
+  }
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+
+  .root[data-state='done'] & {
+    visibility: hidden;
+  }
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: $space-8;
+  width: 100%;
+  max-width: rem(1200);
+  margin-inline: auto;
+  padding: $space-16 $space-6 $space-12;
+
+  @include mq(md) {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: $space-12;
+    padding-block: $space-12;
+  }
+}
+
+.text {
+  display: grid;
+  align-content: center;
+  gap: $space-4;
+  visibility: hidden;
+
+  .root[data-state='revealing'] &,
+  .root[data-state='done'] & {
+    visibility: visible;
+  }
+}
+
+// Reveal: each line fades and slides in, one after the other (--i is set inline).
+.eyebrow,
+.title,
+.about {
+  opacity: 0;
+  transform: translateY(0.75rem);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s $ease-out;
+  transition-delay: calc(var(--i, 0) * 90ms);
+
+  .root[data-state='revealing'] &,
+  .root[data-state='done'] & {
+    opacity: 1;
+    transform: none;
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: rem(13);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+}
+
+.title {
+  font-size: clamp(2.25rem, 8vw, 4.75rem);
+  text-transform: uppercase;
+
+  // Keep the layout stable while the digits decode into letters.
+  font-variant-numeric: tabular-nums;
+}
+
+.about {
+  max-width: 34rem;
+  font-size: rem(17);
+  line-height: 1.65;
+  color: var(--gray-200);
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  max-width: rem(440);
+  margin-inline: auto;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 2px;
+
+  // On phones the portrait goes above the text.
+  order: -1;
+
+  // Invisible while the canvas draws the portrait over it; shown once the intro is done.
+  opacity: 0;
+
+  .root[data-state='done'] & {
+    opacity: 1;
+  }
+
+  @include mq(md) {
+    order: 0;
+    margin-inline: auto 0;
+  }
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.counter {
+  position: absolute;
+  bottom: $space-6;
+  left: $space-6;
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: rem(13);
+  letter-spacing: 0.2em;
+  color: var(--gray-400);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  .root[data-state='boot'] & {
+    opacity: 1;
+  }
+}
+
+.skip {
+  position: absolute;
+  top: $space-4;
+  right: $space-4;
+  z-index: 4;
+  padding: $space-2 $space-3;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: rem(12);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  color: var(--gray-400);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--gray-0);
+  }
+}
+
+.prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: max-content;
+  height: max-content;
+  margin: auto;
+  padding: $space-4 $space-6;
+  border: 1px solid var(--gray-600);
+  background: var(--gray-1000);
+  font-family: var(--font-mono);
+  font-size: rem(18);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--gray-0);
+  cursor: pointer;
+  animation: pulse 2.2s ease-in-out infinite;
+
+  @include reduced-motion {
+    animation: none;
+  }
+}
+
+.promptTouch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .promptMouse {
+    display: none;
+  }
+
+  .promptTouch {
+    display: inline;
+  }
+}
+
+.skip:focus-visible,
+.prompt:focus-visible {
+  outline: 2px solid var(--gray-0);
+  outline-offset: 4px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+// Without JavaScript there is no intro: show the final view straight away.
+@media (scripting: none) {
+  .text {
+    visibility: visible;
+  }
+
+  .eyebrow,
+  .title,
+  .about {
+    opacity: 1;
+    transform: none;
+  }
+
+  .frame {
+    opacity: 1;
+  }
+
+  .canvas,
+  .counter {
+    display: none;
+  }
+}
