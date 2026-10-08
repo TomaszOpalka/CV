@@ -63,4 +63,17 @@ describe('smoke spiral', () => {
       prevY = p[1]!;
     }
   });
+
+  it('winding the other way gives the mirror image across the vertical axis', () => {
+    for (const k of [0, 0.4, 1]) {
+      for (const s of [0, 0.3, 0.7, 1]) {
+        spiralMorph(s, k, 2, 0.2, 0.9, p, q, 1);
+        const x = p[0]!;
+        const z = p[1]!;
+        spiralMorph(s, k, 2, 0.2, Math.PI - 0.9, p, q, -1);
+        expect(p[0]).toBeCloseTo(-x, 6);
+        expect(p[1]).toBeCloseTo(z, 6);
+      }
+    }
+  });
 });

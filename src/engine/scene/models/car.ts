@@ -98,7 +98,6 @@ const SPOKES = 10;
 const wheelRing = new Float64Array(WHEEL_POINTS * 3);
 const quad = new Float64Array(12);
 const TAU = Math.PI * 2;
-const TEAL = '#35c4d0';
 
 /** The five depth-sorted pieces: body, four wheels, two wings; details are always drawn last. */
 const PART_BODY = 0;
@@ -174,7 +173,7 @@ export class Car {
     for (let k = 0; k < PART_COUNT; k++) {
       const part = order[k]!;
       if (part === PART_BODY)
-        this.mesh.draw(pen, { alpha: alphas, lift: lifts, lw: o.lw * 0.8, tint: TEAL });
+        this.mesh.draw(pen, { alpha: alphas, lift: lifts, lw: o.lw * 0.8, tint: '#fff' });
       else if (part === PART_FRONT_WING) this.drawFrontWing(pen, o);
       else if (part === PART_REAR_WING) this.drawRearWing(pen, o);
       else this.drawWheel(pen, WHEELS[part - PART_WHEEL]!, o);

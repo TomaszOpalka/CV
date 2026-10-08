@@ -4,7 +4,7 @@ export const BALL_RADIUS = 0.18;
 export const HOOP_HEIGHT = 3.05;
 export const RIM_RADIUS = 0.28;
 /** Where the smoke curls into the ball (the world of the car acts). */
-export const SMOKE_CENTER = { x: -1.35, y: 0, z: 1.7 } as const;
+export const SMOKE_CENTER = { x: -2.35, y: 0, z: 1.7 } as const;
 
 const GRAVITY = 9.81;
 const RESTITUTION = 0.58;

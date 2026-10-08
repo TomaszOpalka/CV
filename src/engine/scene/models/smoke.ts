@@ -7,7 +7,9 @@ import { spiralMorph } from '../spiral';
 const REAR_AXLE = 1.7;
 /** Outer radius of the vortex (metres) and the angle at which its outer end leaves the ground. */
 const VORTEX_RADIUS = 1.7;
-const VORTEX_START = -Math.PI * 0.62;
+/** The outer end sits under the rear wheel; the spiral winds clockwise (the mirror image of a counter-clockwise one). */
+const VORTEX_START = -Math.PI * 0.38;
+const WIND = -1;
 
 export interface SmokeDraw {
   /** Current time and the time the tyres started to smoke (seconds). */
@@ -28,7 +30,7 @@ const scratch = new Float64Array(2);
 /**
  * Tyre smoke that leaves the rear wheels and curls into a golden spiral (a vortex), which then
  * winds up and closes into the basketball. Every puff owns a place on the spiral: the first ones
- * born sit in the eye, the latest ones at the outer end, still attached to the tyre. A thin trace
+ * born sit at the outer end, under the tyre, the later ones further in towards the eye. A thin trace
  * through the spiral keeps its shape readable even at a coarse grid.
  */
 export class Smoke {
@@ -44,17 +46,18 @@ export class Smoke {
     const close = o.curl;
     ctx.fillStyle = '#fff';
 
-    let outerMost = 1;
+    let newest = -1;
     for (let i = 0; i < n; i++) {
       const h = (k: number): number => hash1(i * 17.3 + k * 91.7);
       const born = o.start + lifespan * Math.pow(i / n, 1.4);
       const age = o.now - born;
       if (age <= 0) continue;
-      // The first puff sits in the eye (s = 1), the last on the outer end (s = 0).
-      const s = 1 - i / (n - 1);
-      outerMost = Math.min(outerMost, s);
+      // The first puff is born under the tyre (the outer end, s = 0); every next one lies further
+      // along the spiral, so the vortex grows out of the tyre like a stroke being drawn.
+      const s = i / (n - 1);
+      newest = Math.max(newest, s);
 
-      spiralMorph(s, close, VORTEX_RADIUS, BALL_RADIUS, VORTEX_START, p, scratch);
+      spiralMorph(s, close, VORTEX_RADIUS, BALL_RADIUS, VORTEX_START, p, scratch, WIND);
       const side = i % 2 === 0 ? -1 : 1;
       // Where the puff would be right under the tyre, then it is drawn into its place on the spiral.
       const wheelX = o.carX(born) - REAR_AXLE;
@@ -76,19 +79,19 @@ export class Smoke {
       pen.disc(x, y, z, r * 0.55);
     }
 
-    // The trace of the spiral itself, from the newest puff to the eye.
-    if (outerMost < 1) {
+    // A thin trace of the spiral itself, from the tyre to the newest puff.
+    if (newest > 0) {
       ctx.strokeStyle = '#fff';
       ctx.lineCap = 'round';
-      ctx.lineWidth = o.lw * 1.2;
-      ctx.globalAlpha = 0.9 * o.alpha * (1 - smoothstep(0.7, 1, close));
+      ctx.lineWidth = o.lw * 0.5;
+      ctx.globalAlpha = 0.7 * o.alpha * (1 - smoothstep(0.7, 1, close));
       ctx.beginPath();
       const steps = 56;
       let px = 0;
       let pz = 0;
       for (let j = 0; j <= steps; j++) {
-        const s = outerMost + ((1 - outerMost) * j) / steps;
-        spiralMorph(s, close, VORTEX_RADIUS, BALL_RADIUS, VORTEX_START, p, scratch);
+        const s = (newest * j) / steps;
+        spiralMorph(s, close, VORTEX_RADIUS, BALL_RADIUS, VORTEX_START, p, scratch, WIND);
         const x = cx + p[0]!;
         const z = cz + p[1]!;
         if (j > 0) pen.line(px, 0, pz, x, 0, z);
