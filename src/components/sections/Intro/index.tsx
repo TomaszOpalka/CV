@@ -53,7 +53,7 @@ export function Intro() {
           data-intro-ignore
           onClick={skip}
         >
-          Pomiń intro
+          skip intro
         </button>
       )}
 
@@ -101,9 +101,9 @@ export function Intro() {
 
       {state === 'idle' && (
         <button type="button" className={styles.prompt} onClick={press}>
-          <span className={styles.promptMouse}>[ kliknij ]</span>
-          <span className={styles.promptTouch}>[ dotknij ]</span>
-          <span className={styles.srOnly}> aby uruchomić animację</span>
+          <span className={styles.promptMouse}>[ click ]</span>
+          <span className={styles.promptTouch}>[ touch ]</span>
+          <span className={styles.srOnly}> to turn on animation</span>
         </button>
       )}
     </section>
