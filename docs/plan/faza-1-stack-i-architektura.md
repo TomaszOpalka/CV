@@ -485,13 +485,13 @@ src/styles/
 
 ## 9. Etapy fazy 1
 
-| #   | Etap                                                                                                                          | Status                  |
-| --- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| 1.1 | Research referencji i odpowiedzi na pytania z briefu (ten dokument)                                                           | ✅                      |
-| 1.2 | Akceptacja stacku i architektury przez autora                                                                                 | ✅ (08.10.2026)         |
-| 1.3 | Decyzje hostingowe: Netlify + OVH ✅. Do zrobienia: nazwa i zakup domeny, wybór magazynu wybuchów                             | ⏳                      |
-| 1.4 | Szkielet aplikacji: Next 16, TypeScript, SCSS, testy, `/api/health`, `CLAUDE.md`, `docs/SETUP.md`. `npm run check` przechodzi | ✅ (lokalnie)           |
-| 1.5 | Pierwszy deploy na domenę z HTTPS (dowód, że koszt = domena). **Po napisaniu aplikacji**, zgodnie z Twoim przepływem pracy    | ⏸ odłożone do końca faz |
+| #   | Etap                                                                                                                                                                                         | Status                  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 1.1 | Research referencji i odpowiedzi na pytania z briefu (ten dokument)                                                                                                                          | ✅                      |
+| 1.2 | Akceptacja stacku i architektury przez autora                                                                                                                                                | ✅ (08.10.2026)         |
+| 1.3 | Decyzje hostingowe: Netlify + OVH ✅. Do zrobienia: nazwa i zakup domeny, wybór magazynu wybuchów                                                                                            | ⏳                      |
+| 1.4 | Szkielet aplikacji: Next 16, TypeScript, SCSS, testy, `/api/health`, `CLAUDE.md`, `docs/SETUP.md`. `npm run check` przechodzi                                                                | ✅ (lokalnie)           |
+| 1.5 | Pierwszy deploy na domenę z HTTPS (dowód, że koszt = domena). **Po napisaniu aplikacji**, zgodnie z Twoim przepływem pracy ([lista kontrolna](#12-lista-kontrolna-przed-pierwszym-deployem)) | ⏸ odłożone do końca faz |
 
 ## 10. Kryteria ukończenia
 
@@ -512,6 +512,33 @@ src/styles/
 5. Czy masz zdjęcie w dobrej rozdzielczości, na jednolitym tle, z wyraźnym światłem? To ważne dla portretu z cyfr.
 6. 100% skali szarości, czy jeden kolor akcentu?
 7. Czy chcesz opcjonalną analitykę odwiedzin (Umami Cloud Hobby), czy wystarczy Google Search Console?
+
+## 12. Lista kontrolna przed pierwszym deployem
+
+Wracamy do niej na koniec, przed podłączeniem repo do Netlify (zgodnie z Twoim przepływem pracy: deploy po napisaniu aplikacji).
+
+**Rozmiary i limity (pytanie o „100 MB”)**
+
+- GitHub **odrzuca pojedynczy plik > 100 MB** i ostrzega od 50 MB. Dziś największym plikiem w repo jest `package-lock.json` (kilkaset kB), więc jest bezpiecznie.
+  Oryginalne zdjęcia (RAW, PSD, filmy z ekranu) trzymaj poza repo (zasady w [`docs/ASSETS.md`](../ASSETS.md)).
+- Limity rozmiaru wdrożenia na planie Free w Netlify nie zostały przez nas sprawdzone w oficjalnej dokumentacji. Sprawdzimy je przed deployem.
+  Dla porządku: cały `out/` ma dziś kilka MB, a budżet to początkowy ładunek ≤ 300 kB gzip.
+- Przed deployem dodamy skrypt kontrolny (`npm run check` ostrzeże, gdy jakikolwiek plik w `public/` > 2 MB albo `out/` > 25 MB).
+
+**Ustawienia w Netlify (po założeniu projektu)**
+
+- [ ] Projekt ustawiony jako **publiczny** (nowe zespoły są domyślnie prywatne)
+- [ ] Wyłączona plakietka „Powered by Netlify” i funkcje AI na poziomie zespołu
+- [ ] Wyłączone Deploy Preview i deploye branchy (oszczędność kredytów, choć same nic nie kosztują)
+- [ ] Włączone wykrywanie formularzy (faza 5)
+- [ ] Komenda `ignore` z `netlify.toml` przetestowana na pierwszym deployu (przy pierwszym buildzie `CACHED_COMMIT_REF` może być pusty)
+- [ ] Domena z OVH podpięta (rekordy A i CNAME, [pkt 2.3](#23-podpięcie-domeny-z-ovh-do-netlify)), HTTPS aktywne
+- [ ] `curl -I` dla `/stack` i `/stack/` (trailing slash), 404 działa
+- [ ] Rekord TXT i mapa strony w Google Search Console
+
+**Wersje**
+
+- [ ] Node: zostajemy przy 24 albo przechodzimy na 26 (po 28.10.2026). Zmiana w trzech miejscach: `.nvmrc`, `netlify.toml`, `engines`.
 
 ## Źródła
 

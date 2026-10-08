@@ -41,6 +41,32 @@ describe('QualityGovernor', () => {
     expect(third[9]).toBe(1);
   });
 
+  it('never retries a level that was too slow (no oscillation)', () => {
+    const g = new QualityGovernor({
+      levels: 3,
+      startLevel: 2,
+      warmup: 0,
+      window: 10,
+      raiseAfter: 2,
+    });
+    let changes = 0;
+    for (let cycle = 0; cycle < 20; cycle++) {
+      // level 2 runs at 25 fps, levels 0-1 at 60 fps
+      const ms = g.level === 2 ? 40 : 16;
+      for (let i = 0; i < 10; i++) if (g.record(ms) !== null) changes++;
+    }
+    expect(changes).toBe(1);
+    expect(g.level).toBe(1);
+  });
+
+  it('rearm() ignores the frames right after a rebuild', () => {
+    const g = new QualityGovernor({ levels: 3, startLevel: 2, warmup: 5, window: 10 });
+    feed(g, 16, 5 + 10);
+    g.rearm();
+    expect(feed(g, 300, 5).every((r) => r === null)).toBe(true);
+    expect(g.level).toBe(2);
+  });
+
   it('a slow window resets the climb', () => {
     const g = new QualityGovernor({
       levels: 3,

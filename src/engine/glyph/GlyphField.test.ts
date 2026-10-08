@@ -97,6 +97,40 @@ describe('GlyphField explode + morph', () => {
     expect(faded).toBe(f.count - targetCount);
   });
 
+  it('hold() snaps a half-finished morph onto the targets (slow device)', () => {
+    const f = makeField();
+    const particles = assignTargets(60, f.count);
+    f.morphTo({
+      particles,
+      xs: Float32Array.from({ length: 60 }, (_, k) => 20 + (k % 10) * 8),
+      ys: Float32Array.from({ length: 60 }, (_, k) => 20 + Math.floor(k / 10) * 12),
+      glyphs: Uint8Array.from({ length: 60 }, (_, k) => k % 10),
+      tones: Float32Array.from({ length: 60 }, () => 6),
+    });
+    for (let t = 0; t < 0.2; t += 0.1) f.step(0.1, NO_POINTER); // only a couple of coarse frames
+    expect(f.maxTargetError()).toBeGreaterThan(5);
+    f.hold();
+    expect(f.maxTargetError()).toBe(0);
+  });
+
+  it('converges to the same place at 20 fps as at 60 fps (frame-rate independent damping)', () => {
+    const settle = (dt: number): number => {
+      const f = makeField();
+      const particles = assignTargets(60, f.count);
+      f.morphTo({
+        particles,
+        xs: Float32Array.from({ length: 60 }, () => 250),
+        ys: Float32Array.from({ length: 60 }, () => 150),
+        glyphs: new Uint8Array(60),
+        tones: new Float32Array(60).fill(5),
+      });
+      for (let t = 0; t < 1.5; t += dt) f.step(dt, NO_POINTER);
+      return f.maxTargetError();
+    };
+    expect(settle(1 / 60)).toBeLessThan(2);
+    expect(settle(1 / 20)).toBeLessThan(6);
+  });
+
   it('fade() drives all tones to zero', () => {
     const f = makeField();
     f.hold();

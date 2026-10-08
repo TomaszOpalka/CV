@@ -4,7 +4,14 @@ import { PointerTracker } from './PointerTracker';
 
 function pointerEvent(
   type: string,
-  init: { pointerType: string; clientX: number; clientY: number; buttons?: number },
+  init: {
+    pointerType: string;
+    clientX: number;
+    clientY: number;
+    buttons?: number;
+    button?: number;
+    isPrimary?: boolean;
+  },
   target: Element,
   timeStamp = 0,
 ): PointerEvent {
@@ -15,6 +22,8 @@ function pointerEvent(
     buttons: init.buttons ?? 0,
   });
   Object.defineProperty(event, 'pointerType', { value: init.pointerType });
+  Object.defineProperty(event, 'isPrimary', { value: init.isPrimary ?? true });
+  Object.defineProperty(event, 'button', { value: init.button ?? 0 });
   Object.defineProperty(event, 'timeStamp', { value: timeStamp });
   target.dispatchEvent(event);
   return event as PointerEvent;
@@ -92,6 +101,36 @@ describe('PointerTracker', () => {
       0,
     );
     pointerEvent('pointerup', { pointerType: 'touch', clientX: 10, clientY: 10 }, root, 900);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('ignores right and middle mouse buttons', () => {
+    pointerEvent(
+      'pointerdown',
+      { pointerType: 'mouse', clientX: 9, clientY: 9, buttons: 2, button: 2 },
+      root,
+    );
+    pointerEvent(
+      'pointerdown',
+      { pointerType: 'mouse', clientX: 9, clientY: 9, buttons: 4, button: 1 },
+      root,
+    );
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('ignores a second finger', () => {
+    pointerEvent(
+      'pointerdown',
+      { pointerType: 'touch', clientX: 10, clientY: 10, buttons: 1, isPrimary: false },
+      root,
+      0,
+    );
+    pointerEvent(
+      'pointerup',
+      { pointerType: 'touch', clientX: 10, clientY: 10, isPrimary: false },
+      root,
+      50,
+    );
     expect(onPress).not.toHaveBeenCalled();
   });
 

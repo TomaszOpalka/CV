@@ -1,6 +1,6 @@
 # Faza 2: Animacja startowa → zdjęcie i „O mnie”
 
-> **Status:** ⚪ nie rozpoczęta (wymaga ukończenia fazy 1)
+> **Status:** 🟢 zbudowana i przetestowana lokalnie, czeka na przegląd autora (PR do `main`)
 > **Poprzednia:** [Faza 1](./faza-1-stack-i-architektura.md) · **Następna:** [Faza 3](./faza-3-kursor-pole-pikseli-nawigacja.md)
 
 ## Warunek ukończenia (z briefu)
@@ -13,6 +13,26 @@ Faza jest ukończona po akceptacji autora, gdy projekt **buduje się prawidłowo
 Odtworzyć klimat intro z aino.agency: siatkę cyfr, która żyje, reaguje na kursor i rozpada się po kliknięciu.
 Po kliknięciu cyfry **układają się w portret autora po prawej stronie**, który przechodzi w prawdziwe zdjęcie,
 a po lewej pojawia się tekst „O mnie”.
+
+## Stan wdrożenia (08.10.2026)
+
+Zbudowane i działające (desktop i telefon): siatka cyfr reagująca na wskaźnik → wybuch → portret z cyfr → pikselowe przejście w zdjęcie →
+tekst „O mnie” z nazwiskiem „odkodowującym się” z cyfr. Zdjęcie jest na razie **placeholderem** (sylwetka), podmiana opisana w [`docs/ASSETS.md`](../ASSETS.md).
+
+Odstępstwa od pierwotnego scenariusza (świadome):
+
+| Plan                                                     | Zrobione                                                                                                                                                                    |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lewa połowa cyfr układa się w nagłówek                   | Cyfry formują tylko portret. Nagłówek „odkodowuje się” z cyfr w nazwisko (GSAP ScrambleText). Nagłówek z cyfr przy jednej wielkości siatki byłby nieczytelny                |
+| Napis „KLIKNIJ” złożony z cyfr                           | Przycisk `[ kliknij ]` (na telefonie `[ dotknij ]`) w ramce, dostępny z klawiatury                                                                                          |
+| Dotknięcie = kliknięcie                                  | Mysz startuje wybuch od razu. Palec **po stuknięciu** (puszczenie bez przesunięcia), dzięki czemu można najpierw przeciągnąć po cyfrach                                     |
+| Powrót na stronę: flaga w `sessionStorage`               | Stan intro w pamięci modułu: nawigacja wewnątrz strony pomija intro, pełne przeładowanie odtwarza je od nowa (wygodne przy pracy nad animacją). `sessionStorage` do decyzji |
+| Maszyna stanów w `hooks/useIntroState.ts`                | `engine/intro/introMachine.ts` (czysta) + `introStore.ts` (mały store czytany przez `useSyncExternalStore`)                                                                 |
+| `components/sections/About/`, `components/ui/SkipIntro/` | Jeden komponent `sections/Intro/` (tekst i zdjęcie to część tego samego widoku, bo canvas musi znać położenie ramki zdjęcia)                                                |
+
+Przegląd adwersarialny (5 recenzentów, 45 agentów): 20 znalezisk, 19 potwierdzonych. Naprawione w tej fazie (poza „powrotem na stronę”, które jest świadomym odstępstwem z tabeli wyżej), m.in.: oscylacja kontrolera jakości,
+fizyka zależna od liczby klatek, treść ukryta przed czytnikami ekranu, pusta strona przy awarii skryptu, utrata fokusu klawiatury, układ telefonu poziomo,
+rozmycie przy przejściu na zdjęcie na ekranach 2×, prawy i środkowy klik startujące wybuch.
 
 ## Kontekst dla sesji AI
 
@@ -51,41 +71,48 @@ wracają cyfry (efekt „soczewki”).
 
 ## Technika
 
-### Moduły silnika: `src/engine/`
+### Moduły silnika: `src/engine/` (czyste TypeScript, bez Reacta)
 
-| Plik                        | Odpowiedzialność                                                                                                                             |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/Ticker.ts`            | Jedna pętla `requestAnimationFrame`, czas między klatkami, pauza i wznowienie                                                                |
-| `core/PointerTracker.ts`    | Pointer Events: pozycja w układzie canvasu, prędkość ruchu, dotyk                                                                            |
-| `core/QualityGovernor.ts`   | Średni fps (wygładzony). Przy spadku powiększa komórkę i zmniejsza liczbę cząstek                                                            |
-| `glyph/GlyphAtlas.ts`       | Raz rysuje cyfry `0` do `9` fontem monospace w kilku odcieniach szarości. Liczy „ilość tuszu” każdej cyfry, żeby zbudować rampę jasności     |
-| `glyph/GlyphField.ts`       | Cząstki w `Float32Array`: pozycja, prędkość, cel, indeks glifu, przezroczystość                                                              |
-| `glyph/PortraitSampler.ts`  | Rysuje zdjęcie w siatce `kolumny × wiersze`, liczy jasność (`0.2126R + 0.7152G + 0.0722B`), stosuje krzywą kontrastu i dobiera cyfrę z rampy |
-| `glyph/forces.ts`           | Czyste funkcje: odpychanie, impuls wybuchu, sprężyna do celu (całkowanie semi-implicit Euler)                                                |
-| `glyph/Canvas2DRenderer.ts` | Rysowanie z atlasu przez `drawImage`. Implementuje `GlyphRenderer`, żeby w planie B podmienić go na OGL                                      |
+| Plik                        | Odpowiedzialność                                                                                                                                           |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/Ticker.ts`            | Jedna pętla `requestAnimationFrame`, ograniczenie skoku czasu, samoczynne zatrzymanie bez subskrybentów                                                    |
+| `core/PointerTracker.ts`    | Pointer Events: mysz (start od razu, tylko lewy przycisk), palec (start po stuknięciu, pierwszy palec), `data-intro-ignore`                                |
+| `core/QualityGovernor.ts`   | Średnie fps w oknach, histereza, **nigdy nie wraca do poziomu, który był za wolny**, ponowne uzbrojenie po przebudowie                                     |
+| `glyph/forces.ts`           | Czyste funkcje: opadanie wpływu, impuls wybuchu, tarcie niezależne od fps, krok sprężyny                                                                   |
+| `glyph/portrait.ts`         | Siatka, kadrowanie `cover`, jasność komórek, autopoziomy, rampa cyfr wg „tuszu”, losowość doboru cyfry, przydział celów                                    |
+| `glyph/GlyphField.ts`       | Cząstki w tablicach `Float32Array`/`Uint8Array`: fazy `idle`, `explode`, `morph`, `hold`; zero alokacji w klatce; ok. 0,2 ms na klatkę dla 15 tys. cząstek |
+| `glyph/GlyphAtlas.ts`       | Cyfry `0`-`9` w 8 poziomach szarości narysowane raz; pomiar „tuszu” każdej cyfry                                                                           |
+| `glyph/Canvas2DRenderer.ts` | Jedno `drawImage` na cyfrę, współrzędne w pikselach urządzenia                                                                                             |
+| `intro/introMachine.ts`     | Czysta maszyna stanów `boot → idle → exploding → morphing → revealing → done` + czasy etapów                                                               |
+| `intro/introStore.ts`       | Stan intro dla Reacta (`useSyncExternalStore`)                                                                                                             |
+| `intro/PixelateReveal.ts`   | Zdjęcie od bloków 30 px do 1 px, ostatnia klatka rysowana wprost z pliku, dopasowana do pikseli urządzenia                                                 |
+| `intro/IntroController.ts`  | Spina całość: rozmiar, jakość, obraz, cele portretu, pętla, resize, zwolnienie zasobów po zakończeniu                                                      |
 
 ### Komponenty React
 
-| Komponent / hook             | Rola                                                                                         |
-| ---------------------------- | -------------------------------------------------------------------------------------------- |
-| `components/sections/Intro/` | Komponent kliencki. Ładuje silnik dynamicznie (`next/dynamic`, `ssr: false`), montuje canvas |
-| `components/sections/About/` | Tekst „O mnie” i zdjęcie (`<picture>` z AVIF i WebP)                                         |
-| `components/ui/SkipIntro/`   | Przycisk „Pomiń intro”, dostępny też z klawiatury                                            |
-| `hooks/useIntroState.ts`     | Maszyna stanów: `boot → idle → exploding → morphing → revealed`                              |
-| `hooks/useReducedMotion.ts`  | Odczyt `prefers-reduced-motion`                                                              |
+| Komponent / hook              | Rola                                                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `components/sections/Intro/`  | Sekcja: canvas, tekst, ramka zdjęcia, przyciski. Treść w DOM i w drzewie dostępności od pierwszego renderu, animowana tylko przezroczystość |
+| `hooks/useIntro.ts`           | Ładuje silnik leniwie, oznacza sekcję `data-armed`, limit 6 s na start silnika, zwalnia kontroler i canvas po zakończeniu                   |
+| `hooks/useIntroFocus.ts`      | Oddaje fokus klawiatury po zniknięciu przycisku (do „Pomiń intro”, a po zakończeniu do nagłówka)                                            |
+| `hooks/useHeadingScramble.ts` | Nazwisko „odkodowuje się” z cyfr (GSAP ScrambleText); kod GSAP pobierany z wyprzedzeniem w stanie `idle`                                    |
 
-### Rozmiary siatki (punkt wyjścia do strojenia)
+### Rozmiary siatki
 
-| Ekran            | Komórka | Siatka   | Komórek   |
-| ---------------- | ------- | -------- | --------- |
-| Desktop 1440×900 | 12 px   | 120 × 75 | ok. 9 000 |
-| Telefon 390×844  | 10 px   | 39 × 84  | ok. 3 300 |
+Komórka ma proporcje 0,6 : 1 (cyfry są wyższe niż szerokie). Rozmiar komórki zależy od poziomu jakości (mnożnik 1,0 / 1,2 / 1,5, DPR do 2 / 1,5 / 1)
+i od ekranu (bazowo 12 px, na wąskich 11 px). Liczba cząstek jest ograniczona do 16 000: bardzo duże ekrany dostają większe cyfry, a nie więcej cyfr.
+
+| Ekran                  | Komórka | Cząstek (przybl.) |
+| ---------------------- | ------- | ----------------- |
+| Desktop 1440×900       | 12 px   | ok. 15 000        |
+| Telefon 393×851        | 13 px   | ok. 3 400         |
+| Duży monitor 2560×1440 | 20 px   | ok. 15 400        |
 
 ### Zdjęcie
 
-- Plik `public/img/portrait/portrait.avif` (+ `.webp` jako zapas), maks. ok. 120 kB.
-- Tło jednolite albo wycięte (Photopea). Wysoki kontrast twarzy, bo od tego zależy czytelność portretu z cyfr.
-- Ten sam plik zasila `PortraitSampler` (próbkowanie w przeglądarce trwa milisekundy, więc nie trzeba niczego generować przy buildzie).
+- Docelowo `public/assets/portrait/portrait.webp` (albo `.avif`), proporcje 4:5, ok. 120 kB. Jedna zmiana w `src/content/profile.ts`, instrukcja w [`docs/ASSETS.md`](../ASSETS.md).
+- Tło jednolite albo wycięte (Photopea). Wysoki kontrast twarzy, bo od tego zależy czytelność portretu z cyfr (kod sam rozciąga jasność, ale płaskie zdjęcie da płaski portret).
+- To samo zdjęcie zasila próbkowanie (w przeglądarce, milisekundy) i widok końcowy. Nic nie trzeba generować przy buildzie.
 
 ### Dostępność i SEO
 
@@ -96,54 +123,54 @@ wracają cyfry (efekt „soczewki”).
 
 ### Telefony
 
-- Dotknięcie działa jak kliknięcie, a przesuwanie palcem odpycha cyfry.
-- `touch-action: none` **tylko na canvasie intro i tylko do kliknięcia**. Potem przywracamy normalny scroll.
-- Obrót ekranu i zmiana rozmiaru przebudowują siatkę z opóźnieniem (debounce).
-- Wysokość sekcji w `100svh`, żeby nie skakała przy chowającym się pasku adresu w Safari na iOS.
-- Wibracja przy wybuchu (`navigator.vibrate?.(30)`) działa tylko na Androidzie. iOS jej nie obsługuje i to jest w porządku.
+- Palec: stuknięcie (krótkie, prawie bez ruchu) uruchamia wybuch, przeciągnięcie odpycha cyfry. Drugi palec jest ignorowany.
+- `touch-action: none` tylko, gdy skrypt działa i tylko do końca intro. Bez skryptu albo po zakończeniu przewijanie działa normalnie.
+- Zmiana rozmiaru lub obrót przed kliknięciem przebudowuje siatkę (z opóźnieniem 120 ms). Po rozpoczęciu animacji przeskakujemy od razu do widoku końcowego.
+- Wysokość sekcji `min-height: 100svh`, więc chowający się pasek adresu nie zmienia układu.
+- Telefon poziomo (wysokość ≤ 520 px): układ dwukolumnowy, mniejsze zdjęcie i tekst, żeby przycisk i portret mieściły się na ekranie.
+- Wibracja przy wybuchu (`navigator.vibrate`) działa tylko na Androidzie.
 
 ### Budżet wydajności
 
-| Metryka                                   | Cel                                                   |
-| ----------------------------------------- | ----------------------------------------------------- |
-| Płynność na desktopie                     | 60 fps                                                |
-| Płynność na średnim telefonie z Androidem | **≥ 50 fps**, bez widocznych przycięć przy kliknięciu |
-| Długie zadania na głównym wątku           | < 50 ms                                               |
-| LCP (tekst lub zdjęcie)                   | < 2,5 s                                               |
-| Paczka JS intro (bez Reacta i Next)       | ≤ 40 kB gzip                                          |
-| Lighthouse mobile                         | Performance ≥ 85, Accessibility ≥ 95                  |
+| Metryka                                   | Cel                                                    | Wynik (08.10.2026)                                                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Płynność na desktopie                     | 60 fps                                                 | Symulacja 0,2 ms/klatkę. Pomiar w Chromium bez GPU (rysowanie programowe): ok. 37 fps, **zaniżony**, do sprawdzenia na Twoim komputerze |
+| Płynność na średnim telefonie z Androidem | **≥ 50 fps**                                           | Emulacja Pixel 5 w Chromium bez GPU: ok. 59 fps. **Do sprawdzenia na prawdziwym telefonie**                                             |
+| Silnik intro (bez Reacta i Next)          | ≤ 40 kB gzip                                           | ok. 9 kB (silnik) + ok. 34 kB GSAP ładowany leniwie w czasie bezczynności. GSAP i tak potrzebny w fazie 3 (ScrollTrigger)               |
+| Cały `out/` po buildzie                   | kilka MB                                               | 852 kB, największy plik 224 kB (framework)                                                                                              |
+| Długie zadania, LCP, Lighthouse mobile    | < 50 ms, < 2,5 s, Performance ≥ 85, Accessibility ≥ 95 | Do zmierzenia na wdrożonej stronie (lista przed deployem w fazie 1)                                                                     |
 
-Pomiar: Chrome DevTools (Performance, spowolnienie CPU 4×) **oraz prawdziwy telefon**.
-Gdy Canvas 2D nie spełni budżetu, przechodzimy na renderer OGL (plan B z fazy 1).
-Kolejną opcją jest `OffscreenCanvas` w Web Workerze.
+Pomiar: Chrome DevTools (Performance, spowolnienie CPU 4×) **oraz prawdziwy telefon**. Liczby z Playwrighta (`npm run test:e2e`, test „frame pacing”) są informacyjne.
+Gdy Canvas 2D nie spełni budżetu na prawdziwym urządzeniu, `QualityGovernor` obniża jakość w trakcie bezczynności (większe cyfry, mniejszy DPR). Dalsze opcje: renderer OGL albo `OffscreenCanvas` w workerze.
 
 ### Testy
 
-- **Vitest:** `PortraitSampler` (rampa jasności), `forces.ts` (sprężyna się stabilizuje, impuls maleje z odległością), maszyna stanów.
-- **Playwright:** wejście → klik → widoczne „O mnie” i zdjęcie; ścieżka „Pomiń intro”; ścieżka reduced-motion; zrzut ekranu w 2 rozdzielczościach.
+- **Vitest (47 testów):** fizyka i próbkowanie portretu, symulacja cząstek (odpychanie, wybuch, zbieżność do celów niezależna od fps), maszyna stanów, kontroler jakości, śledzenie wskaźnika (mysz, stuknięcie, przeciągnięcie, prawy klik, drugi palec).
+- **Playwright (`npm run test:e2e`, desktop i telefon):** pełna sekwencja ze zrzutami, „Pomiń intro”, reduced-motion, klawiatura i fokus, dotyk (przeciągnięcie i stuknięcie), treść w drzewie dostępności, awaria skryptów (awaryjne ujawnienie treści), telefon poziomo.
+  Lokalnie wystarczy `npx playwright install chromium` (jednorazowo), potem `npm run test:e2e`.
 
 ---
 
 ## Etapy
 
-| #   | Etap                                                                                             | Wynik                                                          |
-| --- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| 2.1 | **Prototyp w izolacji** (`/lab/intro`, tylko w dev): siatka cyfr, odpychanie, wybuch             | Pomiar fps na desktopie i telefonie, decyzja Canvas 2D czy OGL |
-| 2.2 | **Portret z cyfr**: próbkowanie zdjęcia, rampa cyfr, strojenie kontrastu                         | Autor akceptuje wygląd twarzy z cyfr                           |
-| 2.3 | **Choreografia**: maszyna stanów i timeline GSAP (S0 do S5)                                      | Pełna sekwencja na desktopie                                   |
-| 2.4 | **Sekcja „O mnie”**: layout, typografia, tekst od autora                                         | Gotowy widok końcowy                                           |
-| 2.5 | **Telefony i dostępność**: dotyk, obrót, reduced-motion, „Pomiń intro”, powrót na stronę         | Działa na iOS i Androidzie                                     |
-| 2.6 | **Optymalizacja**: QualityGovernor, pauza poza ekranem, lazy-load, Lighthouse, test na telefonie | Spełniony budżet wydajności                                    |
-| 2.7 | **Przegląd z autorem** i poprawki                                                                | Akceptacja                                                     |
+| #   | Etap                                                                           | Status                                                  |
+| --- | ------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| 2.1 | Siatka cyfr, odpychanie, wybuch                                                | ✅                                                      |
+| 2.2 | Portret z cyfr: próbkowanie, rampa cyfr, autopoziomy                           | ✅ (na placeholderze; do oceny na Twoim zdjęciu)        |
+| 2.3 | Choreografia i maszyna stanów                                                  | ✅                                                      |
+| 2.4 | Sekcja „O mnie”: układ, typografia                                             | ✅ (teksty tymczasowe, czekają na Twoje)                |
+| 2.5 | Telefony i dostępność: dotyk, obrót, reduced-motion, „Pomiń intro”, klawiatura | ✅                                                      |
+| 2.6 | Optymalizacja: kontroler jakości, leniwe ładowanie, zwalnianie zasobów         | ✅ (pomiar na prawdziwych urządzeniach czeka na Ciebie) |
+| 2.7 | Przegląd z autorem i poprawki                                                  | ⏳ PR do `main`                                         |
 
 ## Kryteria ukończenia
 
-- [ ] Autor zaakceptował wygląd i tempo animacji
-- [ ] `npm run check` przechodzi bez błędów TypeScript i ESLint, a deploy na domenę działa
-- [ ] Działa w Chrome, Firefox, Safari (macOS i iOS) oraz Chrome na Androidzie
-- [ ] Spełniony budżet wydajności: 60 fps desktop, ≥ 50 fps średni telefon, brak przycięć przy kliknięciu
-- [ ] Widok końcowy: zdjęcie po prawej i tekst po lewej (desktop), poprawny układ na telefonie
-- [ ] Działają „Pomiń intro”, klawiatura i `prefers-reduced-motion`
+- [ ] Autor zaakceptował wygląd i tempo animacji (na swoim zdjęciu)
+- [x] `npm run check` przechodzi (lint, style, typy, testy, build), `npm run test:e2e` przechodzi
+- [ ] Działa w Chrome, Firefox, Safari (macOS i iOS) oraz Chrome na Androidzie (sprawdzone: Chromium, w tym emulacja telefonu i dotyku)
+- [ ] Spełniony budżet wydajności na prawdziwych urządzeniach: 60 fps desktop, ≥ 50 fps średni telefon
+- [x] Widok końcowy: zdjęcie po prawej i tekst po lewej (desktop), poprawny układ na telefonie (także poziomo)
+- [x] Działają „Pomiń intro”, klawiatura i `prefers-reduced-motion`
 
 ## Ryzyka
 

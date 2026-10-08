@@ -170,8 +170,17 @@ export class GlyphField {
     this.phaseTime = 0;
   }
 
-  /** Freeze motion and fade all tones out exponentially (used while the photo takes over). */
+  /**
+   * Freeze motion (used while the photo takes over). Targeted particles snap onto their targets
+   * first, so a slow device that did not finish the morph in time still shows a complete portrait.
+   */
   hold(): void {
+    for (let i = 0; i < this.count; i++) {
+      if (!this.hasTarget[i]) continue;
+      this.x[i] = this.targetX[i]!;
+      this.y[i] = this.targetY[i]!;
+      this.glyph[i] = this.targetGlyph[i]!;
+    }
     this.phase = 'hold';
     this.phaseTime = 0;
   }
@@ -204,7 +213,7 @@ export class GlyphField {
   }
 
   private stepIdle(dt: number, pointer: PointerState): void {
-    const damp = Math.max(0, 1 - HOME_DAMPING * dt);
+    const damp = dragFactor(HOME_DAMPING, dt);
     const relax = Math.min(1, 7 * dt);
     const radius = pointer.radius;
     const active = pointer.active;
@@ -262,7 +271,7 @@ export class GlyphField {
 
   private stepMorph(dt: number): void {
     const t = this.phaseTime;
-    const damp = Math.max(0, 1 - MORPH_DAMPING * dt);
+    const damp = dragFactor(MORPH_DAMPING, dt);
     const drag = dragFactor(EXPLODE_DRAG, dt);
     const toneEase = Math.min(1, 9 * dt);
     const fadeOut = dragFactor(2.6, dt);

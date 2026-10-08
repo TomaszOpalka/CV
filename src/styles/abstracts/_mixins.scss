@@ -8,6 +8,13 @@
   }
 }
 
+// A phone held sideways: wide but very short. The portrait layout would not fit, so use two columns.
+@mixin landscape-compact {
+  @media (orientation: landscape) and (height <= 520px) {
+    @content;
+  }
+}
+
 // Hover styles only on devices that really hover (not touch).
 @mixin hover-only {
   @media (hover: hover) and (pointer: fine) {

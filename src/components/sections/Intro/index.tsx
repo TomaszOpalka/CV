@@ -6,6 +6,7 @@ import { useRef, type CSSProperties } from 'react';
 import { profile } from '@/content/profile';
 import { useHeadingScramble } from '@/hooks/useHeadingScramble';
 import { useIntro } from '@/hooks/useIntro';
+import { useIntroFocus } from '@/hooks/useIntroFocus';
 
 import styles from './index.module.scss';
 
@@ -16,7 +17,8 @@ function stagger(index: number): CSSProperties {
 /**
  * Hero: a grid of digits that reacts to the pointer, explodes on click and re-assembles into
  * the author's portrait, which then turns into the real photo next to the "about me" text.
- * The heading and text are in the DOM from the first render (SEO, screen readers); the canvas is decoration.
+ * The heading and text are in the DOM (and the accessibility tree) from the first render;
+ * only their opacity is animated. The canvas is decoration.
  */
 export function Intro() {
   const rootRef = useRef<HTMLElement>(null);
@@ -24,6 +26,8 @@ export function Intro() {
   const frameRef = useRef<HTMLDivElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
   const nameRef = useRef<HTMLSpanElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const skipRef = useRef<HTMLButtonElement>(null);
 
   const { portrait, name, role, about } = profile;
   const { state, press, skip } = useIntro({
@@ -35,13 +39,20 @@ export function Intro() {
     focalY: portrait.focalY,
   });
   useHeadingScramble(nameRef, name, state);
+  useIntroFocus(rootRef, titleRef, skipRef, state);
 
   const playing = state !== 'done';
 
   return (
     <section ref={rootRef} className={styles.root} data-state={state} aria-labelledby="hero-title">
       {playing && (
-        <button type="button" className={styles.skip} data-intro-ignore onClick={skip}>
+        <button
+          ref={skipRef}
+          type="button"
+          className={styles.skip}
+          data-intro-ignore
+          onClick={skip}
+        >
           Pomiń intro
         </button>
       )}
@@ -53,7 +64,14 @@ export function Intro() {
           <p className={styles.eyebrow} style={stagger(0)}>
             {role}
           </p>
-          <h1 id="hero-title" className={styles.title} aria-label={name} style={stagger(1)}>
+          <h1
+            ref={titleRef}
+            id="hero-title"
+            className={styles.title}
+            aria-label={name}
+            tabIndex={-1}
+            style={stagger(1)}
+          >
             <span ref={nameRef}>{name}</span>
           </h1>
           {about.map((paragraph, index) => (
@@ -82,14 +100,10 @@ export function Intro() {
       </p>
 
       {state === 'idle' && (
-        <button
-          type="button"
-          className={styles.prompt}
-          onClick={press}
-          aria-label="Uruchom animację"
-        >
+        <button type="button" className={styles.prompt} onClick={press}>
           <span className={styles.promptMouse}>[ kliknij ]</span>
           <span className={styles.promptTouch}>[ dotknij ]</span>
+          <span className={styles.srOnly}> aby uruchomić animację</span>
         </button>
       )}
     </section>

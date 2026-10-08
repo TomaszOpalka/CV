@@ -19,12 +19,14 @@ export interface QualityGovernorOptions {
  */
 export class QualityGovernor {
   level: number;
-  private readonly maxLevel: number;
+  /** Highest level still worth trying. Lowered after a drop so a failed level is never retried. */
+  private maxLevel: number;
   private readonly lowFps: number;
   private readonly highFps: number;
   private readonly windowSize: number;
   private readonly raiseAfter: number;
   private warmupLeft: number;
+  private readonly warmupFrames: number;
   private frames = 0;
   private timeMs = 0;
   private goodWindows = 0;
@@ -35,8 +37,16 @@ export class QualityGovernor {
     this.lowFps = options.lowFps ?? 46;
     this.highFps = options.highFps ?? 58;
     this.windowSize = options.window ?? 30;
-    this.warmupLeft = options.warmup ?? 20;
+    this.warmupFrames = options.warmup ?? 20;
+    this.warmupLeft = this.warmupFrames;
     this.raiseAfter = options.raiseAfter ?? 3;
+  }
+
+  /** Ignore the next frames again (call after the scene was rebuilt: the rebuild itself causes a long frame). */
+  rearm(): void {
+    this.warmupLeft = this.warmupFrames;
+    this.frames = 0;
+    this.timeMs = 0;
   }
 
   /** Feed one frame time. Returns the new level when it changed, otherwise null. */
@@ -55,6 +65,9 @@ export class QualityGovernor {
 
     if (fps < this.lowFps && this.level > 0) {
       this.level--;
+      // The level above this one was too slow: remember that, otherwise a device that sits
+      // between two levels would flip between them (and rebuild the scene) forever.
+      this.maxLevel = this.level;
       this.goodWindows = 0;
       return this.level;
     }

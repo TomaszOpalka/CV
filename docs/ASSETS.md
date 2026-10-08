@@ -11,10 +11,10 @@ To **konwencja**, nie funkcja Gita ani Next.js. Nic nie robi i możesz go bezpie
 
 W Next.js dwa miejsca na pliki to nie to samo:
 
-| Miejsce          | Do czego                                                                                                                            |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Miejsce          | Do czego                                                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `public/assets/` | **Tu wkładasz zdjęcia i PDF-y.** Pliki są serwowane bez zmian pod adresem `/assets/...` (np. `public/assets/cv/cv.pdf` → `/assets/cv/cv.pdf`) |
-| `src/`           | Kod, style i treści tekstowe (`src/content/*.ts`). Obrazy importowane w kodzie przetwarza bundler, my używamy do tego `public/`        |
+| `src/`           | Kod, style i treści tekstowe (`src/content/*.ts`). Obrazy importowane w kodzie przetwarza bundler, my używamy do tego `public/`               |
 
 ```
 public/assets/

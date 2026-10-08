@@ -72,6 +72,9 @@ export class IntroController {
 
   private width = 0;
   private height = 0;
+  /** Cell size and DPR the scene was last built with. */
+  private builtCell = 0;
+  private builtDpr = 0;
   private lastProgress = -1;
   private pendingResize = false;
 
@@ -135,23 +138,29 @@ export class IntroController {
     this.width = root.clientWidth;
     this.height = root.clientHeight;
 
-    const [cellScale, maxDpr] = QUALITY[this.governor.level]!;
-    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    const baseCell = this.width < 600 ? 11 : 12;
-    const minCell = Math.ceil(
-      Math.sqrt((this.width * this.height) / (CELL_ASPECT * MAX_PARTICLES)),
-    );
-    const grid = computeGrid(
-      this.width,
-      this.height,
-      Math.max(minCell, Math.round(baseCell * cellScale)),
-    );
+    const { cell, dpr } = this.settingsFor(this.governor.level);
+    this.builtCell = cell;
+    this.builtDpr = dpr;
+    const grid = computeGrid(this.width, this.height, cell);
     const family = getComputedStyle(root).getPropertyValue('--font-mono').trim() || 'monospace';
 
     this.renderer.resize(this.width, this.height, dpr);
     this.atlas = new GlyphAtlas(grid.cellW, grid.cellH, dpr, TONE_LEVELS, family);
     this.field = new GlyphField(grid, TONE_LEVELS);
     this.targets = this.imageReady ? this.computeTargets() : null;
+  }
+
+  /** Cell size (CSS px) and device pixel ratio for a quality level at the current size. */
+  private settingsFor(level: number): { cell: number; dpr: number } {
+    const [cellScale, maxDpr] = QUALITY[level]!;
+    const baseCell = this.width < 600 ? 11 : 12;
+    const minCell = Math.ceil(
+      Math.sqrt((this.width * this.height) / (CELL_ASPECT * MAX_PARTICLES)),
+    );
+    return {
+      cell: Math.max(minCell, Math.round(baseCell * cellScale)),
+      dpr: Math.min(window.devicePixelRatio || 1, maxDpr),
+    };
   }
 
   private loadImage(): void {
@@ -257,6 +266,13 @@ export class IntroController {
         this.unsubscribeTicker?.();
         this.unsubscribeTicker = null;
         this.pointer.detach();
+        // Nothing needs the scene any more: drop what is big (the owner then drops the controller).
+        this.resizeObserver?.disconnect();
+        this.resizeObserver = null;
+        window.clearTimeout(this.resizeTimer);
+        this.reveal = null;
+        this.targets = null;
+        this.image = null;
         break;
       default:
         break;
@@ -302,7 +318,11 @@ export class IntroController {
         this.renderer.clear();
         this.renderer.drawField(this.field, this.atlas, this.field.rows);
         const level = this.governor.record(deltaMs);
-        if (level !== null) this.pendingResize = true; // rebuild with the new quality before the next frame
+        if (level !== null) {
+          // Large screens can map several levels onto the same settings: rebuild only if something changes.
+          const next = this.settingsFor(level);
+          if (next.cell !== this.builtCell || next.dpr !== this.builtDpr) this.pendingResize = true;
+        }
         break;
       }
       case 'exploding':
@@ -359,10 +379,11 @@ export class IntroController {
   private onResize(): void {
     if (this.destroyed || this.state === 'done') return;
     const root = this.o.root;
-    const widthChanged = Math.abs(root.clientWidth - this.width) > 2;
-    // Mobile browser bars change the height by up to ~100 px without a real layout change.
-    const heightChanged = Math.abs(root.clientHeight - this.height) > 120;
-    if (!widthChanged && !heightChanged) return;
+    // The section is min-height: 100svh (the *small* viewport), so mobile browser bars do not change it:
+    // any real size change means a real layout change and the canvas bitmap must follow.
+    const changed =
+      Math.abs(root.clientWidth - this.width) > 2 || Math.abs(root.clientHeight - this.height) > 2;
+    if (!changed) return;
 
     if (this.state === 'boot' || this.state === 'idle') {
       window.clearTimeout(this.resizeTimer);
@@ -376,7 +397,13 @@ export class IntroController {
 
   private applyResize(): void {
     this.pendingResize = false;
-    if (this.state !== 'boot' && this.state !== 'idle') return;
+    if (this.state !== 'boot' && this.state !== 'idle') {
+      // The layout changed after the user already started the animation: the grid and the portrait
+      // targets are stale, so jump to the final view instead of showing a misplaced portrait.
+      this.dispatch('skip');
+      return;
+    }
     this.build();
+    this.governor.rearm();
   }
 }

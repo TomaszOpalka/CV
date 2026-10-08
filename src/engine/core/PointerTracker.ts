@@ -75,6 +75,11 @@ export class PointerTracker {
   };
 
   private readonly onDown = (event: PointerEvent): void => {
+    // Only the primary pointer's primary button: no right/middle click, no second finger.
+    if (!event.isPrimary || event.button !== 0) {
+      this.downIgnored = true;
+      return;
+    }
     this.locate(event);
     this.state.active = true;
     this.downX = event.clientX;
@@ -87,7 +92,7 @@ export class PointerTracker {
   };
 
   private readonly onUp = (event: PointerEvent): void => {
-    if (event.pointerType === 'mouse') return;
+    if (event.pointerType === 'mouse' || !event.isPrimary) return;
     this.state.active = false;
     if (event.type !== 'pointerup' || this.downIgnored) return;
     const moved = Math.hypot(event.clientX - this.downX, event.clientY - this.downY);

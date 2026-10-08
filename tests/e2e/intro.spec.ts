@@ -81,7 +81,7 @@ test('prefers-reduced-motion shows the final view with no animation', async ({ p
 test('the intro can be started from the keyboard', async ({ page }) => {
   await openHome(page);
   await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
-  await page.getByRole('button', { name: 'Uruchom animację' }).focus();
+  await page.getByRole('button', { name: /uruchomić animację/ }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
   await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 8_000 });
@@ -144,4 +144,85 @@ test('touch: a swipe pushes digits without exploding, a tap explodes', async ({ 
   await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 8_000 });
   await expect(page.getByAltText(/Portret autora/)).toBeVisible();
   expect(problems).toEqual([]);
+});
+
+test('the heading and text are in the accessibility tree while the intro plays', async ({
+  page,
+}) => {
+  await openHome(page);
+  await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('heading', { level: 1, name: 'Tomasz Opalka' })).toBeAttached();
+  await expect(page.getByText('To jest miejsce na krótki opis')).toBeAttached();
+  // ...but not visible yet
+  const opacity = await page.locator('h1').evaluate((el) => getComputedStyle(el).opacity);
+  expect(opacity).toBe('0');
+});
+
+test('right and middle clicks do not start the explosion', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop', 'mouse buttons are a desktop concern');
+  await openHome(page);
+  await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
+  await page.mouse.click(300, 300, { button: 'right' });
+  await page.mouse.click(300, 300, { button: 'middle' });
+  await page.waitForTimeout(300);
+  expect(await page.locator('section[data-state]').getAttribute('data-state')).toBe('idle');
+});
+
+test('keyboard focus is handed on, never dropped to <body>', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop', 'keyboard flow is checked on desktop');
+  await openHome(page);
+  await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
+  await page.getByRole('button', { name: /uruchomić animację/ }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
+  // The prompt unmounted: focus moved to "Pomiń intro".
+  await expect(page.getByRole('button', { name: 'Pomiń intro' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('section[data-state="done"]')).toBeVisible();
+  // The skip button unmounted: focus moved to the heading.
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+});
+
+test('reduced motion does not steal focus on load', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await openHome(page);
+  await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 3_000 });
+  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+});
+
+test('if the scripts never load, the content is revealed by a CSS failsafe', async ({ page }) => {
+  await page.route('**/_next/static/chunks/**/*.js', (route) => route.abort());
+  await page.route('**/_next/static/chunks/*.js', (route) => route.abort());
+  await page.goto('/');
+  expect(await page.locator('section').getAttribute('data-armed')).toBeNull();
+  await expect(page.locator('h1')).toHaveCSS('opacity', '1', { timeout: 7_000 });
+  await expect(page.getByAltText(/Portret autora/)).toBeVisible();
+  // and the dead "skip" button is not offered
+  await expect(page.getByRole('button', { name: 'Pomiń intro' })).toBeHidden();
+  expect(await page.locator('section').evaluate((el) => getComputedStyle(el).touchAction)).toBe(
+    'auto',
+  );
+});
+
+test('a phone held sideways: the prompt is on screen and everything fits', async ({
+  browser,
+}, info) => {
+  test.skip(info.project.name !== 'mobile', 'viewport emulation is set up for the mobile project');
+  const context = await browser.newContext({
+    viewport: { width: 750, height: 342 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+  await page.goto('/');
+  await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
+  const prompt = page.getByRole('button', { name: /uruchomić animację/ });
+  const box = (await prompt.boundingBox())!;
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.y + box.height).toBeLessThanOrEqual(342);
+  const frame = (await page.locator('section div[class*="frame"]').boundingBox())!;
+  expect(frame.y + frame.height).toBeLessThanOrEqual(342);
+  await page.touchscreen.tap(300, 170);
+  await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 9_000 });
+  await context.close();
 });
