@@ -38,22 +38,22 @@ rozmycie przy przejściu na zdjęcie na ekranach 2×, prawy i środkowy klik sta
 
 Pierwsza wersja (seria statycznych „blueprintów” morfujących jeden w drugi) wyglądała tandetnie: kształty zbiegały się od krawędzi do środka, nic się nie ruszało.
 Dlatego sekwencja jest teraz **prawdziwym filmem**: scena 3D rysowana wektorowo, z kamerą, animowanymi modelami i fizyką, a dopiero potem zamieniana na cyfry.
-Całość trwa ok. 33 s (plus 0,65 s wybuchu po kliknięciu i 1,1 s odsłonięcia zdjęcia), w każdej chwili można ją pominąć („skip intro”).
+Całość trwa ok. 27 s (plus 0,65 s wybuchu po kliknięciu i 1,1 s odsłonięcia zdjęcia), w każdej chwili można ją pominąć („skip intro”).
 
-| Akt (`data-act`) | Czas  | Co widać                                                                                                                                                                 |
-| ---------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `engine`         | 4,4 s | V8: osiem tłoków pracuje naprawdę (korba, korbowody, wtryski ognia), kamera powoli okrąża silnik, z góry spływają pojedyncze zielone cyfry jak w Matrixie                |
-| `turn`           | 2,6 s | Silnik obraca się w lewo (kamera skręca i wznosi się), wokół niego rysuje się bolid F1, widok z góry                                                                     |
-| `orbit`          | 2,6 s | Kamera zjeżdża znad bolidu do profilu na wysokość silnika, silnik dostaje pokrywę (opada z góry)                                                                         |
-| `pullback`       | 1,8 s | Kamera oddala się od bolidu                                                                                                                                              |
-| `drive`          | 2,4 s | Bolid ruszy, kręcą się koła, spod kół wylatuje kłąb dymu                                                                                                                 |
-| `smoke`          | 2,0 s | Kamera wjeżdża w dym, dym zawija się wirem w piłkę do kosza                                                                                                              |
-| `fall`           | 2,0 s | Piłka na środku ekranu „spada”: tło ucieka w górę smugami, kamera się odchyla                                                                                            |
-| `hoop`           | 3,6 s | Pod kątem ok. 25 do 30° widać halę (linie boiska, tablica, obręcz z siatką), piłka wpada do kosza i odbija się trzy razy                                                 |
-| `reactor`        | 2,6 s | Kamera podjeżdża do piłki, od środka zapala się rdzeń Starka (cyjan), wokół obracają się pierścienie i tłoczki jak mechanizm, tło lekko dryfuje                          |
-| `deathStar`      | 5,0 s | Rdzeń zamienia się w **jedną** Gwiazdę Śmierci: rośnie na środku, obraca działo w stronę widza, oddala się, ładuje (zielone promienie) i strzela w ekran                 |
-| `explosion`      | 1,4 s | Biały błysk, kula ognia, pierścienie uderzeniowe, a same cyfry zostają rozrzucone jak odłamki                                                                            |
-| `matrix`         | 3,0 s | Po chwili ciszy zielony deszcz liter zalewa cały ekran od góry, a potem fala głów deszczu zostawia za sobą portret z cyfr; zaraz potem `revealing` zamienia go w zdjęcie |
+| Akt (`data-act`) | Czas  | Co widać                                                                                                                                                                           |
+| ---------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `engine`         | 2,0 s | V8: osiem tłoków pracuje naprawdę (korba, korbowody, wtryski ognia), kamera powoli okrąża silnik, z góry spływają pojedyncze białoszare cyfry jak w Matrixie                       |
+| `turn`           | 1,5 s | Silnik obraca się w lewo (kamera skręca i wznosi się), wokół niego rysuje się bolid F1, widok z góry                                                                               |
+| `orbit`          | 1,5 s | Kamera zjeżdża znad bolidu do profilu na wysokość silnika, silnik dostaje pokrywę (opada z góry)                                                                                   |
+| `pullback`       | 1,0 s | Kamera oddala się od bolidu                                                                                                                                                        |
+| `drive`          | 1,8 s | Bolid ruszy, kręcą się koła, spod kół wylatuje kłąb dymu                                                                                                                           |
+| `smoke`          | 1,4 s | Kamera wjeżdża w dym, dym zawija się wirem w piłkę do kosza                                                                                                                        |
+| `fall`           | 2,0 s | Piłka na środku ekranu „spada”: tło ucieka w górę smugami, kamera się odchyla                                                                                                      |
+| `hoop`           | 3,6 s | Pod kątem ok. 25 do 30° widać halę (linie boiska, tablica, obręcz z siatką), piłka wpada do kosza i odbija się trzy razy                                                           |
+| `reactor`        | 2,6 s | Kamera podjeżdża do piłki, od środka zapala się rdzeń Starka (cyjan), wokół obracają się pierścienie i tłoczki jak mechanizm, tło lekko dryfuje                                    |
+| `deathStar`      | 5,0 s | Rdzeń zamienia się w **jedną** Gwiazdę Śmierci: rośnie na środku, obraca działo w stronę widza, oddala się, ładuje (zielone promienie) i strzela w ekran                           |
+| `explosion`      | 1,4 s | Biały błysk, kula ognia, pierścienie uderzeniowe, a same cyfry zostają rozrzucone jak odłamki                                                                                      |
+| `matrix`         | 3,0 s | Po chwili ciszy gęsty, białoszary deszcz liter zalewa cały ekran od góry, a potem fala głów deszczu zostawia za sobą portret z cyfr; zaraz potem `revealing` zamienia go w zdjęcie |
 
 Stany maszyny: `boot → idle → exploding (0,65 s) → playing (cały film) → revealing (1,1 s) → done`. Aktualny akt jest w atrybucie `data-act` sekcji (używają go testy e2e).
 

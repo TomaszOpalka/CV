@@ -1,5 +1,5 @@
 import type { GlyphField } from '../glyph/GlyphField';
-import { GREEN } from '../glyph/palette';
+import { WHITE } from '../glyph/palette';
 import { CellShader } from './cells';
 import { MatrixRain } from './matrixRain';
 import { lerp, ramp } from './math';
@@ -25,10 +25,10 @@ const BLAST_SECONDS = 0.75;
 /** Share of columns that carry a single falling number before the final flood. */
 export function rainDensity(t: number): number {
   const S = ACT_START;
-  if (t < S.turn) return 0.09 * ramp(t, 0.2, 0.9);
-  if (t < S.orbit) return lerp(0.09, 0.025, ramp(t, S.turn, S.orbit));
-  if (t < S.smoke) return 0.025;
-  if (t < S.fall) return lerp(0.025, 0, ramp(t, S.smoke, S.fall));
+  if (t < S.turn) return 0.14 * ramp(t, 0.1, 0.5);
+  if (t < S.orbit) return lerp(0.14, 0.03, ramp(t, S.turn, S.orbit));
+  if (t < S.smoke) return 0.03;
+  if (t < S.fall) return lerp(0.03, 0, ramp(t, S.smoke, S.fall));
   return 0;
 }
 
@@ -40,6 +40,8 @@ export class IntroSequence {
   private readonly raster: SceneRaster;
   private readonly world: World;
   private readonly rain: MatrixRain;
+  /** A second layer of drops that makes the final flood dense. */
+  private readonly rainDeep: MatrixRain;
   private readonly shader: CellShader;
   private readonly lum: Float32Array;
   private readonly palette: Uint8Array;
@@ -63,6 +65,7 @@ export class IntroSequence {
     this.centerX = (grid.cols * grid.cellW) / 2;
     this.centerY = (grid.rows * grid.cellH) / 2;
     this.rain = new MatrixRain(grid.cols, grid.rows);
+    this.rainDeep = new MatrixRain(grid.cols, grid.rows, 7);
     this.shader = new CellShader(count);
     this.lum = new Float32Array(count);
     this.palette = new Uint8Array(count);
@@ -108,10 +111,11 @@ export class IntroSequence {
     const S = ACT_START;
     if (t < S.matrix) {
       const density = rainDensity(t);
-      if (density > 0) this.rain.apply(lum, palette, GREEN, t, density, 0.9, 0.5);
+      if (density > 0) this.rain.apply(lum, palette, WHITE, t, density, 0.9, 0.5);
     } else {
       const tau = t - S.matrix;
-      this.rain.apply(lum, palette, GREEN, tau, 1, 0.95, 0.9, true);
+      this.rain.apply(lum, palette, WHITE, tau, 1, 0.95, 1.1, true);
+      this.rainDeep.apply(lum, palette, WHITE, tau, 1, 0.8, 0.9, true);
       if (this.portrait && this.inside && tau >= WAVE_START) {
         this.rain.wave(
           lum,

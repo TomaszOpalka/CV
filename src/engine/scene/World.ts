@@ -74,10 +74,10 @@ export class World {
     this.trackA = new KeyTrack([
       [0, 8, 30, 0, -1.2, 0, 0.42, 1.3, 1.02, 14, 0],
       [S.engine + L.engine, 24, 26, 0, -1.2, 0, 0.42, 1.3, 1.02, 14, 0],
-      [S.turn + 1.3, 10, 60, 40, -0.4, 0, 0.35, 4.2, 4.2, 16, 0],
+      [S.turn + 0.8, 10, 60, 40, -0.4, 0, 0.35, 4.2, 4.2, 16, 0],
       [S.orbit, 0, 90, 90, 0, 0, 0.3, 3.4, 7.0, 16, 0],
-      [S.orbit + 0.5, 0, 90, 90, 0, 0, 0.3, 3.4, 7.0, 16, 0],
-      [S.orbit + 1.5, 10, 40, 40, -0.5, 0, 0.45, 4, 3.2, 12, 0],
+      [S.orbit + 0.15, 0, 90, 90, 0, 0, 0.3, 3.4, 7.0, 16, 0],
+      [S.orbit + 0.8, 10, 40, 40, -0.5, 0, 0.45, 4, 3.2, 12, 0],
       [S.pullback, 22, 14, 0, -1.2, 0, 0.55, 2.4, 1.5, 9, 0],
       [S.drive, 14, 8, 0, 0, 0, 0.5, 7.4, 3.2, 24, 0],
       [S.smoke, 14, 8, 0, 0, 0, 0.5, 7.4, 3.2, 24, 0],
@@ -153,17 +153,17 @@ export class World {
     const { ctx, pen } = this;
     const S = ACT_START;
 
-    const ground = smoothstep(S.turn + 1.2, S.orbit, t) * (1 - ramp(t, S.smoke + 1.0, S.fall));
+    const ground = smoothstep(S.turn + 0.6, S.orbit, t) * (1 - ramp(t, S.smoke + 0.7, S.fall));
     if (ground > 0.01) this.drawGround(ground * 0.3, lw * 0.5);
 
     const x = carTravel(t);
     if (x < 14) {
-      const coverT = ramp(t, S.orbit + 1.7, S.pullback - 0.1);
+      const coverT = ramp(t, S.orbit + 0.9, S.pullback - 0.05);
       this.car.draw(pen, {
         x,
         spin: x / WHEEL_RADIUS,
-        alpha: smoothstep(S.turn + 0.3, S.turn + 1.8, t),
-        engine: ramp(t, 0, 0.5) * (1 - smoothstep(S.pullback - 0.4, S.pullback + 0.3, t)),
+        alpha: smoothstep(S.turn + 0.1, S.turn + 1.0, t),
+        engine: ramp(t, 0, 0.3) * (1 - smoothstep(S.pullback - 0.2, S.pullback + 0.2, t)),
         engineTime: t,
         cover: smoothstep(0, 0.35, coverT),
         coverLift: 1.4 * (1 - easeOutCubic(coverT)),
@@ -176,13 +176,13 @@ export class World {
         now: t,
         start: DRIVE_START,
         carX: carTravel,
-        curl: ramp(t, S.smoke + 0.15, S.smoke + 1.7),
+        curl: ramp(t, S.smoke + 0.1, S.smoke + 1.0),
         alpha: 1,
       });
     }
 
     // the ball forms inside the swirl
-    const form = smoothstep(S.smoke + 1.0, S.smoke + 1.9, t);
+    const form = smoothstep(S.smoke + 0.6, S.smoke + 1.2, t);
     if (form > 0.01) {
       drawBall(pen, {
         x: SMOKE_CENTER.x,

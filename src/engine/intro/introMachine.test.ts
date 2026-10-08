@@ -52,7 +52,7 @@ describe('nextIntroState', () => {
 
   it('the whole sequence after the click is a proper film, but not endless', () => {
     const total = TIMED_STATES.reduce((sum, s) => sum + INTRO_DURATIONS[s], 0);
-    expect(total).toBeGreaterThan(25_000);
+    expect(total).toBeGreaterThan(20_000);
     expect(total).toBeLessThan(45_000);
   });
 });

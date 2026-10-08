@@ -1,8 +1,8 @@
 import { ACT_START } from './timeline';
 
 /** The car stands still for a moment, then accelerates along +x. */
-export const DRIVE_START = ACT_START.drive + 0.5;
-export const CAR_ACCEL = 5.2;
+export const DRIVE_START = ACT_START.drive + 0.25;
+export const CAR_ACCEL = 8;
 
 /** Distance (m) the car has travelled by time `t` (seconds of the sequence). */
 export function carTravel(t: number): number {

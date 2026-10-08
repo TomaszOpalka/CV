@@ -3,12 +3,12 @@
  * function of the time since the sequence started, so skipping, seeking and tests are trivial.
  */
 export const ACT_LENGTHS = {
-  engine: 4.4,
-  turn: 2.6,
-  orbit: 2.6,
-  pullback: 1.8,
-  drive: 2.4,
-  smoke: 2.0,
+  engine: 2.0,
+  turn: 1.5,
+  orbit: 1.5,
+  pullback: 1.0,
+  drive: 1.8,
+  smoke: 1.4,
   fall: 2.0,
   hoop: 3.6,
   reactor: 2.6,

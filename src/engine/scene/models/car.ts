@@ -66,7 +66,7 @@ export class Car {
       const oy = pen.oy;
       const oz = pen.oz;
       pen.at(ox + ENGINE_AT.x, oy + ENGINE_AT.y, oz + ENGINE_AT.z);
-      drawEngine(pen, { time: o.engineTime, alpha: o.engine, rps: 1.5, lw: o.lw });
+      drawEngine(pen, { time: o.engineTime, alpha: o.engine, rps: 3, lw: o.lw });
       pen.at(ox, oy, oz);
     }
 

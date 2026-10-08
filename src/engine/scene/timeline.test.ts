@@ -30,9 +30,9 @@ describe('timeline', () => {
     ]);
   });
 
-  it('the V8 runs for about four seconds, as storyboarded', () => {
-    expect(ACT_LENGTHS.engine).toBeGreaterThanOrEqual(4);
-    expect(ACT_LENGTHS.engine).toBeLessThanOrEqual(5);
+  it('the V8 runs for about two seconds, as requested', () => {
+    expect(ACT_LENGTHS.engine).toBeGreaterThanOrEqual(1.5);
+    expect(ACT_LENGTHS.engine).toBeLessThanOrEqual(2.5);
   });
 
   it('actAt picks the act and clamps outside the range', () => {

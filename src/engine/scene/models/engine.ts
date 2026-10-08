@@ -55,9 +55,9 @@ export interface EngineDraw {
   lw: number;
 }
 
-/** Crank angle (radians) after `time` seconds when the engine spins up from 0.7 to `rps` over 1.5 s. */
+/** Crank angle (radians) after `time` seconds when the engine spins up from 0.7 to `rps` over 0.6 s. */
 export function crankAngle(time: number, rps: number): number {
-  const rise = 1.5;
+  const rise = 0.6;
   const t = Math.max(0, time);
   const base = 0.7 * rps;
   if (t < rise) return TAU * (base * t + ((rps - base) * t * t) / (2 * rise));
