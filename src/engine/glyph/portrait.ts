@@ -161,3 +161,109 @@ export function assignTargets(targetCount: number, particleCount: number): Uint3
   }
   return out;
 }
+
+/** Most common colour of the image on a coarse grid: the "paper" of a blueprint. */
+export function estimateBackground(rgba: Uint8ClampedArray): [number, number, number] {
+  const bins = new Uint32Array(4096);
+  for (let p = 0; p < rgba.length; p += 4) {
+    bins[((rgba[p]! >> 4) << 8) | ((rgba[p + 1]! >> 4) << 4) | (rgba[p + 2]! >> 4)]!++;
+  }
+  let best = 0;
+  for (let i = 1; i < bins.length; i++) if (bins[i]! > bins[best]!) best = i;
+  return [((best >> 8) & 15) * 16 + 8, ((best >> 4) & 15) * 16 + 8, (best & 15) * 16 + 8];
+}
+
+/**
+ * "Ink" of a drawing in a `cols` x `rows` grid, 0..1: how far each pixel is from the background colour.
+ * Works for white lines on blue paper, cyan on black, or black on white alike. Each cell mixes the
+ * mean with the maximum so hairlines survive the reduction (a cell holding a thin line still lights up).
+ */
+export function sampleInk(
+  rgba: Uint8ClampedArray,
+  srcW: number,
+  srcH: number,
+  cols: number,
+  rows: number,
+): Float32Array {
+  const [br, bg, bb] = estimateBackground(rgba);
+  const out = new Float32Array(cols * rows);
+  for (let row = 0; row < rows; row++) {
+    const y0 = Math.floor((row * srcH) / rows);
+    const y1 = Math.max(y0 + 1, Math.floor(((row + 1) * srcH) / rows));
+    for (let col = 0; col < cols; col++) {
+      const x0 = Math.floor((col * srcW) / cols);
+      const x1 = Math.max(x0 + 1, Math.floor(((col + 1) * srcW) / cols));
+      let sum = 0;
+      let max = 0;
+      let n = 0;
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          const p = (y * srcW + x) * 4;
+          const d = Math.max(
+            Math.abs(rgba[p]! - br),
+            Math.abs(rgba[p + 1]! - bg),
+            Math.abs(rgba[p + 2]! - bb),
+          );
+          sum += d;
+          if (d > max) max = d;
+          n++;
+        }
+      }
+      out[row * cols + col] = n > 0 ? (0.35 * (sum / n) + 0.65 * max) / 255 : 0;
+    }
+  }
+  return out;
+}
+
+/** Smallest value that keeps at most `maxCount` cells at or above `minValue` (the strongest ones win). */
+export function inkThreshold(values: Float32Array, minValue: number, maxCount: number): number {
+  let count = 0;
+  for (let i = 0; i < values.length; i++) if (values[i]! >= minValue) count++;
+  if (count <= maxCount) return minValue;
+  const kept = new Float32Array(count);
+  let k = 0;
+  for (let i = 0; i < values.length; i++) if (values[i]! >= minValue) kept[k++] = values[i]!;
+  kept.sort();
+  return kept[count - maxCount]!;
+}
+
+const KEY_ROW_SPAN = 8192;
+const KEY_INDEX_SPAN = 16384;
+
+function rankKey(x: number, y: number, bandHeight: number, index: number): number {
+  const band = Math.min(4095, Math.max(0, Math.floor(y / bandHeight) + 8));
+  const column = Math.min(KEY_ROW_SPAN - 1, Math.max(0, Math.floor(x) + 4096));
+  return (band * KEY_ROW_SPAN + column) * KEY_INDEX_SPAN + index;
+}
+
+/**
+ * Assigns the targets to particles by "rank in reading order": the n-th target (top-left to
+ * bottom-right) goes to the particle with the matching rank among all particles. Particles that are
+ * on the left now end up on the left of the new shape, so a morph flows instead of criss-crossing.
+ * Returns the particle index for every target (injective while targets <= particles).
+ */
+export function rankAssign(
+  px: Float32Array,
+  py: Float32Array,
+  particleCount: number,
+  tx: Float32Array,
+  ty: Float32Array,
+  bandHeight: number,
+): Uint32Array {
+  const n = Math.min(tx.length, particleCount);
+  const particleKeys = new Float64Array(particleCount);
+  for (let i = 0; i < particleCount; i++) particleKeys[i] = rankKey(px[i]!, py[i]!, bandHeight, i);
+  particleKeys.sort();
+
+  const targetKeys = new Float64Array(n);
+  for (let k = 0; k < n; k++) targetKeys[k] = rankKey(tx[k]!, ty[k]!, bandHeight, k);
+  targetKeys.sort();
+
+  const out = new Uint32Array(tx.length);
+  for (let rank = 0; rank < n; rank++) {
+    const target = targetKeys[rank]! % KEY_INDEX_SPAN;
+    const slot = Math.min(particleCount - 1, Math.floor((rank * particleCount) / n));
+    out[target] = particleKeys[slot]! % KEY_INDEX_SPAN;
+  }
+  return out;
+}

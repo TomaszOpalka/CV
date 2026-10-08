@@ -12,9 +12,18 @@ import {
   CELL_ASPECT,
   computeGrid,
   coverCrop,
+  inkThreshold,
+  rankAssign,
+  sampleInk,
   sampleLuminance,
 } from '../glyph/portrait';
-import { INTRO_DURATIONS, nextIntroState, type IntroEvent, type IntroState } from './introMachine';
+import {
+  INTRO_DURATIONS,
+  isTimedState,
+  nextIntroState,
+  type IntroEvent,
+  type IntroState,
+} from './introMachine';
 import { PixelateReveal, type Rect } from './PixelateReveal';
 
 export interface IntroControllerOptions {
@@ -38,6 +47,76 @@ const BOOT_CASCADE_MS = 650;
 const MAX_PARTICLES = 16000;
 /** How far (in ramp steps) a digit may deviate from the exact brightness match. */
 const GLYPH_JITTER = 1.1;
+/** The blueprints the digits assemble into, in order of appearance (the portrait comes last). */
+type ShapeKey = 'engine' | 'f1' | 'reactor' | 'deathStar' | 'basketball';
+
+interface ShapeSpec {
+  src: string;
+  /** Largest share of the canvas width / height the drawing may take. */
+  fit: readonly [number, number];
+  /** Same, on a narrow (portrait) screen. */
+  fitNarrow: readonly [number, number];
+  /** On a narrow screen turn the drawing a quarter turn (a wide F1 would be tiny otherwise). */
+  rotateOnNarrow?: boolean;
+}
+
+const BLUEPRINT_DIR = '/assets/blueprints';
+const SHAPES: Readonly<Record<ShapeKey, ShapeSpec>> = {
+  engine: { src: `${BLUEPRINT_DIR}/engine.webp`, fit: [0.8, 0.74], fitNarrow: [0.94, 0.5] },
+  f1: {
+    src: `${BLUEPRINT_DIR}/f1.webp`,
+    fit: [0.7, 0.46],
+    fitNarrow: [0.5, 0.8],
+    rotateOnNarrow: true,
+  },
+  reactor: { src: `${BLUEPRINT_DIR}/reactor.webp`, fit: [0.8, 0.8], fitNarrow: [0.94, 0.6] },
+  deathStar: { src: `${BLUEPRINT_DIR}/death-star.webp`, fit: [0.8, 0.8], fitNarrow: [0.94, 0.6] },
+  basketball: { src: `${BLUEPRINT_DIR}/basketball.webp`, fit: [0.8, 0.8], fitNarrow: [0.94, 0.6] },
+};
+const SHAPE_KEYS = Object.keys(SHAPES) as ShapeKey[];
+
+/** Which blueprint each stage draws. `zooming` keeps the ball, `impact` switches to the portrait. */
+const STAGE_SHAPE: Partial<Record<IntroState, ShapeKey>> = {
+  morphingEngine: 'engine',
+  morphingF1: 'f1',
+  morphingReactor: 'reactor',
+  morphingDeathStar: 'deathStar',
+  morphingBasketball: 'basketball',
+};
+
+/** Detail of a blueprint is sampled this many times finer than the glyph grid. */
+const SHAPE_SUPERSAMPLE = 4;
+/** Cells with less ink than this get no digit at all. */
+const SHAPE_MIN_INK = 0.22;
+/** A blueprint never uses more than this share of all particles. */
+const SHAPE_MAX_FILL = 0.7;
+/** Digits on blueprint lines are drawn from a wide band of the ramp so lines look like mixed numbers. */
+const SHAPE_GLYPH_JITTER = 3;
+/** How far the ball grows while it flies at the camera. */
+const ZOOM_MAX = 5.5;
+/** Camera shake on impact: initial amplitude as a share of the smaller canvas side, and decay time. */
+const SHAKE_AMPLITUDE = 0.035;
+const SHAKE_DECAY_MS = 190;
+const FLASH_MS = 170;
+/** Spring stiffness while the ball zooms (tight) and while everything snaps into the portrait (very tight). */
+const ZOOM_STIFFNESS = 120;
+const IMPACT_STIFFNESS = 210;
+
+/** F1 slides across the screen: start and end of its centre, as a share of the canvas size. */
+const F1_SLIDE = { from: -0.27, to: 0.2 } as const;
+
+const easeInOut = (t: number): number => 0.5 - 0.5 * Math.cos(Math.PI * t);
+const easeInCubic = (t: number): number => t * t * t;
+const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
+
+/** Where the digits of one picture go, before the field assigns them to particles. */
+interface ShapeTargets {
+  xs: Float32Array;
+  ys: Float32Array;
+  glyphs: Uint8Array;
+  tones: Float32Array;
+}
+
 /** Quality level -> [cell size multiplier, max device pixel ratio]. */
 const QUALITY: ReadonlyArray<readonly [number, number]> = [
   [1.5, 1],
@@ -46,7 +125,9 @@ const QUALITY: ReadonlyArray<readonly [number, number]> = [
 ];
 
 /**
- * Runs the whole intro: digit grid, explosion, morph into the portrait and the pixelated photo reveal.
+ * Runs the whole intro: digit grid, explosion, a chain of blueprint morphs (engine, F1, reactor,
+ * Death Star, ball), the zoom into the camera with a shake, the snap into the portrait and the
+ * pixelated photo reveal.
  * Owns the canvas, the pointer input and the timing. React only mirrors the coarse `IntroState`.
  */
 export class IntroController {
@@ -66,9 +147,16 @@ export class IntroController {
   private unsubscribeTicker: (() => void) | null = null;
 
   private image: HTMLImageElement | null = null;
+  private shapeImages: Partial<Record<ShapeKey, HTMLImageElement>> = {};
+  private imagesLeft = 0;
+  private imagesTotal = 0;
   private imageReady = false;
   private targets: MorphTargets | null = null;
+  private shapeTargets: Partial<Record<ShapeKey, ShapeTargets>> = {};
   private reveal: PixelateReveal | null = null;
+  /** Camera shake: amplitude in px right after the impact. */
+  private shakeAmplitude = 0;
+  private f1Vertical = false;
 
   private width = 0;
   private height = 0;
@@ -100,7 +188,7 @@ export class IntroController {
     this.pointer.attach();
 
     this.build();
-    this.loadImage();
+    this.loadImages();
 
     this.resizeObserver = new ResizeObserver(() => this.onResize());
     this.resizeObserver.observe(this.o.root);
@@ -147,7 +235,7 @@ export class IntroController {
     this.renderer.resize(this.width, this.height, dpr);
     this.atlas = new GlyphAtlas(grid.cellW, grid.cellH, dpr, TONE_LEVELS, family);
     this.field = new GlyphField(grid, TONE_LEVELS);
-    this.targets = this.imageReady ? this.computeTargets() : null;
+    if (this.imageReady) this.computeAllTargets();
   }
 
   /** Cell size (CSS px) and device pixel ratio for a quality level at the current size. */
@@ -163,18 +251,36 @@ export class IntroController {
     };
   }
 
-  private loadImage(): void {
-    const image = new Image();
-    image.decoding = 'async';
-    const finish = (ok: boolean): void => {
-      if (this.destroyed) return;
-      this.image = ok ? image : null;
-      this.imageReady = true;
-      this.targets = ok ? this.computeTargets() : null;
-    };
-    image.onload = () => finish(true);
-    image.onerror = () => finish(false);
-    image.src = this.o.imageSrc;
+  /** Loads the portrait and every blueprint. A picture that fails to load is simply skipped. */
+  private loadImages(): void {
+    const jobs: Array<{ src: string; assign: (image: HTMLImageElement | null) => void }> = [
+      { src: this.o.imageSrc, assign: (image) => (this.image = image) },
+      ...SHAPE_KEYS.map((key) => ({
+        src: SHAPES[key].src,
+        assign: (image: HTMLImageElement | null) => {
+          if (image) this.shapeImages[key] = image;
+        },
+      })),
+    ];
+    this.imagesTotal = jobs.length;
+    this.imagesLeft = jobs.length;
+
+    for (const job of jobs) {
+      const image = new Image();
+      image.decoding = 'async';
+      const finish = (ok: boolean): void => {
+        if (this.destroyed) return;
+        job.assign(ok ? image : null);
+        this.imagesLeft--;
+        if (this.imagesLeft === 0) {
+          this.imageReady = true;
+          this.computeAllTargets();
+        }
+      };
+      image.onload = () => finish(true);
+      image.onerror = () => finish(false);
+      image.src = job.src;
+    }
   }
 
   /** The photo frame's rectangle in canvas coordinates (CSS px). */
@@ -218,7 +324,7 @@ export class IntroController {
     }
 
     const brightness = autoLevels(sampleLuminance(pixels, sw, sh, cols, rows));
-    const particles = assignTargets(cols * rows, this.field.count);
+    const particles = assignTargets(cols * rows, this.field.count); // replaced by a rank-based pick at impact
     const n = particles.length;
     const xs = new Float32Array(n);
     const ys = new Float32Array(n);
@@ -240,6 +346,89 @@ export class IntroController {
     return { particles, xs, ys, glyphs, tones };
   }
 
+  private computeAllTargets(): void {
+    this.targets = this.computeTargets();
+    this.shapeTargets = {};
+    for (const key of SHAPE_KEYS) {
+      const targets = this.computeShapeTargets(key);
+      if (targets) this.shapeTargets[key] = targets;
+    }
+  }
+
+  /** Turns one blueprint picture into digit positions, tones and glyphs, centred on the canvas. */
+  private computeShapeTargets(key: ShapeKey): ShapeTargets | null {
+    const image = this.shapeImages[key];
+    if (!image) return null;
+    const spec = SHAPES[key];
+    const narrow = this.width < this.height * 0.85;
+    const rotate = narrow && spec.rotateOnNarrow === true;
+    const iw = image.naturalWidth || 1;
+    const ih = image.naturalHeight || 1;
+    const aspect = rotate ? ih / iw : iw / ih;
+    const [fitW, fitH] = narrow ? spec.fitNarrow : spec.fit;
+
+    const { cellW, cellH } = this.field;
+    const w = Math.min(fitW * this.width, fitH * this.height * aspect);
+    const h = w / aspect;
+    const cols = Math.max(6, Math.round(w / cellW));
+    const rows = Math.max(6, Math.round(h / cellH));
+    const sw = cols * SHAPE_SUPERSAMPLE;
+    const sh = rows * SHAPE_SUPERSAMPLE;
+
+    const scratch = document.createElement('canvas');
+    scratch.width = sw;
+    scratch.height = sh;
+    const sctx = scratch.getContext('2d', { willReadFrequently: true });
+    if (!sctx) return null;
+
+    let pixels: Uint8ClampedArray;
+    try {
+      sctx.fillStyle = '#000';
+      sctx.fillRect(0, 0, sw, sh);
+      if (rotate) {
+        sctx.translate(sw / 2, sh / 2);
+        sctx.rotate(-Math.PI / 2);
+        sctx.drawImage(image, -sh / 2, -sw / 2, sh, sw);
+      } else {
+        sctx.drawImage(image, 0, 0, sw, sh);
+      }
+      pixels = sctx.getImageData(0, 0, sw, sh).data;
+    } catch {
+      return null;
+    }
+
+    // "Ink" = distance from the paper colour, so white-on-blue, cyan-on-black etc. all work.
+    const ink = autoLevels(sampleInk(pixels, sw, sh, cols, rows), 0.5, 0.995, 0.9);
+    const threshold = inkThreshold(
+      ink,
+      SHAPE_MIN_INK,
+      Math.floor(this.field.count * SHAPE_MAX_FILL),
+    );
+
+    let count = 0;
+    for (let i = 0; i < ink.length; i++) if (ink[i]! >= threshold) count++;
+    const xs = new Float32Array(count);
+    const ys = new Float32Array(count);
+    const glyphs = new Uint8Array(count);
+    const tones = new Float32Array(count);
+    const stepX = w / cols;
+    const stepY = h / rows;
+    const x0 = (this.width - w) / 2;
+    const y0 = (this.height - h) / 2;
+    let n = 0;
+    for (let i = 0; i < ink.length; i++) {
+      const v = ink[i]!;
+      if (v < threshold) continue;
+      xs[n] = x0 + ((i % cols) + 0.5) * stepX;
+      ys[n] = y0 + (Math.floor(i / cols) + 0.5) * stepY;
+      glyphs[n] = brightnessToGlyph(v, this.atlas.ramp, Math.random() - 0.5, SHAPE_GLYPH_JITTER);
+      tones[n] = Math.min(TONE_LEVELS - 1, 2 + Math.round(v * (TONE_LEVELS - 3)));
+      n++;
+    }
+    if (key === 'f1') this.f1Vertical = rotate;
+    return { xs, ys, glyphs, tones };
+  }
+
   // --- state machine -------------------------------------------------------------------
 
   private dispatch(event: IntroEvent): void {
@@ -253,12 +442,20 @@ export class IntroController {
   }
 
   private onEnter(state: IntroState): void {
+    const shape = STAGE_SHAPE[state];
+    if (shape) {
+      this.enterShape(shape);
+      return;
+    }
     switch (state) {
-      case 'morphing':
-        if (this.targets) this.field.morphTo(this.targets);
-        else this.dispatch('skip'); // no usable photo: go straight to the final view
+      case 'zooming':
+        this.field.stiffness = ZOOM_STIFFNESS;
+        break;
+      case 'impact':
+        this.enterImpact();
         break;
       case 'revealing':
+        this.field.resetTransform();
         this.field.hold();
         this.startReveal();
         break;
@@ -272,10 +469,64 @@ export class IntroController {
         window.clearTimeout(this.resizeTimer);
         this.reveal = null;
         this.targets = null;
+        this.shapeTargets = {};
+        this.shapeImages = {};
         this.image = null;
         break;
       default:
         break;
+    }
+  }
+
+  /** Send the digits into a blueprint. Without that picture the stage is skipped. */
+  private enterShape(key: ShapeKey): void {
+    const shape = this.shapeTargets[key];
+    if (!shape) {
+      this.dispatch('elapsed');
+      return;
+    }
+    this.field.resetTransform();
+    this.field.anchorX = this.width / 2;
+    this.field.anchorY = this.height / 2;
+    this.assign(shape);
+    if (key === 'f1') this.slideF1(0);
+  }
+
+  /** Ranked assignment: the digits that are on the left now become the left part of the next picture. */
+  private assign(shape: ShapeTargets, maxDelay?: number): void {
+    const particles = rankAssign(
+      this.field.x,
+      this.field.y,
+      this.field.count,
+      shape.xs,
+      shape.ys,
+      this.field.cellH,
+    );
+    this.field.morphTo({ particles, ...shape }, maxDelay);
+  }
+
+  private enterImpact(): void {
+    if (!this.targets) {
+      this.dispatch('skip');
+      return;
+    }
+    this.field.resetTransform();
+    this.field.stiffness = IMPACT_STIFFNESS;
+    this.field.flash();
+    this.assign(this.targets, 0.06);
+    this.shakeAmplitude = SHAKE_AMPLITUDE * Math.min(this.width, this.height);
+  }
+
+  /** The F1 drives across the screen: its targets slide, the digits chase them. */
+  private slideF1(progress: number): void {
+    const e = easeInOut(clamp01(progress));
+    const share = F1_SLIDE.from + (F1_SLIDE.to - F1_SLIDE.from) * e;
+    if (this.f1Vertical) {
+      this.field.offsetX = 0;
+      this.field.offsetY = -share * this.height; // driving upwards on a narrow screen
+    } else {
+      this.field.offsetX = share * this.width;
+      this.field.offsetY = 0;
     }
   }
 
@@ -325,27 +576,60 @@ export class IntroController {
         }
         break;
       }
-      case 'exploding':
-        this.field.step(dt, this.pointer.state);
-        this.paintField();
-        if (this.stateMs >= INTRO_DURATIONS.exploding) this.dispatch('elapsed');
-        break;
-      case 'morphing':
-        this.field.step(dt, this.pointer.state);
-        this.paintField();
-        if (this.stateMs >= INTRO_DURATIONS.morphing) this.dispatch('elapsed');
-        break;
       case 'revealing':
         this.updateReveal(dt);
         break;
       default:
+        if (isTimedState(this.state)) this.updateSequence(dt);
         break;
     }
   }
 
+  /** The stages between the click and the photo: explosion, blueprints, zoom, impact. */
+  private updateSequence(dt: number): void {
+    const state = this.state;
+    const duration = INTRO_DURATIONS[state as keyof typeof INTRO_DURATIONS];
+    const progress = clamp01(this.stateMs / duration);
+
+    if (state === 'morphingF1') this.slideF1(progress);
+    if (state === 'zooming') this.field.scale = 1 + (ZOOM_MAX - 1) * easeInCubic(progress);
+
+    this.field.step(dt, this.pointer.state);
+    this.paintField();
+    if (state === 'impact') this.paintImpactFlash();
+
+    if (this.stateMs >= duration) this.dispatch('elapsed');
+  }
+
+  private paintImpactFlash(): void {
+    if (this.stateMs >= FLASH_MS) return;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 0.5 * (1 - this.stateMs / FLASH_MS);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, this.o.canvas.width, this.o.canvas.height);
+    ctx.restore();
+  }
   private paintField(): void {
+    let shakeX = 0;
+    let shakeY = 0;
+    if (this.shakeAmplitude > 0) {
+      const decay = Math.exp(-this.stateMs / SHAKE_DECAY_MS);
+      const amplitude = this.shakeAmplitude * decay;
+      shakeX = (Math.random() * 2 - 1) * amplitude;
+      shakeY = (Math.random() * 2 - 1) * amplitude;
+      if (decay < 0.02) this.shakeAmplitude = 0;
+    }
     this.renderer.clear();
-    this.renderer.drawField(this.field, this.atlas, this.field.rows);
+    this.renderer.drawField(
+      this.field,
+      this.atlas,
+      this.field.rows,
+      this.field.scale,
+      shakeX,
+      shakeY,
+    );
   }
 
   private updateBoot(): void {
@@ -357,7 +641,8 @@ export class IntroController {
 
     // The counter never reaches 100 before the photo has really loaded.
     const timeShare = Math.min(1, this.stateMs / minBoot);
-    const percent = Math.floor((this.imageReady ? 100 : 92) * timeShare);
+    const loaded = this.imagesTotal > 0 ? 1 - this.imagesLeft / this.imagesTotal : 0;
+    const percent = Math.floor(Math.min(timeShare * 100, 8 + 92 * loaded));
     if (percent !== this.lastProgress) {
       this.lastProgress = percent;
       this.o.onProgress(percent);

@@ -6,7 +6,7 @@ const executablePath = process.env.PW_CHROMIUM_PATH;
 
 export default defineConfig({
   testDir: './tests/e2e',
-  timeout: 45_000,
+  timeout: 70_000,
   fullyParallel: true,
   reporter: [['list']],
   use: {

@@ -8,6 +8,10 @@ import {
   computeGrid,
   coverCrop,
   rampFromCoverage,
+  estimateBackground,
+  inkThreshold,
+  rankAssign,
+  sampleInk,
   sampleLuminance,
 } from './portrait';
 
@@ -114,5 +118,101 @@ describe('assignTargets', () => {
     const idx = assignTargets(500, 200);
     expect(idx.length).toBe(200);
     expect(new Set(idx).size).toBe(200);
+  });
+});
+
+function paper(
+  width: number,
+  height: number,
+  bg: [number, number, number],
+  ink: [number, number, number],
+  isInk: (x: number, y: number) => boolean,
+): Uint8ClampedArray {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const c = isInk(x, y) ? ink : bg;
+      const p = (y * width + x) * 4;
+      data[p] = c[0];
+      data[p + 1] = c[1];
+      data[p + 2] = c[2];
+      data[p + 3] = 255;
+    }
+  }
+  return data;
+}
+
+describe('estimateBackground / sampleInk', () => {
+  it('finds the paper colour regardless of the line colour', () => {
+    const data = paper(40, 40, [40, 80, 160], [255, 255, 255], (x) => x === 20);
+    const [r, g, b] = estimateBackground(data);
+    expect(Math.abs(r - 40)).toBeLessThan(16);
+    expect(Math.abs(g - 80)).toBeLessThan(16);
+    expect(Math.abs(b - 160)).toBeLessThan(16);
+  });
+
+  it('lights up a hairline even when it is much thinner than a cell, on blue, black and white paper', () => {
+    const papers: Array<[[number, number, number], [number, number, number]]> = [
+      [
+        [40, 80, 160],
+        [255, 255, 255],
+      ], // white on blueprint blue
+      [
+        [10, 20, 25],
+        [0, 220, 200],
+      ], // cyan on near-black
+      [
+        [250, 250, 250],
+        [20, 20, 20],
+      ], // black on white
+    ];
+    for (const [bg, line] of papers) {
+      const data = paper(80, 80, bg, line, (x) => x === 40); // 1 px wide vertical line, cells are 8 px
+      const ink = sampleInk(data, 80, 80, 10, 10);
+      expect(ink[5 * 10 + 5]).toBeGreaterThan(0.5); // the column that holds the line
+      expect(ink[5 * 10 + 1]).toBeLessThan(0.05); // empty paper
+    }
+  });
+});
+
+describe('inkThreshold', () => {
+  it('keeps the minimum when few cells qualify and raises it to cap the count', () => {
+    const v = Float32Array.from([0.1, 0.9, 0.5, 0.7, 0.3, 0.8]);
+    expect(inkThreshold(v, 0.25, 10)).toBe(0.25);
+    const raised = inkThreshold(v, 0.25, 3);
+    expect(Array.from(v).filter((x) => x >= raised).length).toBe(3);
+  });
+});
+
+describe('rankAssign', () => {
+  it('maps targets onto distinct particles, keeping left on the left and top on top', () => {
+    const n = 400;
+    const px = Float32Array.from({ length: n }, (_, i) => (i % 20) * 10);
+    const py = Float32Array.from({ length: n }, (_, i) => Math.floor(i / 20) * 10);
+    // 40 targets: a vertical bar on the far left and a vertical bar on the far right
+    const tx = Float32Array.from({ length: 40 }, (_, k) => (k < 20 ? 5 : 185));
+    const ty = Float32Array.from({ length: 40 }, (_, k) => (k % 20) * 10);
+    const owners = rankAssign(px, py, n, tx, ty, 10);
+    expect(new Set(owners).size).toBe(40);
+    const leftOwners = Array.from(owners.slice(0, 20));
+    const rightOwners = Array.from(owners.slice(20));
+    const meanX = (idx: number[]) => idx.reduce((s, i) => s + px[i]!, 0) / idx.length;
+    expect(meanX(leftOwners)).toBeLessThan(meanX(rightOwners));
+  });
+
+  it('copes with particles that were flung far off screen', () => {
+    const n = 100;
+    const px = Float32Array.from({ length: n }, (_, i) => (i % 2 ? -50000 : 50000));
+    const py = Float32Array.from({ length: n }, (_, i) => i * 3000);
+    const owners = rankAssign(
+      px,
+      py,
+      n,
+      Float32Array.from([10, 20, 30]),
+      Float32Array.from([10, 20, 30]),
+      10,
+    );
+    expect(new Set(owners).size).toBe(3);
+    expect(Math.max(...owners)).toBeLessThan(n);
   });
 });

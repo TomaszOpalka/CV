@@ -16,7 +16,7 @@ a po lewej pojawia się tekst „O mnie”.
 
 ## Stan wdrożenia (08.10.2026)
 
-Zbudowane i działające (desktop i telefon): siatka cyfr reagująca na wskaźnik → wybuch → portret z cyfr → pikselowe przejście w zdjęcie →
+Zbudowane i działające (desktop i telefon): siatka cyfr reagująca na wskaźnik → wybuch → seria blueprintów (silnik, F1, reaktor, Gwiazda Śmierci, piłka) → zoom i wstrząs → portret z cyfr → pikselowe przejście w zdjęcie →
 tekst „O mnie” z nazwiskiem „odkodowującym się” z cyfr. Zdjęcie jest na razie **placeholderem** (sylwetka), podmiana opisana w [`docs/ASSETS.md`](../ASSETS.md).
 
 Odstępstwa od pierwotnego scenariusza (świadome):
@@ -33,6 +33,34 @@ Odstępstwa od pierwotnego scenariusza (świadome):
 Przegląd adwersarialny (5 recenzentów, 45 agentów): 20 znalezisk, 19 potwierdzonych. Naprawione w tej fazie (poza „powrotem na stronę”, które jest świadomym odstępstwem z tabeli wyżej), m.in.: oscylacja kontrolera jakości,
 fizyka zależna od liczby klatek, treść ukryta przed czytnikami ekranu, pusta strona przy awarii skryptu, utrata fokusu klawiatury, układ telefonu poziomo,
 rozmycie przy przejściu na zdjęcie na ekranach 2×, prawy i środkowy klik startujące wybuch.
+
+## Sekwencja po kliknięciu (wersja rozszerzona, 08.10.2026)
+
+Zamiast od razu układać portret, cyfry przechodzą przez serię „blueprintów” rysowanych tym samym silnikiem (jeden canvas, ta sama siatka znaków).
+Łącznie ok. 13,5 s, w każdej chwili można pominąć („skip intro”).
+
+| Stan                 | Czas   | Co się dzieje                                                                                                                                    |
+| -------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `exploding`          | 0,65 s | Wybuch od miejsca kliknięcia                                                                                                                     |
+| `morphingEngine`     | 2,1 s  | Cyfry zbiegają się w silnik V8                                                                                                                   |
+| `morphingF1`         | 2,6 s  | Silnik płynnie zamienia się w bolid F1 z lotu ptaka. Cele **przesuwają się** z lewej na prawą (na wąskim ekranie: bolid obrócony, jedzie w górę) |
+| `morphingReactor`    | 1,8 s  | Bolid → reaktor łukowy                                                                                                                           |
+| `morphingDeathStar`  | 1,8 s  | Reaktor → Gwiazda Śmierci                                                                                                                        |
+| `morphingBasketball` | 1,5 s  | Gwiazda Śmierci → piłka do koszykówki                                                                                                            |
+| `zooming`            | 1,4 s  | Piłka rośnie (cele i same cyfry skalują się 5,5×), jak lot prosto w kamerę                                                                       |
+| `impact`             | 0,8 s  | Wstrząs ekranu (camera shake) i biały błysk. Cyfry **błyskawicznie** (sprężyna 3× sztywniejsza) zbiegają się w portret                           |
+| `revealing`          | 1,1 s  | Pikselowe przejście w zdjęcie i tekst „O mnie” (jak wcześniej)                                                                                   |
+
+Jak to działa technicznie:
+
+- Rysunki to małe maski (białe linie na czarnym, `public/assets/blueprints/*.webp`, razem ok. 80 kB), przycięte z grafik od autora skryptem
+  `scripts/make-blueprint-masks.py` (usuwa napisy i znaki wodne, odwraca bolid dziobem w prawo). Oryginały **nie** są w repo.
+- Próbkowanie (`sampleInk`) mierzy odległość każdego piksela od koloru tła, więc działa dla białych linii na niebieskim, cyjanu na czarnym i odwrotnie.
+  Komórka bierze średnią i maksimum, dzięki czemu cienkie linie nie znikają przy zgrubnej siatce.
+- Przydział cząstek (`rankAssign`): n-ty cel w kolejności czytania dostaje cząstkę o tej samej randze pozycji, więc lewa część silnika zamienia się w lewą część bolidu
+  i morf płynie, zamiast się krzyżować.
+- Jeśli któryś obraz się nie wczyta, ten etap jest pomijany; bez zdjęcia profilowego sekwencja przechodzi od razu do widoku końcowego.
+- Podmiana obrazów: wrzuć własne maski o tych samych nazwach albo uruchom skrypt na nowych oryginałach (instrukcja w `docs/ASSETS.md`).
 
 ## Kontekst dla sesji AI
 

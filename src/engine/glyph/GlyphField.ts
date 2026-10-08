@@ -26,8 +26,9 @@ const HOME_DAMPING = 9;
 const REPEL_ACCEL = 2600;
 const EXPLODE_DRAG = 1.9;
 const EXPLODE_STRENGTH = 1500;
-const MORPH_STIFFNESS = 70;
-const MORPH_DAMPING = 12;
+const DEFAULT_MORPH_STIFFNESS = 70;
+/** Damping ratio of the morph spring (slightly under-damped: a little overshoot looks alive). */
+const MORPH_DAMPING_RATIO = 0.72;
 const MORPH_MAX_DELAY = 0.28;
 const FLICKER_PER_SECOND = 0.7;
 const SNAP_DISTANCE_SQ = 36;
@@ -64,6 +65,15 @@ export class GlyphField {
 
   phase: FieldPhase = 'idle';
   phaseTime = 0;
+
+  /** Spring stiffness pulling particles to their targets; raise it for a snappy morph. */
+  stiffness = DEFAULT_MORPH_STIFFNESS;
+  /** The whole target shape can slide (px) and zoom around an anchor while particles follow it. */
+  offsetX = 0;
+  offsetY = 0;
+  scale = 1;
+  anchorX = 0;
+  anchorY = 0;
 
   private readonly rng: () => number;
   private flickerCarry = 0;
@@ -154,8 +164,21 @@ export class GlyphField {
     this.phaseTime = 0;
   }
 
+  /** Resting transform of the target shape (no slide, no zoom). */
+  resetTransform(): void {
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.scale = 1;
+    this.stiffness = DEFAULT_MORPH_STIFFNESS;
+  }
+
+  /** Light every glyph up at once (used for the impact flash). */
+  flash(): void {
+    this.tone.fill(this.toneLevels - 1);
+  }
+
   /** Send the targeted particles to their targets; the rest drift and fade out. */
-  morphTo(targets: MorphTargets): void {
+  morphTo(targets: MorphTargets, maxDelay = MORPH_MAX_DELAY): void {
     this.hasTarget.fill(0);
     for (let k = 0; k < targets.particles.length; k++) {
       const i = targets.particles[k]!;
@@ -164,7 +187,7 @@ export class GlyphField {
       this.targetY[i] = targets.ys[k]!;
       this.targetGlyph[i] = targets.glyphs[k]!;
       this.targetTone[i] = targets.tones[k]!;
-      this.delay[i] = this.rng() * MORPH_MAX_DELAY;
+      this.delay[i] = this.rng() * maxDelay;
     }
     this.phase = 'morph';
     this.phaseTime = 0;
@@ -195,7 +218,9 @@ export class GlyphField {
     let max = 0;
     for (let i = 0; i < this.count; i++) {
       if (!this.hasTarget[i]) continue;
-      max = Math.max(max, Math.hypot(this.targetX[i]! - this.x[i]!, this.targetY[i]! - this.y[i]!));
+      const goalX = this.anchorX + (this.targetX[i]! - this.anchorX) * this.scale + this.offsetX;
+      const goalY = this.anchorY + (this.targetY[i]! - this.anchorY) * this.scale + this.offsetY;
+      max = Math.max(max, Math.hypot(goalX - this.x[i]!, goalY - this.y[i]!));
     }
     return max;
   }
@@ -271,26 +296,30 @@ export class GlyphField {
 
   private stepMorph(dt: number): void {
     const t = this.phaseTime;
-    const damp = dragFactor(MORPH_DAMPING, dt);
+    const k = this.stiffness;
+    const damp = dragFactor(2 * Math.sqrt(k) * MORPH_DAMPING_RATIO, dt);
     const drag = dragFactor(EXPLODE_DRAG, dt);
     const toneEase = Math.min(1, 9 * dt);
     const fadeOut = dragFactor(2.6, dt);
+    const { scale, anchorX, anchorY, offsetX, offsetY } = this;
 
     for (let i = 0; i < this.count; i++) {
       const xi = this.x[i]!;
       const yi = this.y[i]!;
 
       if (this.hasTarget[i] && t >= this.delay[i]!) {
-        const ex = this.targetX[i]! - xi;
-        const ey = this.targetY[i]! - yi;
-        const vxi = (this.vx[i]! + ex * MORPH_STIFFNESS * dt) * damp;
-        const vyi = (this.vy[i]! + ey * MORPH_STIFFNESS * dt) * damp;
+        const goalX = anchorX + (this.targetX[i]! - anchorX) * scale + offsetX;
+        const goalY = anchorY + (this.targetY[i]! - anchorY) * scale + offsetY;
+        const ex = goalX - xi;
+        const ey = goalY - yi;
+        const vxi = (this.vx[i]! + ex * k * dt) * damp;
+        const vyi = (this.vy[i]! + ey * k * dt) * damp;
         this.vx[i] = vxi;
         this.vy[i] = vyi;
         this.x[i] = xi + vxi * dt;
         this.y[i] = yi + vyi * dt;
 
-        if (ex * ex + ey * ey < SNAP_DISTANCE_SQ) {
+        if (ex * ex + ey * ey < SNAP_DISTANCE_SQ * scale * scale) {
           this.glyph[i] = this.targetGlyph[i]!;
         } else if (this.rng() < 0.12) {
           this.glyph[i] = Math.floor(this.rng() * 10);
