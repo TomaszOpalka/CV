@@ -9,7 +9,7 @@ Formularz kontaktowy i uzupełnione podstrony: **doświadczenie, stack technolog
 Faza jest zaliczona, jeśli każda podstrona **prawidłowo reaguje na kursor**, **nie powoduje lagów**
 i **spełnia oczekiwania estetyczne** z prawidłowym tekstem.
 
-> W tej fazie budujemy **wygląd i walidację** formularza. Wysyłka (EmailJS) to [faza 5](./faza-5-formularz-kontaktowy.md).
+> W tej fazie budujemy **wygląd i walidację** formularza. Wysyłka (Netlify Forms) to [faza 5](./faza-5-formularz-kontaktowy.md).
 
 ## Cel
 
@@ -18,9 +18,9 @@ i formularz „Zgłoś się po stronę” na dole strony głównej.
 
 ## Kontekst dla sesji AI
 
-- Treści leżą w `apps/web/src/content/*.ts` jako typowane dane (typy w `@/types`). Komponenty niczego nie zakodowują na sztywno.
+- Treści leżą w `src/content/*.ts` jako typowane dane (typy w `@/types`). Komponenty niczego nie zakodowują na sztywno.
 - Kursor i jego stany (`data-cursor`, `data-cursor-label`, `data-emoji`) pochodzą z [fazy 3](./faza-3-kursor-pole-pikseli-nawigacja.md#31-kursor-z-emoji-desktop).
-- Statyczny eksport Next ma swoje ograniczenia: `images.unoptimized: true`, zdjęcia generujemy sami (AVIF/WebP), nie ma przekierowań po stronie serwera.
+- Statyczny eksport Next ma swoje ograniczenia ([faza 1, pkt 7.5](./faza-1-stack-i-architektura.md#75-wymagania-eksportu-statycznego-nextjs-16)): `images.unoptimized: true`, zdjęcia generujemy sami (AVIF/WebP), przekierowania i nagłówki idą przez `netlify.toml`.
 
 ## Zakres
 
@@ -64,18 +64,18 @@ interfejs i walidacja formularza kontaktowego.
 
 Na dole strony głównej, sekcja **Kontakt** (emoji ✉️).
 
-| Pole | Typ | Wymagane |
-|---|---|---|
-| Imię | tekst | ✔ |
-| E-mail | e-mail | ✔ |
-| Rodzaj strony | wybór: wizytówka, portfolio, landing page, sklep, inne | ✔ |
-| Budżet | wybór przedziału | — |
-| Termin | tekst lub data | — |
-| Wiadomość | textarea, 20 do 2000 znaków | ✔ |
-| Zgoda na przetwarzanie danych (RODO) | checkbox | ✔ |
-| `website` | **honeypot**, ukryte pole na boty | (musi zostać puste) |
+| Pole                                 | Typ                                                    | Wymagane            |
+| ------------------------------------ | ------------------------------------------------------ | ------------------- |
+| Imię                                 | tekst                                                  | ✔                   |
+| E-mail                               | e-mail                                                 | ✔                   |
+| Rodzaj strony                        | wybór: wizytówka, portfolio, landing page, sklep, inne | ✔                   |
+| Budżet                               | wybór przedziału                                       | —                   |
+| Termin                               | tekst lub data                                         | —                   |
+| Wiadomość                            | textarea, 20 do 2000 znaków                            | ✔                   |
+| Zgoda na przetwarzanie danych (RODO) | checkbox                                               | ✔                   |
+| `bot-field`                          | **honeypot**, ukryte pole na boty                      | (musi zostać puste) |
 
-- Walidacja Zod ze schematu w `@cv/shared` (`contactRequestSchema`). Ten sam schemat sprawdzi Worker w fazie 5.
+- Walidacja Zod ze schematu w `@shared/schemas` (`contactRequestSchema`). Ten sam schemat można użyć w funkcji `submission-created` w fazie 5.
 - Stany: `idle → sending → success | error`. W tej fazie wysyłka jest **atrapą** (opóźnienie, potem sukces).
 - Kursor: nad polami etykieta „Pisz”, nad przyciskiem „Wyślij ✉️”.
 - Sukces: kwadraty układają się w ✓ albo kursor pokazuje 🎉.
@@ -84,8 +84,10 @@ Na dole strony głównej, sekcja **Kontakt** (emoji ✉️).
 
 ## 4.3 SEO i udostępnianie
 
-- `app/sitemap.ts` i `app/robots.ts` (działają przy statycznym eksporcie).
+- `app/sitemap.ts` i `app/robots.ts` z `export const dynamic = 'force-static'` (bez tego build z `output: 'export'` kończy się błędem). Mapę strony zgłaszamy w Google Search Console.
 - Obrazy podglądu linków (OG) dla każdej podstrony, w stylistyce cyfr lub pikseli.
+- Weryfikacja domeny w **Google Search Console** rekordem TXT w DNS (strefa DNS w OVH, [faza 1, pkt 2.3](./faza-1-stack-i-architektura.md#23-podpięcie-domeny-z-ovh-do-netlify)).
+- Opcjonalnie cookieless analityka odwiedzin: Umami Cloud Hobby, z proxy przez `netlify.toml`, żeby adblocki jej nie ucinały ([faza 1, pkt 3.4](./faza-1-stack-i-architektura.md#34-analityka-odwiedzin-opcjonalna-faza-4)).
 - Dane strukturalne JSON-LD typu `Person` (imię, rola, linki do profili).
 - Zdjęcia: `<picture>` z AVIF i WebP, `loading="lazy"` poniżej pierwszego ekranu, podane wymiary (brak skoków układu).
 
@@ -93,16 +95,16 @@ Na dole strony głównej, sekcja **Kontakt** (emoji ✉️).
 
 ## Etapy
 
-| # | Etap | Wynik |
-|---|---|---|
-| 4.1 | Zebranie treści od autora (CV, opisy projektów, zrzuty) i szkice tekstów | Zaakceptowane treści w `content/` |
-| 4.2 | `/doswiadczenie` (z uczelnią) | Gotowa podstrona |
-| 4.3 | `/stack` | Gotowa podstrona |
-| 4.4 | `/portfolio` | Gotowa podstrona |
-| 4.5 | `TransitionLink` i przejścia między stronami | Płynne przejścia, kursor bez przerw |
-| 4.6 | Interfejs i walidacja formularza (atrapa wysyłki) | Formularz gotowy do podpięcia |
-| 4.7 | SEO: metadane, OG, mapa strony, JSON-LD | Poprawne podglądy linków |
-| 4.8 | Wydajność, korekta tekstów, przegląd z autorem | Akceptacja |
+| #   | Etap                                                                     | Wynik                               |
+| --- | ------------------------------------------------------------------------ | ----------------------------------- |
+| 4.1 | Zebranie treści od autora (CV, opisy projektów, zrzuty) i szkice tekstów | Zaakceptowane treści w `content/`   |
+| 4.2 | `/doswiadczenie` (z uczelnią)                                            | Gotowa podstrona                    |
+| 4.3 | `/stack`                                                                 | Gotowa podstrona                    |
+| 4.4 | `/portfolio`                                                             | Gotowa podstrona                    |
+| 4.5 | `TransitionLink` i przejścia między stronami                             | Płynne przejścia, kursor bez przerw |
+| 4.6 | Interfejs i walidacja formularza (atrapa wysyłki)                        | Formularz gotowy do podpięcia       |
+| 4.7 | SEO: metadane, OG, mapa strony, JSON-LD                                  | Poprawne podglądy linków            |
+| 4.8 | Wydajność, korekta tekstów, przegląd z autorem                           | Akceptacja                          |
 
 ## Kryteria ukończenia
 

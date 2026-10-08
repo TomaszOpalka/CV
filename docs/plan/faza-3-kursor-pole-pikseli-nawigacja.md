@@ -24,13 +24,13 @@ Druga część strony głównej, pod profilem ze zdjęciem:
 - Referencja craft.wild.as nie dała się otworzyć z mojego środowiska, więc efekt opisuję na podstawie briefu.
   Jeśli jakiś szczegół jest ważny, **nagraj krótki film ekranu** albo zrób zrzuty, a dopasujemy efekt.
 - Reużywamy z fazy 2: `Ticker`, `PointerTracker`, `QualityGovernor`.
-- API i baza: kontrakt i schemat z [fazy 1, sekcja 4](./faza-1-stack-i-architektura.md#4-architektura).
-- Obowiązują [zasady wydajności z fazy 1, pkt 6.4](./faza-1-stack-i-architektura.md#64-zasady-wydajności-animacji-wspólne-dla-faz-2-do-4).
+- API i magazyn: kontrakt z [fazy 1, sekcja 5](./faza-1-stack-i-architektura.md#5-architektura).
+- Obowiązują [zasady wydajności z fazy 1, pkt 7.4](./faza-1-stack-i-architektura.md#74-zasady-wydajności-animacji-wspólne-dla-faz-2-do-4).
 
 ## Zakres
 
-**W zakresie:** kursor i emoji per sekcja, pole pikseli, wybuch i odsłonięcie linków, Worker `/api/explosions` z D1,
-licznik wybuchów, sekcje jako karty na stronie głównej, nagłówek z nawigacją, płynny scroll, efekty dotyku.
+**W zakresie:** kursor i emoji per sekcja, pole pikseli, wybuch i odsłonięcie linków, funkcja Netlify `/api/explosions`
+z zapisem w magazynie (rekomendacja: Netlify Blobs), licznik wybuchów, sekcje jako karty na stronie głównej, nagłówek z nawigacją, płynny scroll, efekty dotyku.
 
 **Poza zakresem:** pełne treści i podstrony (faza 4), wysyłka formularza (faza 5).
 
@@ -45,15 +45,15 @@ licznik wybuchów, sekcje jako karty na stronie głównej, nagłówek z nawigacj
   Typ interakcji określa atrybut `data-cursor="link | card | explode | text"`.
 - **Emoji per sekcja** z atrybutu `section[data-emoji]`. Sekcję „w środku ekranu” wykrywa `IntersectionObserver` z `rootMargin: -45% 0px`.
 
-  | Sekcja | Emoji |
-  |---|---|
-  | O mnie | 👋 |
-  | Pole pikseli | 💥 (nad polem: 🧨) |
-  | Doświadczenie | 💼 |
-  | Stack | 🛠️ |
-  | Uczelnia | 🎓 |
-  | Portfolio / linki | 🔗 |
-  | Kontakt | ✉️ |
+  | Sekcja            | Emoji              |
+  | ----------------- | ------------------ |
+  | O mnie            | 👋                 |
+  | Pole pikseli      | 💥 (nad polem: 🧨) |
+  | Doświadczenie     | 💼                 |
+  | Stack             | 🛠️                 |
+  | Uczelnia          | 🎓                 |
+  | Portfolio / linki | 🔗                 |
+  | Kontakt           | ✉️                 |
 
 - **Zmiana emoji:** zmniejszenie z obrotem, podmiana, sprężyste powiększenie (GSAP, ok. 250 ms).
 - **Implementacja:** `components/layout/Cursor/` plus `CursorProvider` (kontekst z `setCursorState`).
@@ -85,14 +85,19 @@ licznik wybuchów, sekcje jako karty na stronie głównej, nagłówek z nawigacj
 
 ## 3.3 Zapis wybuchu w API
 
-- Worker `apps/api`: trasy `POST /api/explosions` i `GET /api/explosions/stats`.
-  Repozytorium `D1ExplosionRepository` implementuje interfejs `ExplosionRepository`, a migracja `0001_explosions.sql` pochodzi z fazy 1.
-- `POST`: walidacja Zod (`@cv/shared`), data nadawana na serwerze, odpowiedź `{ explosion, total }`.
-- `GET /stats`: wynik cache'owany na brzegu Cloudflare przez 60 s (Cache API), żeby oszczędzać odczyty D1.
-- **Front:** `api/explosions.ts` (klient `fetch`) oraz hooki `useExplosionStats()` (`useQuery`) i `useExplodeMutation()` (`useMutation`, 2 ponowienia).
+- Funkcja Netlify `netlify/functions/explosions.ts` (format `export default`, trasa `config.path = '/api/explosions'`):
+  `POST` zapisuje wybuch, `GET` zwraca statystyki.
+- Zapis idzie przez interfejs `ExplosionStore` ([faza 1, pkt 5.3](./faza-1-stack-i-architektura.md#53-magazyn-za-interfejsem)).
+  Domyślna implementacja `BlobsExplosionStore` (`@netlify/blobs`): jeden obiekt na wybuch, klucz = data ISO + losowy sufiks.
+  Zmiana magazynu (DynamoDB, Postgres) dotyka tylko tej klasy.
+- `POST`: walidacja Zod (`@shared/schemas`), data nadawana na serwerze, odpowiedź `{ explosion, total }`.
+- `GET`: statystyki (`total`, `lastAt`) z nagłówkiem `Cache-Control: public, max-age=60`, żeby nie liczyć wpisów przy każdej wizycie.
+- **Front:** `src/api/explosions.ts` (klient `fetch`) oraz hooki `useExplosionStats()` (`useQuery`) i `useExplodeMutation()` (`useMutation`, 2 ponowienia).
 - **Animacja nie czeka na sieć.** Licznik zwiększamy od razu (optymistycznie) i korygujemy po odpowiedzi.
-- **Ochrona limitów:** klient wysyła maksymalnie 1 wybuch na 3 s, a w WAF działa reguła Rate Limiting.
-- **Weryfikacja zapisu:** `wrangler d1 execute cv-db --remote --command "SELECT * FROM explosions ORDER BY created_at DESC LIMIT 5"`.
+- **Ochrona limitów:** klient wysyła maksymalnie 1 wybuch na 3 s, funkcja odrzuca nieprawidłowe dane. Kredyty Netlify są zużywane znikomo,
+  a twardy limit planu Free chroni przed rachunkiem.
+- **Lokalnie:** `npm run dev:full` (Netlify CLI) uruchamia stronę razem z funkcjami i lokalnym magazynem Blobs.
+- **Weryfikacja zapisu:** panel Netlify → _Blobs_ (po deployu) albo `netlify blobs:list explosions` lokalnie.
 
 ## 3.4 Nawigacja i sekcje (karty)
 
@@ -132,22 +137,22 @@ Typy `ExperienceItem`, `SkillItem`, `EducationItem` i `PortfolioLink` leżą w `
 
 ## Etapy
 
-| # | Etap | Wynik |
-|---|---|---|
-| 3.1 | Kursor: kropka, bąbel, stany, `CursorProvider` | Kursor działa na stronie głównej |
-| 3.2 | Emoji per sekcja i animacja zmiany | Emoji zmienia się przy scrollu |
-| 3.3 | Pole pikseli: migotanie, reakcja na kursor i dotyk | Efekt w spoczynku zaakceptowany |
-| 3.4 | Wybuch: fala, odłamki, odsłonięcie kart z linkami | Pełna sekwencja wybuchu |
-| 3.5 | Worker `/api/explosions` z D1, hooki TanStack Query, licznik | Wpis z datą w bazie po każdym wybuchu |
-| 3.6 | Sekcje i karty, nagłówek, Lenis i ScrollTrigger | Działająca nawigacja |
-| 3.7 | Efekty dotyku na telefonie | Działa na iOS i Androidzie |
-| 3.8 | Wydajność, testy, przegląd z autorem | Akceptacja |
+| #   | Etap                                                                        | Wynik                                     |
+| --- | --------------------------------------------------------------------------- | ----------------------------------------- |
+| 3.1 | Kursor: kropka, bąbel, stany, `CursorProvider`                              | Kursor działa na stronie głównej          |
+| 3.2 | Emoji per sekcja i animacja zmiany                                          | Emoji zmienia się przy scrollu            |
+| 3.3 | Pole pikseli: migotanie, reakcja na kursor i dotyk                          | Efekt w spoczynku zaakceptowany           |
+| 3.4 | Wybuch: fala, odłamki, odsłonięcie kart z linkami                           | Pełna sekwencja wybuchu                   |
+| 3.5 | Funkcja `/api/explosions` z `ExplosionStore`, hooki TanStack Query, licznik | Wpis z datą w magazynie po każdym wybuchu |
+| 3.6 | Sekcje i karty, nagłówek, Lenis i ScrollTrigger                             | Działająca nawigacja                      |
+| 3.7 | Efekty dotyku na telefonie                                                  | Działa na iOS i Androidzie                |
+| 3.8 | Wydajność, testy, przegląd z autorem                                        | Akceptacja                                |
 
 ## Kryteria ukończenia
 
 - [ ] Nawigacja działa przez scroll i karty: doświadczenie, stack, uczelnia, linki do portfoliów
 - [ ] Kursor z emoji zmienia się między sekcjami (desktop). Na telefonie działają efekty dotyku
-- [ ] Wybuch odsłania linki do innych CV, a **w bazie powstaje wpis z datą** (sprawdzone zapytaniem `wrangler d1 execute`)
+- [ ] Wybuch odsłania linki do innych CV, a **w magazynie powstaje wpis z datą** (sprawdzone lokalnie przez Netlify CLI, a po deployu w panelu)
 - [ ] Brak sieci nie psuje animacji ani linków
 - [ ] Spełniony budżet wydajności z fazy 2 (60 fps desktop, ≥ 50 fps telefon), także w trakcie wybuchu
 - [ ] Testy: Vitest (silnik pikseli, walidacja API), Playwright (klik → linki widoczne, żądanie `POST` wysłane)
@@ -155,15 +160,16 @@ Typy `ExperienceItem`, `SkillItem`, `EducationItem` i `PortfolioLink` leżą w `
 
 ## Ryzyka
 
-| Ryzyko | Co robimy |
-|---|---|
-| Boty nabijają wybuchy | Ograniczenie po stronie klienta, reguła WAF, licznik tylko informacyjny |
-| Konflikt Lenis i ScrollTrigger (skoki, poślizg) | Jedna pętla: `lenis.raf` wywoływany w tickerze GSAP |
-| Za dużo naraz (dwa canvasy, kursor, scroll) | Canvasy poza ekranem są pauzowane, a kursor używa tylko `transform` |
+| Ryzyko                                          | Co robimy                                                                        |
+| ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| Boty nabijają wybuchy                           | Ograniczenie po stronie klienta, walidacja w funkcji, licznik tylko informacyjny |
+| Konflikt Lenis i ScrollTrigger (skoki, poślizg) | Jedna pętla: `lenis.raf` wywoływany w tickerze GSAP                              |
+| Za dużo naraz (dwa canvasy, kursor, scroll)     | Canvasy poza ekranem są pauzowane, a kursor używa tylko `transform`              |
 
 ## Pytania do autora
 
 1. Lista innych CV i portfoliów do kart po wybuchu (nazwa, adres, krótki opis).
 2. Czy każde kliknięcie liczy się jako wybuch, czy tylko pierwsze w sesji?
-3. Emoji systemowe czy spójny zestaw SVG?
-4. Czy podpis „Wybuch #N” ma być publiczny?
+3. Magazyn wybuchów: Netlify Blobs (rekomendowane) czy DynamoDB ([faza 1, sekcja 3](./faza-1-stack-i-architektura.md#3-magazyn-wybuchów-dynamodb-supabase-czy-coś-prostszego))?
+4. Emoji systemowe czy spójny zestaw SVG?
+5. Czy podpis „Wybuch #N” ma być publiczny?

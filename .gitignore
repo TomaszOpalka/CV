@@ -1,0 +1,28 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# env
+.env
+.env.*
+!.env.example
+
+# netlify
+.netlify
+
+# tests / coverage
+/coverage
+/playwright-report
+/test-results
+
+# misc
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

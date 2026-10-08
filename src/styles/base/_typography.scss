@@ -1,0 +1,13 @@
+body {
+  font-family: var(--font-sans);
+  color: var(--gray-50);
+  background: var(--gray-1000);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-mono);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}

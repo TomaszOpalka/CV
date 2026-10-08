@@ -5,63 +5,82 @@
 
 ## Warunek ukończenia (z briefu)
 
-Podpięty **darmowy** formularz kontaktowy, np. EmailJS albo inny, który zmieści się w limicie.
+Podpięty **darmowy** formularz kontaktowy (EmailJS albo inny), który zmieści się w limicie.
 
 ## Cel
 
-Formularz „Zgłoś się po stronę” z fazy 4 naprawdę wysyła zgłoszenie. Autor dostaje e-mail, osoba zgłaszająca dostaje
-automatyczne potwierdzenie, a boty nie są w stanie zużyć darmowego limitu.
+Formularz „Zgłoś się po stronę” z fazy 4 naprawdę wysyła zgłoszenie. Autor dostaje e-mail, a boty nie zalewają skrzynki.
 
 ## Wybór usługi
 
-| Usługa | Darmowy limit | Plusy | Minusy |
-|---|---|---|---|
-| **EmailJS** (rekomendacja, zgodnie z briefem) | 200 e-maili/mies., 2 szablony | Szablony HTML, **automatyczna odpowiedź** do klienta (drugi szablon), REST API | Klucz publiczny w przeglądarce można nadużyć, jeśli nie ma ochrony |
-| Web3Forms (zapas) | 250 zgłoszeń/mies. | hCaptcha, bez szablonów do utrzymania | Brak automatycznej odpowiedzi w planie Free, historia tylko 30 dni |
+Hosting jest w Netlify, więc najprostsze jest **Netlify Forms**: bez dodatkowego konta, bez klucza w kodzie strony i bez limitu zgłoszeń.
 
-Przy portfolio (kilka do kilkunastu zgłoszeń miesięcznie) oba limity wystarczą z dużym zapasem, **pod warunkiem**, że boty go nie zjedzą.
+| Usługa                                    | Darmowy limit                                       | Plusy                                                                                                                                  | Minusy                                                                                                   |
+| ----------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Netlify Forms** (rekomendacja)          | **bez limitu zgłoszeń** (od 14.04.2026), 0 kredytów | To samo konto i panel. Akismet, honeypot i opcjonalnie reCAPTCHA. Powiadomienie e-mail, Slack lub webhook. Zgłoszenia zostają w panelu | Brak automatycznej odpowiedzi do zgłaszającego (wymaga małej funkcji). Działa tylko na wdrożonej stronie |
+| EmailJS (jako dodatek do auto-odpowiedzi) | 200 wiadomości/mies., 2 szablony                    | Szablony HTML, REST API wołane z funkcji                                                                                               | Dodatkowe konto, klucze w zmiennych środowiskowych                                                       |
+| Web3Forms                                 | 250 zgłoszeń/mies.                                  | hCaptcha                                                                                                                               | Dodatkowa usługa bez przewagi nad Netlify Forms                                                          |
 
-## Architektura (rekomendowana)
+Zgłoszenia przestają przychodzić, jeśli zespół Netlify wyczerpie 300 kredytów i zostanie wstrzymany ([faza 1, pkt 1.6](./faza-1-stack-i-architektura.md#16-netlify-limity-kredyty-i-co-zrobić-żeby-ich-nie-przekroczyć)).
+Zgłoszenia, które nie dojdą, nie wracają. To kolejny powód, by trzymać stronę lekką.
+
+## Architektura
 
 ```
-Formularz (faza 4)
-   │  POST /api/contact  { name, email, siteType, budget?, deadline?, message, consent, website, turnstileToken }
+Formularz React (faza 4)
+   │  1. walidacja Zod w przeglądarce
+   │  2. pułapka czasowa: wysyłka < 3 s od otwarcia → udajemy sukces, nie wysyłamy
+   │  3. POST (application/x-www-form-urlencoded) na /__forms.html, z polem form-name
    ▼
-Worker „cv”
-   1. Walidacja Zod (contactRequestSchema z @cv/shared)
-   2. Honeypot: pole „website” niepuste → udajemy sukces, nic nie wysyłamy
-   3. Pułapka czasowa: formularz wysłany < 3 s od otwarcia → odrzucamy
-   4. Cloudflare Turnstile: weryfikacja tokenu (siteverify)
-   5. INSERT do D1 „contact_requests” (kopia zapasowa: zgłoszenie nie przepadnie nawet przy błędzie e-maila)
-   6. EmailJS REST API: szablon „nowe zgłoszenie” do autora + szablon „automatyczna odpowiedź” do klienta
-   7. Odpowiedź { ok: true } albo ApiError
+Netlify Forms
+   │  honeypot „bot-field” → odrzucenie po cichu
+   │  Akismet → Verified / Spam
+   ├──► powiadomienie e-mail do autora (Forms → Submission notifications)
+   ├──► zgłoszenie zapisane w panelu Netlify (eksport CSV)
+   └──► (opcjonalnie) funkcja submission-created → EmailJS → automatyczna odpowiedź do klienta
 ```
 
-**Dlaczego przez Workera, a nie prosto z przeglądarki:** klucz publiczny EmailJS jest widoczny w kodzie strony.
-Bot mógłby wysłać 200 wiadomości i zablokować formularz do końca miesiąca. Turnstile i reguła WAF w Workerze chronią limit,
-a kopia w D1 gwarantuje, że żadne zgłoszenie nie zginie.
+### Szczegóły wdrożenia
 
-**Wariant uproszczony** (jeśli autor nie chce backendu dla formularza): `@emailjs/browser` wprost z przeglądarki,
-wbudowana w EmailJS obsługa reCAPTCHA i ograniczenie do własnej domeny w panelu EmailJS.
-Mniej kodu, ale słabsza ochrona i brak kopii zgłoszeń.
+1. **Plik szkieletu** `public/__forms.html`: Netlify wykrywa formularze, czytając statyczny HTML. Plik musi zawierać **każde pole dokładnie pod taką nazwą, jaką wysyła komponent**:
 
-### Migracja D1: `apps/api/migrations/0002_contact_requests.sql`
+   ```html
+   <form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
+     <input type="hidden" name="form-name" value="contact" />
+     <input name="name" />
+     <input name="email" />
+     <input name="siteType" />
+     <input name="budget" />
+     <input name="deadline" />
+     <textarea name="message"></textarea>
+     <input name="bot-field" />
+   </form>
+   ```
 
-```sql
-CREATE TABLE contact_requests (
-  id         TEXT PRIMARY KEY,
-  created_at TEXT NOT NULL,          -- ISO 8601 UTC
-  name       TEXT NOT NULL,
-  email      TEXT NOT NULL,
-  site_type  TEXT NOT NULL,
-  budget     TEXT,
-  deadline   TEXT,
-  message    TEXT NOT NULL,
-  email_sent INTEGER NOT NULL DEFAULT 0  -- 1 gdy EmailJS potwierdził wysyłkę
-);
-```
+2. **Komponent** zawiera ukryte pole `<input type="hidden" name="form-name" value="contact" />` oraz ukryte (CSS) pole `bot-field`.
+3. **Wysyłka** (`src/api/contact.ts`): `fetch('/__forms.html', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(formData).toString() })`.
+   Sukces tylko dla `res.status === 200`. **JSON nie jest obsługiwany**, ciało musi być kodowane jak formularz.
+4. **Włącz wykrywanie formularzy** w panelu: _Forms → Enable form detection_. Zadziała od następnego deploya.
+5. **Powiadomienie e-mail**: _Forms → Submission notifications → Add notification → Email_. Mail przychodzi z `formresponses@netlify.com`,
+   a pole o nazwie `email` staje się adresem do odpowiedzi (Reply-To). Temat ustawia ukryte pole `subject`.
+6. **Antyspam**: honeypot i Akismet wystarczą na start. Zgłoszenia oznaczone jako spam trafiają do osobnej listy w panelu (możesz je zatwierdzić).
+   reCAPTCHA dodaje widoczny widżet, więc włączamy ją tylko, jeśli pojawi się spam.
+7. **Nie używamy** Server Actions ani route handlerów Next (nie działają z eksportem statycznym).
 
-### Typ w `packages/shared/src/types.ts`
+### Automatyczna odpowiedź do zgłaszającego (opcjonalna)
+
+Netlify Forms nie wysyła potwierdzeń. Jeśli chcesz „Dzięki, odezwę się w ciągu 48 h”, dodajemy funkcję zdarzeniową
+`netlify/functions/submission-created.ts` (uruchamia się po każdym poprawnym, niebędącym spamem zgłoszeniu). Woła ona REST API EmailJS
+(`POST https://api.emailjs.com/api/v1.0/email/send`) z kluczem prywatnym. Wymagania:
+
+- w koncie EmailJS włączony dostęp API dla aplikacji spoza przeglądarki,
+- zmienne środowiskowe w Netlify: `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_AUTOREPLY`, `EMAILJS_PUBLIC_KEY`, `EMAILJS_PRIVATE_KEY`
+  (wartości z `netlify.toml` nie są dostępne w funkcjach; ustawiasz je w panelu lub przez `netlify env:set`),
+- licznik: 200 wiadomości/mies. na planie Free. Funkcja nie wysyła nic po przekroczeniu 180 i nie przerywa przyjmowania zgłoszeń.
+
+Bez tego dodatku formularz nadal w pełni działa. To tylko komfort dla klienta.
+
+### Typ w `src/shared/types.ts`
 
 ```ts
 export type SiteType = 'business-card' | 'portfolio' | 'landing' | 'shop' | 'other';
@@ -74,63 +93,44 @@ export interface ContactRequest {
   deadline?: string;
   message: string;
   consent: true;
-  website: string; // honeypot, musi być pusty
-  turnstileToken: string;
-}
-
-export interface ContactResponse {
-  ok: true;
 }
 ```
-
-### Sekrety i konfiguracja
-
-| Nazwa | Gdzie | Uwagi |
-|---|---|---|
-| `EMAILJS_SERVICE_ID` | `wrangler secret` | |
-| `EMAILJS_TEMPLATE_OWNER` | `wrangler secret` | szablon „nowe zgłoszenie” |
-| `EMAILJS_TEMPLATE_AUTOREPLY` | `wrangler secret` | szablon „dziękuję, odezwę się” |
-| `EMAILJS_PUBLIC_KEY` | `wrangler secret` | |
-| `EMAILJS_PRIVATE_KEY` | `wrangler secret` | w panelu EmailJS trzeba włączyć dostęp do API spoza przeglądarki |
-| `TURNSTILE_SECRET_KEY` | `wrangler secret` | |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | zmienna buildu frontu | klucz publiczny, może być jawny |
 
 ### RODO
 
 - Checkbox zgody i klauzula informacyjna pod formularzem (z fazy 4).
-- **Retencja:** codzienny Cron Trigger w Workerze (darmowy) usuwa zgłoszenia starsze niż 12 miesięcy.
-- Na prośbę o usunięcie danych: `wrangler d1 execute cv-db --remote --command "DELETE FROM contact_requests WHERE email = '…'"`.
+- Netlify **nie usuwa** zgłoszeń automatycznie. Ustaw cykliczne przypomnienie (co 12 miesięcy): eksport CSV i usunięcie starych zgłoszeń w panelu.
+  Na prośbę o usunięcie danych usuwasz pojedyncze zgłoszenie w panelu _Forms_.
+- Uwaga: usunięcie całego formularza w panelu jest nieodwracalne i kasuje wszystkie zgłoszenia.
 
-### Pilnowanie limitu
+### Test przed produkcją (bez zużywania kredytów)
 
-- Worker liczy wysłane e-maile w bieżącym miesiącu (`SELECT COUNT(*) … WHERE email_sent = 1`).
-  Powyżej 180 przestaje wołać EmailJS i tylko zapisuje zgłoszenie w D1. Użytkownik nadal widzi sukces.
-- Gdy EmailJS zwróci błąd lub przekroczony limit: zgłoszenie zostaje w D1 z `email_sent = 0`, a użytkownik widzi sukces.
+Formularze działają dopiero na wdrożonej stronie. **Deploy brancha i Deploy Preview kosztują 0 kredytów**, więc przed merge do `main`
+robimy jeden testowy deploy brancha, wysyłamy zgłoszenie i sprawdzamy: panel, powiadomienie, spam (pole `bot-field` wypełnione).
+Lokalnie (Playwright) testujemy komponent z zamockowanym endpointem.
 
 ---
 
 ## Etapy
 
-| # | Etap | Wynik |
-|---|---|---|
-| 5.1 | Konto EmailJS, podpięcie skrzynki, 2 szablony (do autora i automatyczna odpowiedź) | Testowy e-mail z panelu EmailJS dochodzi |
-| 5.2 | Turnstile: widżet w formularzu, klucze | Token generuje się w formularzu |
-| 5.3 | Migracja `0002`, trasa `/api/contact` w Workerze, zabezpieczenia, wywołanie EmailJS | Zgłoszenie z formularza trafia na skrzynkę |
-| 5.4 | Front: zamiana atrapy na `useContactMutation()` (TanStack Query), obsługa błędów | Pełny przepływ z UI |
-| 5.5 | Retencja (Cron Trigger) i pilnowanie limitu | Zgodność z RODO |
-| 5.6 | Testy i przegląd z autorem | Akceptacja |
+| #   | Etap                                                                                | Wynik                                      |
+| --- | ----------------------------------------------------------------------------------- | ------------------------------------------ |
+| 5.1 | `public/__forms.html`, pola ukryte, honeypot i pułapka czasowa w komponencie        | Formularz gotowy do wykrycia przez Netlify |
+| 5.2 | `src/api/contact.ts` i hook `useContactMutation()` (TanStack Query), obsługa błędów | Pełny przepływ w interfejsie z mockiem     |
+| 5.3 | Test deployu brancha: włączenie wykrywania, powiadomienie e-mail, test spamu        | Zgłoszenie dochodzi na skrzynkę            |
+| 5.4 | (opcjonalnie) `submission-created.ts` + EmailJS                                     | Klient dostaje automatyczną odpowiedź      |
+| 5.5 | Testy i przegląd z autorem                                                          | Akceptacja                                 |
 
 ## Kryteria ukończenia
 
-- [ ] Zgłoszenie z formularza dociera na skrzynkę autora, a automatyczna odpowiedź do klienta
-- [ ] Każde zgłoszenie jest zapisane w D1, nawet gdy e-mail się nie wyśle
-- [ ] Honeypot, pułapka czasowa i Turnstile blokują boty (sprawdzone ręcznie i testem)
-- [ ] Koszt nadal = domena: wszystkie usługi w darmowych planach, bez karty
-- [ ] Testy: Vitest (walidacja, honeypot, limit), Playwright (wysyłka z zamockowanym EmailJS, ścieżka błędu)
-- [ ] Autor zaakceptował treść obu e-maili
+- [ ] Zgłoszenie z formularza dociera na skrzynkę autora i jest widoczne w panelu Netlify
+- [ ] Honeypot i Akismet blokują boty (sprawdzone ręcznie)
+- [ ] Koszt nadal = domena: żadnych płatnych usług ani karty
+- [ ] Testy: Vitest (walidacja), Playwright (wysyłka z zamockowanym endpointem, ścieżka błędu)
+- [ ] Autor zaakceptował treść powiadomienia (oraz auto-odpowiedzi, jeśli wdrażamy)
 
 ## Pytania do autora
 
 1. Na jaki adres mają przychodzić zgłoszenia?
-2. Treść automatycznej odpowiedzi, np. „Dzięki! Odezwę się w ciągu 48 h”.
-3. Rekomendowana architektura z Workerem czy wariant uproszczony?
+2. Czy chcesz automatyczną odpowiedź do klienta (wymaga konta EmailJS)? Treść np. „Dzięki! Odezwę się w ciągu 48 h”.
+3. Czy zgłoszenia mają też trafiać na Slacka lub inny webhook?

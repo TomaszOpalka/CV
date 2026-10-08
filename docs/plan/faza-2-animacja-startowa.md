@@ -18,9 +18,9 @@ a po lewej pojawia się tekst „O mnie”.
 
 - Referencja: aino.agency. Siatka znaków przeliczana co klatkę, prosta fizyka 2D, morphing; bez WebGL i bez video.
   Szczegóły w [fazie 1, pkt 1.1](./faza-1-stack-i-architektura.md#11-jak-zrobiona-jest-animacja-na-ainoagency-threejs-video).
-- My rysujemy na **Canvas 2D** własnym silnikiem w TypeScript (`apps/web/src/engine/`), bez Reacta w pętli.
-- Obowiązują [zasady wydajności z fazy 1, pkt 6.4](./faza-1-stack-i-architektura.md#64-zasady-wydajności-animacji-wspólne-dla-faz-2-do-4).
-- Konwencje nazw, typów i Sass: [faza 1, sekcja 6](./faza-1-stack-i-architektura.md#6-konwencje).
+- My rysujemy na **Canvas 2D** własnym silnikiem w TypeScript (`src/engine/`), bez Reacta w pętli.
+- Obowiązują [zasady wydajności z fazy 1, pkt 7.4](./faza-1-stack-i-architektura.md#74-zasady-wydajności-animacji-wspólne-dla-faz-2-do-4).
+- Konwencje nazw, typów i Sass: [faza 1, sekcja 7](./faza-1-stack-i-architektura.md#7-konwencje).
 
 ## Zakres
 
@@ -33,14 +33,14 @@ sekcja „O mnie”, przycisk „Pomiń intro”, wersja `prefers-reduced-motion
 
 ## Scenariusz animacji
 
-| Scena | Czas (orient.) | Co się dzieje |
-|---|---|---|
-| **S0 Start** | 0 do ok. 1,2 s | Ciemnoszare tło. Siatka losowych cyfr pojawia się kaskadą, wiersz po wierszu. Licznik `000 → 100` pokazuje **prawdziwy** postęp ładowania (zdjęcie, font). Nie przeciągamy sztucznie powyżej ok. 1,5 s |
-| **S1 Zaproszenie** | do kliknięcia | Cyfry „oddychają”: w każdej klatce zmienia się ok. 5% komórek. Kursor albo palec **odpycha** cyfry w promieniu R. Na środku z cyfr złożony jest napis zachęty, np. `[ KLIKNIJ ]` |
-| **S2 Wybuch** | ok. 0 do 0,6 s po kliknięciu | Impuls od punktu kliknięcia: cyfry rozlatują się, prędkość maleje z odległością. Lekkie tarcie i grawitacja |
-| **S3 Morph** | ok. 0,6 do 1,8 s | Każda cyfra dostaje cel. **Prawa połowa** układa się w portret z cyfr (jasność zdjęcia → gęstość cyfry). **Lewa połowa** układa się w nagłówek (imię i nazwisko) efektem „dekodowania”. Sprężyny ściągają cyfry do celów, nadmiarowe gasną |
-| **S4 Odsłonięcie** | ok. 1,8 do 2,6 s | Portret z cyfr przechodzi w **prawdziwe zdjęcie**: pikselizacja maleje od 24 px do 1 px. Tekst „O mnie” wjeżdża linia po linii (GSAP SplitText). Canvas wygasza się i **zatrzymuje pętlę**, żeby oszczędzać baterię |
-| **S5 Widok końcowy** | n/d | Desktop: tekst po lewej, zdjęcie po prawej. Telefon: zdjęcie nad tekstem. Strzałka „przewiń” prowadzi do fazy 3 |
+| Scena                | Czas (orient.)               | Co się dzieje                                                                                                                                                                                                                              |
+| -------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **S0 Start**         | 0 do ok. 1,2 s               | Ciemnoszare tło. Siatka losowych cyfr pojawia się kaskadą, wiersz po wierszu. Licznik `000 → 100` pokazuje **prawdziwy** postęp ładowania (zdjęcie, font). Nie przeciągamy sztucznie powyżej ok. 1,5 s                                     |
+| **S1 Zaproszenie**   | do kliknięcia                | Cyfry „oddychają”: w każdej klatce zmienia się ok. 5% komórek. Kursor albo palec **odpycha** cyfry w promieniu R. Na środku z cyfr złożony jest napis zachęty, np. `[ KLIKNIJ ]`                                                           |
+| **S2 Wybuch**        | ok. 0 do 0,6 s po kliknięciu | Impuls od punktu kliknięcia: cyfry rozlatują się, prędkość maleje z odległością. Lekkie tarcie i grawitacja                                                                                                                                |
+| **S3 Morph**         | ok. 0,6 do 1,8 s             | Każda cyfra dostaje cel. **Prawa połowa** układa się w portret z cyfr (jasność zdjęcia → gęstość cyfry). **Lewa połowa** układa się w nagłówek (imię i nazwisko) efektem „dekodowania”. Sprężyny ściągają cyfry do celów, nadmiarowe gasną |
+| **S4 Odsłonięcie**   | ok. 1,8 do 2,6 s             | Portret z cyfr przechodzi w **prawdziwe zdjęcie**: pikselizacja maleje od 24 px do 1 px. Tekst „O mnie” wjeżdża linia po linii (GSAP SplitText). Canvas wygasza się i **zatrzymuje pętlę**, żeby oszczędzać baterię                        |
+| **S5 Widok końcowy** | n/d                          | Desktop: tekst po lewej, zdjęcie po prawej. Telefon: zdjęcie nad tekstem. Strzałka „przewiń” prowadzi do fazy 3                                                                                                                            |
 
 **Opcjonalnie, jeśli zostanie zapas wydajności:** po odsłonięciu, przy najechaniu na zdjęcie, wokół kursora na chwilę
 wracają cyfry (efekt „soczewki”).
@@ -51,35 +51,35 @@ wracają cyfry (efekt „soczewki”).
 
 ## Technika
 
-### Moduły silnika: `apps/web/src/engine/`
+### Moduły silnika: `src/engine/`
 
-| Plik | Odpowiedzialność |
-|---|---|
-| `core/Ticker.ts` | Jedna pętla `requestAnimationFrame`, czas między klatkami, pauza i wznowienie |
-| `core/PointerTracker.ts` | Pointer Events: pozycja w układzie canvasu, prędkość ruchu, dotyk |
-| `core/QualityGovernor.ts` | Średni fps (wygładzony). Przy spadku powiększa komórkę i zmniejsza liczbę cząstek |
-| `glyph/GlyphAtlas.ts` | Raz rysuje cyfry `0` do `9` fontem monospace w kilku odcieniach szarości. Liczy „ilość tuszu” każdej cyfry, żeby zbudować rampę jasności |
-| `glyph/GlyphField.ts` | Cząstki w `Float32Array`: pozycja, prędkość, cel, indeks glifu, przezroczystość |
-| `glyph/PortraitSampler.ts` | Rysuje zdjęcie w siatce `kolumny × wiersze`, liczy jasność (`0.2126R + 0.7152G + 0.0722B`), stosuje krzywą kontrastu i dobiera cyfrę z rampy |
-| `glyph/forces.ts` | Czyste funkcje: odpychanie, impuls wybuchu, sprężyna do celu (całkowanie semi-implicit Euler) |
-| `glyph/Canvas2DRenderer.ts` | Rysowanie z atlasu przez `drawImage`. Implementuje `GlyphRenderer`, żeby w planie B podmienić go na OGL |
+| Plik                        | Odpowiedzialność                                                                                                                             |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/Ticker.ts`            | Jedna pętla `requestAnimationFrame`, czas między klatkami, pauza i wznowienie                                                                |
+| `core/PointerTracker.ts`    | Pointer Events: pozycja w układzie canvasu, prędkość ruchu, dotyk                                                                            |
+| `core/QualityGovernor.ts`   | Średni fps (wygładzony). Przy spadku powiększa komórkę i zmniejsza liczbę cząstek                                                            |
+| `glyph/GlyphAtlas.ts`       | Raz rysuje cyfry `0` do `9` fontem monospace w kilku odcieniach szarości. Liczy „ilość tuszu” każdej cyfry, żeby zbudować rampę jasności     |
+| `glyph/GlyphField.ts`       | Cząstki w `Float32Array`: pozycja, prędkość, cel, indeks glifu, przezroczystość                                                              |
+| `glyph/PortraitSampler.ts`  | Rysuje zdjęcie w siatce `kolumny × wiersze`, liczy jasność (`0.2126R + 0.7152G + 0.0722B`), stosuje krzywą kontrastu i dobiera cyfrę z rampy |
+| `glyph/forces.ts`           | Czyste funkcje: odpychanie, impuls wybuchu, sprężyna do celu (całkowanie semi-implicit Euler)                                                |
+| `glyph/Canvas2DRenderer.ts` | Rysowanie z atlasu przez `drawImage`. Implementuje `GlyphRenderer`, żeby w planie B podmienić go na OGL                                      |
 
 ### Komponenty React
 
-| Komponent / hook | Rola |
-|---|---|
+| Komponent / hook             | Rola                                                                                         |
+| ---------------------------- | -------------------------------------------------------------------------------------------- |
 | `components/sections/Intro/` | Komponent kliencki. Ładuje silnik dynamicznie (`next/dynamic`, `ssr: false`), montuje canvas |
-| `components/sections/About/` | Tekst „O mnie” i zdjęcie (`<picture>` z AVIF i WebP) |
-| `components/ui/SkipIntro/` | Przycisk „Pomiń intro”, dostępny też z klawiatury |
-| `hooks/useIntroState.ts` | Maszyna stanów: `boot → idle → exploding → morphing → revealed` |
-| `hooks/useReducedMotion.ts` | Odczyt `prefers-reduced-motion` |
+| `components/sections/About/` | Tekst „O mnie” i zdjęcie (`<picture>` z AVIF i WebP)                                         |
+| `components/ui/SkipIntro/`   | Przycisk „Pomiń intro”, dostępny też z klawiatury                                            |
+| `hooks/useIntroState.ts`     | Maszyna stanów: `boot → idle → exploding → morphing → revealed`                              |
+| `hooks/useReducedMotion.ts`  | Odczyt `prefers-reduced-motion`                                                              |
 
 ### Rozmiary siatki (punkt wyjścia do strojenia)
 
-| Ekran | Komórka | Siatka | Komórek |
-|---|---|---|---|
-| Desktop 1440×900 | 12 px | 120 × 75 | ok. 9 000 |
-| Telefon 390×844 | 10 px | 39 × 84 | ok. 3 300 |
+| Ekran            | Komórka | Siatka   | Komórek   |
+| ---------------- | ------- | -------- | --------- |
+| Desktop 1440×900 | 12 px   | 120 × 75 | ok. 9 000 |
+| Telefon 390×844  | 10 px   | 39 × 84  | ok. 3 300 |
 
 ### Zdjęcie
 
@@ -104,14 +104,14 @@ wracają cyfry (efekt „soczewki”).
 
 ### Budżet wydajności
 
-| Metryka | Cel |
-|---|---|
-| Płynność na desktopie | 60 fps |
+| Metryka                                   | Cel                                                   |
+| ----------------------------------------- | ----------------------------------------------------- |
+| Płynność na desktopie                     | 60 fps                                                |
 | Płynność na średnim telefonie z Androidem | **≥ 50 fps**, bez widocznych przycięć przy kliknięciu |
-| Długie zadania na głównym wątku | < 50 ms |
-| LCP (tekst lub zdjęcie) | < 2,5 s |
-| Paczka JS intro (bez Reacta i Next) | ≤ 40 kB gzip |
-| Lighthouse mobile | Performance ≥ 85, Accessibility ≥ 95 |
+| Długie zadania na głównym wątku           | < 50 ms                                               |
+| LCP (tekst lub zdjęcie)                   | < 2,5 s                                               |
+| Paczka JS intro (bez Reacta i Next)       | ≤ 40 kB gzip                                          |
+| Lighthouse mobile                         | Performance ≥ 85, Accessibility ≥ 95                  |
 
 Pomiar: Chrome DevTools (Performance, spowolnienie CPU 4×) **oraz prawdziwy telefon**.
 Gdy Canvas 2D nie spełni budżetu, przechodzimy na renderer OGL (plan B z fazy 1).
@@ -126,20 +126,20 @@ Kolejną opcją jest `OffscreenCanvas` w Web Workerze.
 
 ## Etapy
 
-| # | Etap | Wynik |
-|---|---|---|
-| 2.1 | **Prototyp w izolacji** (`/lab/intro`, tylko w dev): siatka cyfr, odpychanie, wybuch | Pomiar fps na desktopie i telefonie, decyzja Canvas 2D czy OGL |
-| 2.2 | **Portret z cyfr**: próbkowanie zdjęcia, rampa cyfr, strojenie kontrastu | Autor akceptuje wygląd twarzy z cyfr |
-| 2.3 | **Choreografia**: maszyna stanów i timeline GSAP (S0 do S5) | Pełna sekwencja na desktopie |
-| 2.4 | **Sekcja „O mnie”**: layout, typografia, tekst od autora | Gotowy widok końcowy |
-| 2.5 | **Telefony i dostępność**: dotyk, obrót, reduced-motion, „Pomiń intro”, powrót na stronę | Działa na iOS i Androidzie |
-| 2.6 | **Optymalizacja**: QualityGovernor, pauza poza ekranem, lazy-load, Lighthouse, test na telefonie | Spełniony budżet wydajności |
-| 2.7 | **Przegląd z autorem** i poprawki | Akceptacja |
+| #   | Etap                                                                                             | Wynik                                                          |
+| --- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| 2.1 | **Prototyp w izolacji** (`/lab/intro`, tylko w dev): siatka cyfr, odpychanie, wybuch             | Pomiar fps na desktopie i telefonie, decyzja Canvas 2D czy OGL |
+| 2.2 | **Portret z cyfr**: próbkowanie zdjęcia, rampa cyfr, strojenie kontrastu                         | Autor akceptuje wygląd twarzy z cyfr                           |
+| 2.3 | **Choreografia**: maszyna stanów i timeline GSAP (S0 do S5)                                      | Pełna sekwencja na desktopie                                   |
+| 2.4 | **Sekcja „O mnie”**: layout, typografia, tekst od autora                                         | Gotowy widok końcowy                                           |
+| 2.5 | **Telefony i dostępność**: dotyk, obrót, reduced-motion, „Pomiń intro”, powrót na stronę         | Działa na iOS i Androidzie                                     |
+| 2.6 | **Optymalizacja**: QualityGovernor, pauza poza ekranem, lazy-load, Lighthouse, test na telefonie | Spełniony budżet wydajności                                    |
+| 2.7 | **Przegląd z autorem** i poprawki                                                                | Akceptacja                                                     |
 
 ## Kryteria ukończenia
 
 - [ ] Autor zaakceptował wygląd i tempo animacji
-- [ ] `pnpm build` przechodzi bez błędów TypeScript i ESLint, a deploy na domenę działa
+- [ ] `npm run check` przechodzi bez błędów TypeScript i ESLint, a deploy na domenę działa
 - [ ] Działa w Chrome, Firefox, Safari (macOS i iOS) oraz Chrome na Androidzie
 - [ ] Spełniony budżet wydajności: 60 fps desktop, ≥ 50 fps średni telefon, brak przycięć przy kliknięciu
 - [ ] Widok końcowy: zdjęcie po prawej i tekst po lewej (desktop), poprawny układ na telefonie
@@ -147,11 +147,24 @@ Kolejną opcją jest `OffscreenCanvas` w Web Workerze.
 
 ## Ryzyka
 
-| Ryzyko | Co robimy |
-|---|---|
-| Portret z cyfr nieczytelny | Mocniejszy kontrast, mniejsza komórka tylko w obszarze twarzy, inne zdjęcie |
-| Spadki fps na słabych telefonach | QualityGovernor, renderer OGL, mniej cząstek na mobile |
+| Ryzyko                                        | Co robimy                                                                        |
+| --------------------------------------------- | -------------------------------------------------------------------------------- |
+| Portret z cyfr nieczytelny                    | Mocniejszy kontrast, mniejsza komórka tylko w obszarze twarzy, inne zdjęcie      |
+| Spadki fps na słabych telefonach              | QualityGovernor, renderer OGL, mniej cząstek na mobile                           |
 | Font monospace ładuje się po starcie animacji | `next/font` z `preload`. Atlas glifów budujemy dopiero po `document.fonts.ready` |
+
+## Materiały referencyjne od autora
+
+Możesz mi wkleić albo wgrać materiały z obu stron, żebym dopasował efekt dokładniej. To przyspiesza strojenie i nic nie kosztuje.
+Używamy ich **do zrozumienia techniki**. Nie kopiujemy cudzego kodu 1:1 (prawa autorskie), tylko piszemy własną implementację.
+
+| Co                                   | Jak zdobyć (Chrome lub Edge, klawisz F12)                                                                                                     | Po co                                                       |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Nagranie ekranu (najcenniejsze)      | Windows: `Win+Shift+S`, tryb wideo, albo Xbox Game Bar `Win+G`. Mac: `Cmd+Shift+5`. 10 do 30 s intro i kliknięcia, najlepiej też na telefonie | Tempo, kolejność scen, łatwo ocenić efekt                   |
+| Struktura strony po starcie animacji | _Elements_ → prawy klik na `<body>` → _Copy → Copy outerHTML_ (wklej pierwsze ok. 200 linii)                                                  | Czy to `<canvas>`, czy wiersze tekstu, jak nazwane elementy |
+| Lista plików JS i ich waga           | _Network_ → filtr _JS_ → odśwież stronę → zrzut ekranu tabeli                                                                                 | Jakie biblioteki, ile ważą                                  |
+| Wywołania rysowania w jednej klatce  | _Performance_ → nagraj 3 s → zrzut ekranu wykresu                                                                                             | Czy rysują co klatkę, ile trwa klatka                       |
+| Kursor i kwadraty z craft.wild.as    | _Elements_ → zaznacz element kursora i pola kwadratów → _Copy → Copy element_ oraz zakładka _Styles_ (CSS animacji)                           | Jak zbudowany kursor, czy kwadraty to CSS czy canvas        |
 
 ## Pytania do autora
 

@@ -10,12 +10,12 @@ Ten plik zbiera tylko założenia, żeby wcześniejsze fazy niczego nie zablokow
 
 ## Ważne: Kaboom.js → KAPLAY
 
-Kaboom.js **nie jest już rozwijany**. Komunikat w npm: *„Kaboom is no longer maintained. Please use KAPLAY,
-the new game library built as its successor, by its developers.”* KAPLAY ma niemal to samo API
+Kaboom.js **nie jest już rozwijany**. Komunikat w npm: _„Kaboom is no longer maintained. Please use KAPLAY,
+the new game library built as its successor, by its developers.”_ KAPLAY ma niemal to samo API
 (`kaplay()` zamiast `kaboom()`), więc tutoriale do Kaboom w większości nadal działają.
 
 ```bash
-pnpm --filter web add kaplay
+npm install kaplay
 ```
 
 ## Założenia, które pilnujemy już teraz
@@ -24,7 +24,7 @@ pnpm --filter web add kaplay
 - Estetyka spójna ze stroną: skala szarości, kwadraty i cyfry z silnika z faz 2 i 3.
 - Sterowanie klawiaturą **i dotykiem**. Pauza po utracie fokusu karty.
 - Zero wpływu na wydajność reszty strony: kursor i canvasy strony są wyłączone, gdy gra działa.
-- Ewentualne wyniki zapisujemy w tym samym Workerze i D1 (`/api/scores`), więc koszt nadal = domena.
+- Ewentualne wyniki zapisujemy w tej samej warstwie API i magazynie (funkcja Netlify `/api/scores`), więc koszt nadal = domena.
 
 ## Pomysły do wyboru przy planowaniu
 
@@ -38,6 +38,6 @@ pnpm --filter web add kaplay
 - [ ] Sterowanie: desktop i telefon
 - [ ] Grafiki pikselowe (darmowe narzędzia: Piskel, LibreSprite)
 - [ ] Punktacja, ewentualna tabela wyników i podstawowa ochrona przed oszustwami
-- [ ] Endpointy API i migracja D1
+- [ ] Endpoint API i model danych wyników
 - [ ] Dostępność: możliwość pominięcia, opis zasad
 - [ ] Kryteria ukończenia i szacunek czasu
