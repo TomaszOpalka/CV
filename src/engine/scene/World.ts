@@ -1,4 +1,12 @@
-import { ballArenaPosition, BALL_RADIUS, SMOKE_CENTER } from './ballFlight';
+import {
+  ballArenaPosition,
+  ballSpeed,
+  BALL_RADIUS,
+  HOOP_TIME,
+  IMPACTS,
+  impactPulse,
+  SMOKE_CENTER,
+} from './ballFlight';
 import { Camera3D } from './Camera3D';
 import { carTravel, DRIVE_START } from './driving';
 import { easeInOut, easeOutCubic, KeyTrack, lerp, ramp, smoothstep } from './math';
@@ -37,7 +45,7 @@ export class World {
   private readonly keys = new Float64Array(CHANNELS);
   private readonly ball = new Float64Array(3);
   private readonly dish = new Float64Array(3);
-  private readonly mark = new Float64Array(16 * 3);
+  private readonly mark = new Float64Array(24 * 3);
   private readonly tmp = new Float64Array(3);
   private width = 0;
   private height = 0;
@@ -79,16 +87,16 @@ export class World {
       [S.orbit + 0.15, 0, 90, 90, 0, 0, 0.3, 3.4, 7.0, 16, 0],
       [S.orbit + 0.8, 10, 40, 40, -0.5, 0, 0.45, 4, 3.2, 12, 0],
       [S.pullback, 22, 14, 0, -1.2, 0, 0.55, 2.4, 1.5, 9, 0],
-      [S.drive, 14, 8, 0, 0, 0, 0.5, 7.4, 3.2, 24, 0],
-      [S.smoke, 14, 8, 0, 0, 0, 0.5, 7.4, 3.2, 24, 0],
+      [S.drive, 14, 8, 0, 0, 0, 1.3, 9.0, 5.2, 24, 0],
+      [S.smoke, 14, 8, 0, 0, 0, 1.3, 9.0, 5.2, 24, 0],
       [S.fall, 0, 6, 0, sc.x, sc.y, sc.z, 0.9, 0.7, 6, 0],
     ]);
     this.trackB = new KeyTrack([
       [S.fall, 0, 6, 0, 0, 0, 0, 0.9, 0.7, 6, 1],
       [S.hoop, 0, 24, 0, 0, 0, 0, 3.0, 2.2, 10, 1],
-      [S.hoop + 0.7, 0, 26, 0, 0, -0.6, 2.0, 4.8, 4.3, 12, 0],
-      [S.hoop + 2.6, 0, 28, 0, 0, -0.9, 1.7, 4.6, 4.0, 11, 0],
-      [S.reactor, 0, 30, 0, 0, -0.9, 1.4, 4.4, 3.8, 11, 0.4],
+      [S.hoop + 0.7, 0, 20, 0, 0, -0.6, 2.0, 3.8, 3.3, 12, 0.3],
+      [S.hoop + 2.0, 0, 24, 0, 0, -0.8, 1.2, 3.2, 2.7, 11, 0.5],
+      [S.reactor, 0, 26, 0, 0, -0.8, 1.0, 3.0, 2.5, 11, 0.7],
       [S.reactor + 1.5, 0, 6, 0, 0, 0, 0, heroFw, heroFh, 8, 1],
       [S.reactor + L.reactor, 0, 6, 0, 0, 0, 0, heroFw, heroFh, 8, 1],
     ]);
@@ -120,6 +128,13 @@ export class World {
     cam.zoom = Math.min(this.width / keys[6]!, this.height / keys[7]!);
     cam.cx = this.width / 2;
     cam.cy = this.height / 2;
+    if (arena && t < S.reactor + 0.5) {
+      // Every hit on the floor shakes the camera and punches it in a little.
+      const shake = impactPulse(t, 9) * Math.min(this.width, this.height) * 0.012;
+      cam.cx += Math.sin(t * 83) * shake;
+      cam.cy += Math.cos(t * 71) * shake;
+      cam.zoom *= 1 + 0.06 * impactPulse(t, 7);
+    }
     cam.update();
 
     const lw = this.cellH * 0.6;
@@ -176,13 +191,14 @@ export class World {
         now: t,
         start: DRIVE_START,
         carX: carTravel,
-        curl: ramp(t, S.smoke + 0.1, S.smoke + 1.0),
+        curl: ramp(t, S.drive + 0.9, S.smoke + 0.8),
         alpha: 1,
+        lw,
       });
     }
 
     // the ball forms inside the swirl
-    const form = smoothstep(S.smoke + 0.6, S.smoke + 1.2, t);
+    const form = smoothstep(S.smoke + 0.3, S.smoke + 0.85, t);
     if (form > 0.01) {
       drawBall(pen, {
         x: SMOKE_CENTER.x,
@@ -225,8 +241,31 @@ export class World {
     drawStreaks(ctx, this.width, this.height, t, streaks, lw);
 
     const court = smoothstep(14, 5, height) * finale;
+    const swish = t > HOOP_TIME ? Math.exp(-(t - HOOP_TIME) * 5) : 0;
     drawCourt(pen, { alpha: court, lw });
-    drawHoop(pen, { alpha: court, lw });
+    drawHoop(pen, { alpha: court, lw, swish });
+
+    // shock rings on the floor after every touch
+    if (court > 0.05) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = lw * 0.9;
+      for (const impact of IMPACTS) {
+        const age = t - impact.t;
+        if (age < 0 || age > 0.5) continue;
+        const k = age / 0.5;
+        const radius = 0.2 + (0.5 + 1.1 * impact.strength) * Math.sqrt(k);
+        for (let i = 0; i < 24; i++) {
+          const a = (i / 24) * Math.PI * 2;
+          this.mark[i * 3] = ball[0]! + Math.cos(a) * radius;
+          this.mark[i * 3 + 1] = ball[1]! + Math.sin(a) * radius;
+          this.mark[i * 3 + 2] = 0;
+        }
+        ctx.globalAlpha = 0.85 * (1 - k) * impact.strength * court;
+        ctx.beginPath();
+        pen.poly(this.mark, 24, true);
+        ctx.stroke();
+      }
+    }
 
     // the ball's mark on the floor: it shrinks and brightens as the ball comes down
     if (court > 0.05 && height < 8) {
@@ -250,11 +289,28 @@ export class World {
       : -1;
     const alpha = 1 - smoothstep(0.15, 1, build);
     if (alpha > 0.004) {
+      const speed = ballSpeed(t);
+      // motion trail: ghosts of where the ball just was, orange and fading
+      if (Math.abs(speed) > 3 && court > 0.05) {
+        ctx.fillStyle = '#ff9632';
+        for (let g = 1; g <= 3; g++) {
+          ctx.globalAlpha = (0.2 - g * 0.05) * alpha;
+          pen.disc(ball[0]!, ball[1]!, ball[2]! - speed * 0.022 * g, BALL_RADIUS * (1 - g * 0.1));
+        }
+      }
+      let squash = 0;
+      for (const impact of IMPACTS) {
+        const age = Math.abs(t - impact.t);
+        if (age < 0.07)
+          squash = Math.max(squash, (1 - age / 0.07) * (0.35 + 0.65 * impact.strength));
+      }
       drawBall(pen, {
+        squash,
+        stretch: Math.min(1, Math.abs(speed) / 14),
         x: ball[0]!,
         y: ball[1]!,
         z: ball[2]!,
-        spin: 2.5 * t,
+        spin: 4 * t,
         alpha,
         seams: 1 - smoothstep(0, 0.35, build),
         lw,

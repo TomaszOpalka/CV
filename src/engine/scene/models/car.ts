@@ -1,40 +1,111 @@
 import { drawEngine } from './engine';
-import { Loft, type Station } from './loft';
+import { Mesh, ring8, type LoftStation } from './loft';
 import type { Pen } from '../Pen';
 
-/** Hull of an F1 car in metres: x forward, y to the side, z up. Stations are (x, half width, top, bottom). */
-const HULL: ReadonlyArray<Station> = [
-  [-2.55, 0.07, 0.4, 0.18],
-  [-2.1, 0.14, 0.34, 0.12],
-  [-1.6, 0.24, 0.32, 0.08],
-  [-1.0, 0.3, 0.32, 0.08],
-  [-0.55, 0.4, 0.34, 0.08],
-  [-0.1, 0.5, 0.48, 0.08],
-  [0.4, 0.52, 0.52, 0.08],
-  [0.9, 0.4, 0.42, 0.08],
-  [1.5, 0.24, 0.34, 0.1],
-  [2.15, 0.14, 0.28, 0.12],
-  [2.85, 0.06, 0.22, 0.14],
+/**
+ * A modern (ground-effect era) F1 car in metres: x forward, y to the side, z up. Built from lofted
+ * bodies (monocoque with nose, two sidepods, floor, engine cover) plus wings, wheels, halo and
+ * suspension. The proportions follow the blueprint: long low nose, high airbox behind the halo, a
+ * thin spine that runs back to the rear wing, sidepods that waist in towards the rear.
+ */
+
+type Row = readonly number[];
+
+/** [x, halfWidth, topWidth, top, bottom] of the central tub, the nose and the gearbox. */
+const MONOCOQUE: ReadonlyArray<Row> = [
+  [2.88, 0.05, 0.04, 0.17, 0.1],
+  [2.5, 0.07, 0.05, 0.21, 0.1],
+  [2.0, 0.11, 0.08, 0.28, 0.09],
+  [1.5, 0.17, 0.12, 0.36, 0.08],
+  [1.0, 0.23, 0.17, 0.47, 0.08],
+  [0.6, 0.28, 0.2, 0.56, 0.08],
+  [0.15, 0.3, 0.22, 0.58, 0.08],
+  [-0.3, 0.28, 0.2, 0.56, 0.08],
+  [-0.75, 0.22, 0.14, 0.5, 0.1],
+  [-1.3, 0.2, 0.12, 0.34, 0.1],
+  [-2.0, 0.15, 0.1, 0.33, 0.12],
+  [-2.5, 0.09, 0.07, 0.36, 0.15],
 ];
 
-/** The engine cover and air box sitting on the hull's engine bay. */
-const COVER: ReadonlyArray<Station> = [
-  [-2.3, 0.07, 0.44, 0.31],
-  [-1.95, 0.16, 0.62, 0.31],
-  [-1.55, 0.27, 0.82, 0.31],
-  [-1.15, 0.34, 0.96, 0.31],
-  [-0.8, 0.36, 0.92, 0.31],
-  [-0.45, 0.33, 0.7, 0.31],
-  [-0.15, 0.26, 0.5, 0.31],
+/** [x, centre y, halfWidth, topWidth, top, bottom] of one sidepod (mirrored for the other side). */
+const SIDEPOD: ReadonlyArray<Row> = [
+  [0.7, 0.5, 0.15, 0.11, 0.44, 0.1],
+  [0.3, 0.54, 0.22, 0.17, 0.5, 0.1],
+  [-0.2, 0.54, 0.25, 0.2, 0.5, 0.09],
+  [-0.7, 0.48, 0.22, 0.16, 0.42, 0.09],
+  [-1.2, 0.4, 0.17, 0.11, 0.32, 0.09],
+  [-1.7, 0.32, 0.12, 0.08, 0.22, 0.09],
+  [-2.05, 0.26, 0.08, 0.05, 0.16, 0.1],
 ];
+
+/** [x, halfWidth] of the flat floor. */
+const FLOOR: ReadonlyArray<Row> = [
+  [0.9, 0.42],
+  [0.5, 0.64],
+  [-0.3, 0.78],
+  [-1.2, 0.74],
+  [-2.0, 0.62],
+  [-2.45, 0.5],
+];
+
+/** [x, halfWidth, topWidth, top] of the engine cover: a tent that hides the engine, with the airbox at the front. */
+const COVER: ReadonlyArray<Row> = [
+  [-0.1, 0.22, 0.08, 0.72],
+  [-0.3, 0.3, 0.11, 0.98],
+  [-0.8, 0.36, 0.12, 0.94],
+  [-1.3, 0.32, 0.09, 0.78],
+  [-1.8, 0.2, 0.06, 0.6],
+  [-2.35, 0.08, 0.04, 0.48],
+];
+const COVER_BASE = 0.3;
+
+function tub(rows: ReadonlyArray<Row>): LoftStation[] {
+  return rows.map(([x, hw, tw, top, bottom]) => ({
+    x: x!,
+    ring: ring8(0, hw!, tw!, top!, bottom!, 0.5),
+  }));
+}
+
+function pod(side: 1 | -1): LoftStation[] {
+  return SIDEPOD.map(([x, cy, hw, tw, top, bottom]) => ({
+    x: x!,
+    ring: ring8(side * cy!, hw!, tw!, top!, bottom!, 0.4),
+  }));
+}
+
+const GROUPS: ReadonlyArray<ReadonlyArray<LoftStation>> = [
+  tub(MONOCOQUE),
+  pod(1),
+  pod(-1),
+  FLOOR.map(([x, hw]) => ({ x: x!, ring: ring8(0, hw!, hw! * 0.95, 0.1, 0.05, 0.5) })),
+  COVER.map(([x, hw, tw, top]) => ({ x: x!, ring: ring8(0, hw!, tw!, top!, COVER_BASE, 0.45) })),
+];
+const COVER_GROUP = 4;
 
 /** Where the engine's crankshaft sits in the car. */
 export const ENGINE_AT = { x: -1.2, y: 0, z: 0.5 } as const;
 
-const WHEEL_POINTS = 16;
+/** Wheel centres (x, y), radius and width. */
+const WHEELS: ReadonlyArray<readonly [number, number, number, number]> = [
+  [1.75, -0.8, 0.33, 0.34],
+  [1.75, 0.8, 0.33, 0.34],
+  [-1.7, -0.82, 0.36, 0.42],
+  [-1.7, 0.82, 0.36, 0.42],
+];
+
+const WHEEL_POINTS = 18;
+const SPOKES = 10;
 const wheelRing = new Float64Array(WHEEL_POINTS * 3);
 const quad = new Float64Array(12);
 const TAU = Math.PI * 2;
+const TEAL = '#35c4d0';
+
+/** The five depth-sorted pieces: body, four wheels, two wings; details are always drawn last. */
+const PART_BODY = 0;
+const PART_WHEEL = 1;
+const PART_FRONT_WING = 5;
+const PART_REAR_WING = 6;
+const PART_COUNT = 7;
 
 export interface CarDraw {
   /** Distance driven along x (the whole car is shifted by it). */
@@ -53,35 +124,64 @@ export interface CarDraw {
 }
 
 export class Car {
-  private readonly hull = new Loft(HULL);
-  private readonly cover = new Loft(COVER);
+  private readonly mesh = new Mesh(GROUPS);
+  private readonly alphas = [0, 0, 0, 0, 0];
+  private readonly lifts = [0, 0, 0, 0, 0];
+  private readonly order = new Int8Array(PART_COUNT);
+  private readonly depth = new Float64Array(PART_COUNT);
 
   draw(pen: Pen, o: CarDraw): void {
     const { ctx } = pen;
     pen.at(o.x, 0, 0);
 
-    // The engine sits inside the hull and is drawn first.
+    // The engine sits inside the body and is drawn first.
     if (o.engine > 0.002) {
-      const ox = pen.ox;
-      const oy = pen.oy;
-      const oz = pen.oz;
+      const { ox, oy, oz } = pen;
       pen.at(ox + ENGINE_AT.x, oy + ENGINE_AT.y, oz + ENGINE_AT.z);
       drawEngine(pen, { time: o.engineTime, alpha: o.engine, rps: 3, lw: o.lw });
       pen.at(ox, oy, oz);
     }
-
     if (o.alpha <= 0.002) {
       ctx.globalAlpha = 1;
       pen.at(0, 0, 0);
       return;
     }
-    this.hull.draw(pen, o.alpha, o.lw * 0.8);
-    this.drawWing(pen, o);
-    this.drawSuspension(pen, o);
-    for (const [wx, wy, r, w] of WHEELS) this.drawWheel(pen, wx, wy, r, w, o);
-    this.drawHalo(pen, o);
-    this.cover.draw(pen, o.cover * o.alpha, o.lw * 0.8, o.coverLift);
 
+    const { alphas, lifts, order, depth } = this;
+    for (let g = 0; g < alphas.length; g++) {
+      alphas[g] = g === COVER_GROUP ? o.cover * o.alpha : o.alpha;
+      lifts[g] = g === COVER_GROUP ? o.coverLift : 0;
+    }
+
+    // Everything that can overlap is drawn far to near.
+    depth[PART_BODY] = pen.depth(0, 0, 0.3);
+    for (let w = 0; w < 4; w++) {
+      const [wx, wy, r] = WHEELS[w]!;
+      depth[PART_WHEEL + w] = pen.depth(wx, wy, r);
+    }
+    depth[PART_FRONT_WING] = pen.depth(2.7, 0, 0.1);
+    depth[PART_REAR_WING] = pen.depth(-2.75, 0, 0.8);
+    for (let i = 0; i < PART_COUNT; i++) order[i] = i;
+    for (let i = 1; i < PART_COUNT; i++) {
+      const cur = order[i]!;
+      let j = i - 1;
+      while (j >= 0 && depth[order[j]!]! < depth[cur]!) {
+        order[j + 1] = order[j]!;
+        j--;
+      }
+      order[j + 1] = cur;
+    }
+    for (let k = 0; k < PART_COUNT; k++) {
+      const part = order[k]!;
+      if (part === PART_BODY)
+        this.mesh.draw(pen, { alpha: alphas, lift: lifts, lw: o.lw * 0.8, tint: TEAL });
+      else if (part === PART_FRONT_WING) this.drawFrontWing(pen, o);
+      else if (part === PART_REAR_WING) this.drawRearWing(pen, o);
+      else this.drawWheel(pen, WHEELS[part - PART_WHEEL]!, o);
+    }
+
+    this.drawSuspension(pen, o);
+    this.drawDetails(pen, o);
     ctx.globalAlpha = 1;
     pen.at(0, 0, 0);
   }
@@ -89,21 +189,80 @@ export class Car {
   private drawSuspension(pen: Pen, o: CarDraw): void {
     const { ctx } = pen;
     ctx.globalAlpha = 0.5 * o.alpha;
-    ctx.lineWidth = o.lw * 0.7;
+    ctx.lineWidth = o.lw * 0.6;
     ctx.strokeStyle = '#fff';
     ctx.beginPath();
     for (const [wx, wy, r, w] of WHEELS) {
       const side = Math.sign(wy);
       const hubY = wy - side * (w / 2);
-      for (const dx of [-0.2, 0.2]) {
-        pen.line(wx + dx, side * 0.32, 0.2, wx, hubY, r);
-      }
+      const front = wx > 0;
+      const bodyX = front ? 1.45 : -1.4;
+      // two wishbones and a push rod
+      pen.line(bodyX + 0.22, side * 0.18, 0.2, wx, hubY, r - 0.05);
+      pen.line(bodyX - 0.22, side * 0.18, 0.2, wx, hubY, r - 0.05);
+      pen.line(bodyX, side * 0.14, 0.46, wx, hubY, r + 0.06);
     }
     ctx.stroke();
   }
 
-  private drawWheel(pen: Pen, wx: number, wy: number, r: number, w: number, o: CarDraw): void {
+  /** Cockpit, halo, helmet, sidepod louvres, airbox intake. */
+  private drawDetails(pen: Pen, o: CarDraw): void {
     const { ctx, cam } = pen;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#fff';
+
+    // cockpit opening
+    quad.set([0.55, -0.15, 0.585, 0.55, 0.15, 0.585, -0.05, 0.17, 0.585, -0.05, -0.17, 0.585]);
+    ctx.fillStyle = '#000';
+    ctx.globalAlpha = 0.95 * o.alpha;
+    pen.face(quad, 4, false);
+    ctx.globalAlpha = 0.7 * o.alpha;
+    ctx.lineWidth = o.lw * 0.8;
+    ctx.beginPath();
+    pen.poly(quad, 4, true);
+    ctx.stroke();
+
+    // louvres on both sidepods
+    ctx.globalAlpha = 0.85 * o.alpha;
+    ctx.lineWidth = o.lw * 0.7;
+    ctx.beginPath();
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < 8; i++) {
+        const x = -0.15 - i * 0.1;
+        pen.line(x, side * 0.5, 0.49 - i * 0.012, x - 0.05, side * 0.62, 0.45 - i * 0.012);
+      }
+    }
+    ctx.stroke();
+
+    // halo: front pillar and two arcs to the rear mounts
+    ctx.globalAlpha = 0.95 * o.alpha;
+    ctx.lineWidth = o.lw * 1.1;
+    ctx.beginPath();
+    pen.line(0.58, 0, 0.58, 0.5, 0, 0.82);
+    for (const side of [-1, 1]) {
+      pen.line(0.5, 0, 0.82, 0.32, side * 0.15, 0.8);
+      pen.line(0.32, side * 0.15, 0.8, 0.1, side * 0.24, 0.72);
+      pen.line(0.1, side * 0.24, 0.72, -0.1, side * 0.26, 0.6);
+    }
+    ctx.stroke();
+
+    // helmet
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = 0.9 * o.alpha;
+    pen.disc(0.12, 0, 0.66, 0.1);
+
+    // the airbox intake, a black mouth that only shows when seen from the front
+    if (cam.posX - pen.ox > -0.1) {
+      quad.set([-0.12, -0.09, 0.62, -0.12, 0.09, 0.62, -0.28, 0.1, 0.94, -0.28, -0.1, 0.94]);
+      ctx.fillStyle = '#000';
+      ctx.globalAlpha = 0.9 * o.cover * o.alpha;
+      pen.face(quad, 4, false);
+    }
+  }
+
+  private drawWheel(pen: Pen, wheel: readonly [number, number, number, number], o: CarDraw): void {
+    const { ctx, cam } = pen;
+    const [wx, wy, r, w] = wheel;
     const yA = wy - w / 2;
     const yB = wy + w / 2;
     ctx.lineJoin = 'round';
@@ -135,7 +294,6 @@ export class Car {
       ctx.fillStyle = '#000';
       ctx.globalAlpha = 0.95 * o.alpha;
       if (!pen.face(quad, 4, false)) continue;
-      // alternating light/dark blocks make the rotation readable
       if (i % 2 === 0) {
         ctx.fillStyle = '#fff';
         ctx.globalAlpha = 0.16 * o.alpha;
@@ -165,24 +323,36 @@ export class Car {
       pen.poly(wheelRing, WHEEL_POINTS, true);
       ctx.stroke();
       if (visible) {
-        // rim, hub and rotating spokes
-        ctx.globalAlpha = 0.8 * o.alpha;
-        ctx.lineWidth = o.lw * 0.7;
+        // rim (inner ring), multi-spoke wheel and the white sidewall stripe
+        ctx.globalAlpha = 0.9 * o.alpha;
+        ctx.lineWidth = o.lw * 0.8;
         ctx.beginPath();
-        for (let s = 0; s < 5; s++) {
-          const a = o.spin + (s / 5) * TAU;
-          pen.line(wx, y, r, wx + Math.cos(a) * r * 0.72, y, r + Math.sin(a) * r * 0.72);
+        for (let s = 0; s < SPOKES; s++) {
+          const a = o.spin + (s / SPOKES) * TAU;
+          pen.line(wx, y, r, wx + Math.cos(a) * r * 0.62, y, r + Math.sin(a) * r * 0.62);
         }
         for (let i = 0; i < WHEEL_POINTS; i++) {
           const a0 = (i / WHEEL_POINTS) * TAU;
           const a1 = ((i + 1) / WHEEL_POINTS) * TAU;
           pen.line(
-            wx + Math.cos(a0) * r * 0.72,
+            wx + Math.cos(a0) * r * 0.62,
             y,
-            r + Math.sin(a0) * r * 0.72,
-            wx + Math.cos(a1) * r * 0.72,
+            r + Math.sin(a0) * r * 0.62,
+            wx + Math.cos(a1) * r * 0.62,
             y,
-            r + Math.sin(a1) * r * 0.72,
+            r + Math.sin(a1) * r * 0.62,
+          );
+        }
+        for (let i = 0; i < 6; i++) {
+          const a0 = Math.PI * 0.15 + (i / 6) * Math.PI * 0.7 + o.spin * 0;
+          const a1 = Math.PI * 0.15 + ((i + 1) / 6) * Math.PI * 0.7;
+          pen.line(
+            wx + Math.cos(a0) * r * 0.86,
+            y,
+            r + Math.sin(a0) * r * 0.86,
+            wx + Math.cos(a1) * r * 0.86,
+            y,
+            r + Math.sin(a1) * r * 0.86,
           );
         }
         ctx.stroke();
@@ -190,38 +360,92 @@ export class Car {
     }
   }
 
-  private drawWing(pen: Pen, o: CarDraw): void {
+  /** Three-element front wing, wider than the tyres, with tall end plates. */
+  private drawFrontWing(pen: Pen, o: CarDraw): void {
     const { ctx } = pen;
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#fff';
-    // front wing: two planes and the end plates
-    for (const [x0, x1, z] of [
-      [2.5, 2.8, 0.1],
-      [2.58, 2.76, 0.18],
-    ] as const) {
-      quad.set([x0, -0.9, z, x1, -0.9, z, x1, 0.9, z, x0, 0.9, z]);
-      this.wingFace(pen, o, quad, z > 0.15 ? 0.2 : 0.3);
+    // elements: [x front, x back, z centre, z tip]; the tips curl up outboard
+    const elements: ReadonlyArray<readonly [number, number, number, number]> = [
+      [2.95, 2.68, 0.06, 0.12],
+      [2.86, 2.62, 0.11, 0.2],
+      [2.78, 2.56, 0.16, 0.28],
+    ];
+    for (const [xf, xb, zc, zt] of elements) {
+      for (const side of [-1, 1]) {
+        quad.set([
+          xf,
+          0.06 * side,
+          zc,
+          xb,
+          0.06 * side,
+          zc,
+          xb,
+          0.97 * side,
+          zt,
+          xf,
+          0.97 * side,
+          zt,
+        ]);
+        this.wingFace(pen, o, quad, 0.24);
+      }
     }
-    for (const y of [-0.9, 0.9]) {
-      quad.set([2.45, y, 0.04, 2.95, y, 0.04, 2.95, y, 0.3, 2.45, y, 0.3]);
+    for (const side of [-1, 1]) {
+      quad.set([
+        2.5,
+        0.98 * side,
+        0.03,
+        3.0,
+        0.98 * side,
+        0.03,
+        3.0,
+        0.98 * side,
+        0.2,
+        2.5,
+        0.98 * side,
+        0.36,
+      ]);
       this.wingFace(pen, o, quad, 0.2);
     }
-    // rear wing
-    for (const y of [-0.55, 0.55]) {
-      quad.set([-2.95, y, 0.55, -2.25, y, 0.55, -2.25, y, 1.02, -2.95, y, 1.02]);
-      this.wingFace(pen, o, quad, 0.2);
+  }
+
+  private drawRearWing(pen: Pen, o: CarDraw): void {
+    const { ctx } = pen;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#fff';
+    for (const side of [-1, 1]) {
+      quad.set([
+        -3.0,
+        0.54 * side,
+        0.5,
+        -2.4,
+        0.54 * side,
+        0.5,
+        -2.4,
+        0.54 * side,
+        1.08,
+        -3.0,
+        0.54 * side,
+        1.02,
+      ]);
+      this.wingFace(pen, o, quad, 0.22);
     }
-    for (const [x0, x1, z] of [
-      [-2.88, -2.3, 0.82],
-      [-2.85, -2.5, 0.96],
-    ] as const) {
-      quad.set([x0, -0.55, z, x1, -0.55, z, x1, 0.55, z, x0, 0.55, z]);
-      this.wingFace(pen, o, quad, z > 0.9 ? 0.25 : 0.32);
+    const planes: ReadonlyArray<readonly [number, number, number, number]> = [
+      [-2.96, -2.5, 0.84, 0.3],
+      [-2.9, -2.58, 0.94, 0.26],
+      [-2.9, -2.64, 1.04, 0.2],
+    ];
+    for (const [x0, x1, z, tint] of planes) {
+      quad.set([x0, -0.54, z, x1, -0.54, z, x1, 0.54, z, x0, 0.54, z]);
+      this.wingFace(pen, o, quad, tint);
     }
-    ctx.globalAlpha = 0.6 * o.alpha;
-    ctx.lineWidth = o.lw * 0.8;
+    // beam wing and the pylon that holds the whole thing
+    quad.set([-2.8, -0.42, 0.55, -2.5, -0.42, 0.55, -2.5, 0.42, 0.55, -2.8, 0.42, 0.55]);
+    this.wingFace(pen, o, quad, 0.16);
+    ctx.globalAlpha = 0.7 * o.alpha;
+    ctx.lineWidth = o.lw * 0.9;
     ctx.beginPath();
-    pen.line(-2.55, 0, 0.4, -2.55, 0, 0.82);
+    pen.line(-2.62, 0, 0.45, -2.68, 0, 0.84);
     ctx.stroke();
   }
 
@@ -233,36 +457,10 @@ export class Car {
     ctx.fillStyle = '#fff';
     ctx.globalAlpha = tint * o.alpha;
     pen.face(points, 4, false);
-    ctx.globalAlpha = 0.7 * o.alpha;
+    ctx.globalAlpha = 0.8 * o.alpha;
     ctx.lineWidth = o.lw * 0.8;
     ctx.beginPath();
     pen.poly(points, 4, true);
     ctx.stroke();
   }
-
-  private drawHalo(pen: Pen, o: CarDraw): void {
-    const { ctx } = pen;
-    ctx.strokeStyle = '#fff';
-    ctx.globalAlpha = 0.85 * o.alpha;
-    ctx.lineWidth = o.lw;
-    ctx.beginPath();
-    pen.line(0.55, -0.16, 0.5, 0.22, -0.2, 0.82);
-    pen.line(0.22, -0.2, 0.82, -0.12, 0, 0.9);
-    pen.line(-0.12, 0, 0.9, 0.22, 0.2, 0.82);
-    pen.line(0.22, 0.2, 0.82, 0.55, 0.16, 0.5);
-    pen.line(0.55, 0, 0.52, 0.2, 0, 0.88);
-    ctx.stroke();
-    // helmet
-    ctx.fillStyle = '#fff';
-    ctx.globalAlpha = 0.9 * o.alpha;
-    pen.disc(0.1, 0, 0.66, 0.1);
-  }
 }
-
-/** Wheel centres (x, y), radius and width. Front wheels first. */
-const WHEELS: ReadonlyArray<readonly [number, number, number, number]> = [
-  [1.75, -0.8, 0.33, 0.3],
-  [1.75, 0.8, 0.33, 0.3],
-  [-1.7, -0.8, 0.36, 0.4],
-  [-1.7, 0.8, 0.36, 0.4],
-];

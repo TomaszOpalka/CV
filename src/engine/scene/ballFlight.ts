@@ -4,7 +4,7 @@ export const BALL_RADIUS = 0.18;
 export const HOOP_HEIGHT = 3.05;
 export const RIM_RADIUS = 0.28;
 /** Where the smoke curls into the ball (the world of the car acts). */
-export const SMOKE_CENTER = { x: -1.35, y: 0, z: 0.8 } as const;
+export const SMOKE_CENTER = { x: -1.35, y: 0, z: 1.7 } as const;
 
 const GRAVITY = 9.81;
 const RESTITUTION = 0.58;
@@ -77,4 +77,40 @@ export function ballArenaPosition(t: number, out: Float64Array): void {
   out[0] = 0;
   out[1] = ballDrift(t);
   out[2] = ballHeight(t);
+}
+
+export interface Impact {
+  /** Time of the touch (s). */
+  t: number;
+  /** 0..1: how hard the ball hits the floor. */
+  strength: number;
+}
+
+/** Every touch of the floor: the first fall and the bounces after it. */
+export const IMPACTS: ReadonlyArray<Impact> = (() => {
+  const list: Impact[] = [{ t: FIRST_BOUNCE_TIME, strength: 1 }];
+  let t = FIRST_BOUNCE_TIME;
+  let strength = RESTITUTION;
+  for (const flight of BOUNCES) {
+    t += flight;
+    list.push({ t, strength });
+    strength *= RESTITUTION;
+  }
+  return list;
+})();
+
+/** Vertical speed of the ball (m/s, negative = falling), by a small finite difference. */
+export function ballSpeed(t: number): number {
+  const e = 0.004;
+  return (ballHeight(t + e) - ballHeight(t - e)) / (2 * e);
+}
+
+/** 0..1 "punch" that decays quickly after each impact (used for squash, shake and zoom pulses). */
+export function impactPulse(t: number, decay: number): number {
+  let pulse = 0;
+  for (const impact of IMPACTS) {
+    const age = t - impact.t;
+    if (age >= 0) pulse += impact.strength * Math.exp(-age * decay);
+  }
+  return Math.min(1, pulse);
 }

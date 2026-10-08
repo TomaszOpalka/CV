@@ -7,6 +7,8 @@ import {
   FIRST_BOUNCE_TIME,
   HOOP_HEIGHT,
   HOOP_TIME,
+  IMPACTS,
+  impactPulse,
 } from './ballFlight';
 import { ACT_START } from './timeline';
 
@@ -56,5 +58,22 @@ describe('ball flight', () => {
     ballArenaPosition(ACT_START.reactor, out);
     expect(out[1]).toBeLessThan(0);
     expect(out[1]).toBeGreaterThan(-1);
+  });
+
+  it('knows every touch of the floor: the first fall and up to three bounces, each softer', () => {
+    expect(IMPACTS.length).toBeGreaterThanOrEqual(3);
+    expect(IMPACTS.length).toBeLessThanOrEqual(4);
+    for (let i = 1; i < IMPACTS.length; i++) {
+      expect(IMPACTS[i]!.t).toBeGreaterThan(IMPACTS[i - 1]!.t);
+      expect(IMPACTS[i]!.strength).toBeLessThan(IMPACTS[i - 1]!.strength);
+    }
+    for (const impact of IMPACTS) expect(ballHeight(impact.t)).toBeCloseTo(BALL_RADIUS, 1);
+  });
+
+  it('the impact pulse jumps at a touch and fades afterwards', () => {
+    const first = IMPACTS[0]!;
+    expect(impactPulse(first.t - 0.1, 8)).toBe(0);
+    expect(impactPulse(first.t, 8)).toBeCloseTo(1);
+    expect(impactPulse(first.t + 0.2, 8)).toBeLessThan(0.5);
   });
 });

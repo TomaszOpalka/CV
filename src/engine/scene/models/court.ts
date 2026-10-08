@@ -28,6 +28,8 @@ function arc(
 export interface CourtDraw {
   alpha: number;
   lw: number;
+  /** 0..1 flash of the net and rim right after the ball goes through. */
+  swish?: number;
 }
 
 /**
@@ -157,9 +159,10 @@ export function drawHoop(pen: Pen, o: CourtDraw): void {
   pen.line(-0.3, boardY, HOOP_HEIGHT + 0.4, -0.3, boardY, HOOP_HEIGHT - 0.05);
   ctx.stroke();
 
-  // net
-  ctx.globalAlpha = 0.5 * o.alpha;
-  ctx.lineWidth = o.lw * 0.7;
+  // net: it flares out and lights up when the ball swishes through
+  const swish = o.swish ?? 0;
+  ctx.globalAlpha = Math.min(1, 0.5 + 0.5 * swish) * o.alpha;
+  ctx.lineWidth = o.lw * (0.7 + 0.5 * swish);
   ctx.beginPath();
   const n = 12;
   for (let i = 0; i < n; i++) {
@@ -188,7 +191,7 @@ export function drawHoop(pen: Pen, o: CourtDraw): void {
   // rim (orange, like the real thing)
   ctx.strokeStyle = '#ff9632';
   ctx.globalAlpha = 1 * o.alpha;
-  ctx.lineWidth = o.lw * 1.5;
+  ctx.lineWidth = o.lw * (1.5 + 0.8 * swish);
   ctx.beginPath();
   for (let i = 0; i < 24; i++) {
     const a = (i / 24) * TAU;

@@ -6,6 +6,7 @@ const YELLOW = '#ffd050';
 const N = 30;
 const TAU = Math.PI * 2;
 const local = new Float64Array(3);
+const centre = new Float64Array(3);
 
 /** Seam curves of a basketball: each is a closed loop on the unit sphere. */
 function seamPoint(curve: number, i: number, out: Float64Array): void {
@@ -46,6 +47,9 @@ export interface BallDraw {
   /** Opacity of the seams (they are the first thing to disappear when it turns into the reactor). */
   seams: number;
   lw: number;
+  /** 0..1 squash when it hits the floor, 0..1 stretch along its fall. */
+  squash?: number;
+  stretch?: number;
 }
 
 /**
@@ -55,10 +59,24 @@ export interface BallDraw {
 export function drawBall(pen: Pen, o: BallDraw): number {
   const { ctx, cam } = pen;
   if (o.alpha <= 0.002) return -1;
+  const squash = o.squash ?? 0;
+  const stretch = o.stretch ?? 0;
+  const deformed = squash > 0.01 || stretch > 0.01;
+  if (deformed) {
+    // Squash and stretch happen in screen space, around the ball's centre.
+    if (!cam.project(o.x, o.y, o.z, centre)) return -1;
+    ctx.save();
+    ctx.translate(centre[0]!, centre[1]!);
+    ctx.scale(1 + 0.5 * squash - 0.2 * stretch, 1 - 0.42 * squash + 0.38 * stretch);
+    ctx.translate(-centre[0]!, -centre[1]!);
+  }
   ctx.fillStyle = ORANGE;
   ctx.globalAlpha = 0.42 * o.alpha;
   const radius = pen.disc(o.x, o.y, o.z, BALL_RADIUS);
-  if (radius < 0) return -1;
+  if (radius < 0) {
+    if (deformed) ctx.restore();
+    return -1;
+  }
   // a lighter patch gives the disc some volume
   ctx.fillStyle = YELLOW;
   ctx.globalAlpha = 0.14 * o.alpha;
@@ -112,5 +130,6 @@ export function drawBall(pen: Pen, o: BallDraw): number {
   ctx.globalAlpha = 1 * o.alpha;
   pen.circle(o.x, o.y, o.z, BALL_RADIUS);
   ctx.globalAlpha = 1;
+  if (deformed) ctx.restore();
   return radius;
 }
