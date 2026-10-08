@@ -1,6 +1,8 @@
 import { BALL_RADIUS } from '../ballFlight';
 import type { Pen } from '../Pen';
 
+const ORANGE = '#ff9632';
+const YELLOW = '#ffd050';
 const N = 30;
 const TAU = Math.PI * 2;
 const local = new Float64Array(3);
@@ -47,17 +49,18 @@ export interface BallDraw {
 }
 
 /**
- * A basketball: a dim disc with bright seams that turn with `spin`. Returns the disc's radius in
+ * A basketball: an orange disc with dark seams that turn with `spin`. Returns the disc's radius in
  * screen px (the reactor is drawn at that size when the ball turns into it), or -1 if not visible.
  */
 export function drawBall(pen: Pen, o: BallDraw): number {
   const { ctx, cam } = pen;
   if (o.alpha <= 0.002) return -1;
-  ctx.fillStyle = '#fff';
-  ctx.globalAlpha = 0.2 * o.alpha;
+  ctx.fillStyle = ORANGE;
+  ctx.globalAlpha = 0.42 * o.alpha;
   const radius = pen.disc(o.x, o.y, o.z, BALL_RADIUS);
   if (radius < 0) return -1;
   // a lighter patch gives the disc some volume
+  ctx.fillStyle = YELLOW;
   ctx.globalAlpha = 0.14 * o.alpha;
   pen.disc(o.x - BALL_RADIUS * 0.28, o.y, o.z + BALL_RADIUS * 0.3, BALL_RADIUS * 0.6);
 
@@ -67,9 +70,9 @@ export function drawBall(pen: Pen, o: BallDraw): number {
     const tilt = 0.5;
     const ct = Math.cos(tilt);
     const st = Math.sin(tilt);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = o.lw * 1.1;
-    ctx.globalAlpha = 0.9 * o.alpha * o.seams;
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = o.lw * 2;
+    ctx.globalAlpha = 1 * o.alpha * o.seams;
     ctx.lineCap = 'round';
     const toCamX = cam.posX - o.x;
     const toCamY = cam.posY - o.y;
@@ -104,9 +107,9 @@ export function drawBall(pen: Pen, o: BallDraw): number {
   }
 
   // bright rim
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = o.lw * 1.1;
-  ctx.globalAlpha = 0.95 * o.alpha;
+  ctx.strokeStyle = YELLOW;
+  ctx.lineWidth = o.lw * 1.6;
+  ctx.globalAlpha = 1 * o.alpha;
   pen.circle(o.x, o.y, o.z, BALL_RADIUS);
   ctx.globalAlpha = 1;
   return radius;

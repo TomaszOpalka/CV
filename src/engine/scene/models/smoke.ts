@@ -23,7 +23,7 @@ export interface SmokeDraw {
  * `curl` goes 0 -> 1 the whole cloud swirls around its centre and shrinks onto the surface of the ball.
  */
 export class Smoke {
-  constructor(private readonly count = 46) {}
+  constructor(private readonly count = 84) {}
 
   draw(pen: Pen, o: SmokeDraw): void {
     const { ctx } = pen;
@@ -35,7 +35,7 @@ export class Smoke {
 
     for (let i = 0; i < this.count; i++) {
       const h = (k: number): number => hash1(i * 17.3 + k * 91.7);
-      const born = o.start + 0.9 * Math.pow(i / this.count, 1.6);
+      const born = o.start + 1.1 * Math.pow(i / this.count, 1.5);
       const age = o.now - born;
       if (age <= 0) continue;
 
@@ -43,8 +43,8 @@ export class Smoke {
       const drift = (1 - Math.exp(-age * 1.5)) / 1.5;
       let x = o.carX(born) - REAR_AXLE + ((h(1) - 0.5) * 0.7 - 0.15) * drift;
       let y = side * 0.8 + ((h(2) - 0.5) * 0.9 + side * 0.25) * drift;
-      let z = 0.2 + (0.3 + 0.5 * h(3)) * drift;
-      let r = 0.18 + 0.55 * (1 - Math.exp(-age * 1.2)) * (0.7 + 0.6 * h(4));
+      let z = 0.2 + (0.35 + 0.7 * h(3)) * drift;
+      let r = 0.1 + 0.34 * (1 - Math.exp(-age * 1.1)) * (0.6 + 0.8 * h(4));
       let a = 0.5 * Math.min(1, age / 0.15);
 
       if (swirl > 0) {
@@ -64,9 +64,9 @@ export class Smoke {
       }
       // two nested discs: a soft core and a wider haze, each puff a little different
       const k = 0.7 + 0.6 * h(7);
-      ctx.globalAlpha = a * o.alpha * 0.16 * k;
+      ctx.globalAlpha = a * o.alpha * 0.085 * k;
       pen.disc(x, y, z, r);
-      ctx.globalAlpha = a * o.alpha * 0.22 * k;
+      ctx.globalAlpha = a * o.alpha * 0.12 * k;
       pen.disc(x, y, z, r * 0.55);
     }
     ctx.globalAlpha = 1;

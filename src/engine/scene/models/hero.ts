@@ -249,15 +249,21 @@ export interface DeathStarDraw {
 }
 
 const TILT = 0.2;
+/** The whole sphere is rolled so the trench runs diagonally (a level trench plus a round dish looks like a Pokeball). */
+const ROLL = -0.5;
 const DISH_LATITUDE = 0.5;
 const DISH_ANGLE = 0.4;
 
-/** Rotates a point on the unit sphere about the x axis by TILT and writes screen-space (x, y, depth). */
+const COS_ROLL = Math.cos(ROLL);
+const SIN_ROLL = Math.sin(ROLL);
+
+/** Tilts a point on the unit sphere towards the viewer, rolls it, and writes screen-space (x, y, depth). */
 function sphereToScreen(x: number, y: number, z: number, out: Float64Array): void {
   const ct = Math.cos(TILT);
   const st = Math.sin(TILT);
-  out[0] = x;
-  out[1] = y * ct - z * st;
+  const ty = y * ct - z * st;
+  out[0] = x * COS_ROLL - ty * SIN_ROLL;
+  out[1] = x * SIN_ROLL + ty * COS_ROLL;
   out[2] = y * st + z * ct;
 }
 
@@ -322,7 +328,7 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
   ctx.fill();
   ctx.fillStyle = '#fff';
   for (let i = 0; i < 6; i++) {
-    ctx.globalAlpha = 0.035 * o.alpha;
+    ctx.globalAlpha = 0.05 * o.alpha;
     ctx.beginPath();
     ctx.arc(cx - R * 0.06 * i, cy - R * 0.06 * i, R * (1 - i * 0.14), 0, TAU);
     ctx.fill();
@@ -331,7 +337,7 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
   const turn = o.dishLongitude * 0.35; // the surface turns with the dish, but slower
   ctx.lineWidth = lw * 0.8;
   // latitude lines
-  ctx.globalAlpha = 0.3 * o.alpha;
+  ctx.globalAlpha = 0.45 * o.alpha;
   ctx.beginPath();
   for (const lat of [-1.0, -0.55, 0.3, 0.8, 1.15]) {
     surfaceCurve(
@@ -371,11 +377,33 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
   }
   ctx.stroke();
 
-  // equatorial trench: two bright lines
-  ctx.globalAlpha = 0.95 * o.alpha;
-  ctx.lineWidth = lw * 1.3;
+  // equatorial trench: two bright lines with small ribs across
+  ctx.globalAlpha = 0.7 * o.alpha;
+  ctx.lineWidth = lw * 0.8;
   ctx.beginPath();
-  for (const lat of [-0.045, 0.045]) {
+  for (let k = 0; k < 56; k++) {
+    const lon = turn * 1.4 + (k / 56) * TAU;
+    surfaceCurve(
+      ctx,
+      h,
+      2,
+      (i, out) => {
+        const lat = i === 0 ? -0.06 : 0.06;
+        sphereToScreen(
+          Math.cos(lat) * Math.sin(lon),
+          Math.sin(lat),
+          Math.cos(lat) * Math.cos(lon),
+          out,
+        );
+      },
+      false,
+    );
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1 * o.alpha;
+  ctx.lineWidth = lw * 1.6;
+  ctx.beginPath();
+  for (const lat of [-0.06, 0.06]) {
     surfaceCurve(
       ctx,
       h,

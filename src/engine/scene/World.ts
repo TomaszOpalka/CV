@@ -38,6 +38,7 @@ export class World {
   private readonly ball = new Float64Array(3);
   private readonly dish = new Float64Array(3);
   private readonly mark = new Float64Array(16 * 3);
+  private readonly tmp = new Float64Array(3);
   private width = 0;
   private height = 0;
   /** Radius (px) of the hero object (ball -> reactor -> Death Star) at rest. */
@@ -71,11 +72,11 @@ export class World {
     const sc = SMOKE_CENTER;
 
     this.trackA = new KeyTrack([
-      [0, 8, 30, 0, -1.2, 0, 0.42, 1.6, 1.25, 14, 0],
-      [S.engine + L.engine, 24, 26, 0, -1.2, 0, 0.42, 1.6, 1.25, 14, 0],
+      [0, 8, 30, 0, -1.2, 0, 0.42, 1.3, 1.02, 14, 0],
+      [S.engine + L.engine, 24, 26, 0, -1.2, 0, 0.42, 1.3, 1.02, 14, 0],
       [S.turn + 1.3, 10, 60, 40, -0.4, 0, 0.35, 4.2, 4.2, 16, 0],
-      [S.orbit, 0, 90, 90, 0, 0, 0.3, 3.4, 6.4, 16, 0],
-      [S.orbit + 0.5, 0, 90, 90, 0, 0, 0.3, 3.4, 6.4, 16, 0],
+      [S.orbit, 0, 90, 90, 0, 0, 0.3, 3.4, 7.0, 16, 0],
+      [S.orbit + 0.5, 0, 90, 90, 0, 0, 0.3, 3.4, 7.0, 16, 0],
       [S.orbit + 1.5, 10, 40, 40, -0.5, 0, 0.45, 4, 3.2, 12, 0],
       [S.pullback, 22, 14, 0, -1.2, 0, 0.55, 2.4, 1.5, 9, 0],
       [S.drive, 14, 8, 0, 0, 0, 0.5, 7.4, 3.2, 24, 0],
@@ -244,16 +245,21 @@ export class World {
 
     // the ball: seams fade and the disc dims while the reactor takes over
     const build = ramp(t, S.reactor + 0.9, S.reactor + 2.3);
-    const radius = drawBall(pen, {
-      x: ball[0]!,
-      y: ball[1]!,
-      z: ball[2]!,
-      spin: 2.5 * t,
-      alpha: Math.max(0.01, 1 - 0.85 * smoothstep(0.2, 0.9, build)),
-      seams: 1 - smoothstep(0, 0.35, build),
-      lw,
-    });
-    this.ballRadiusPx = radius;
+    this.ballRadiusPx = this.cam.project(ball[0]!, ball[1]!, ball[2]!, this.tmp)
+      ? this.tmp[2]! * BALL_RADIUS
+      : -1;
+    const alpha = 1 - smoothstep(0.15, 1, build);
+    if (alpha > 0.004) {
+      drawBall(pen, {
+        x: ball[0]!,
+        y: ball[1]!,
+        z: ball[2]!,
+        spin: 2.5 * t,
+        alpha,
+        seams: 1 - smoothstep(0, 0.35, build),
+        lw,
+      });
+    }
   }
 
   /** Screen radius of the ball in the last frame (the reactor grows out of it). */
@@ -298,7 +304,7 @@ export class World {
       const recede = 1 - 0.55 * easeInOut(ramp(tau, 3.0, 3.9));
       const radius = this.heroRadius * grow * recede;
       const hero: Hero = { cx, cy, radius, lw };
-      const longitude = lerp(-2.2, 0, easeInOut(ramp(tau, 1.3, 3.3)));
+      const longitude = lerp(-2.2, 0.15, easeInOut(ramp(tau, 1.3, 3.3)));
       drawDeathStar(ctx, hero, {
         dishLongitude: longitude,
         alpha: smoothstep(0.1, 1.0, tau),

@@ -1,8 +1,8 @@
 import { ACT_START } from './timeline';
 
-export const BALL_RADIUS = 0.15;
+export const BALL_RADIUS = 0.18;
 export const HOOP_HEIGHT = 3.05;
-export const RIM_RADIUS = 0.26;
+export const RIM_RADIUS = 0.28;
 /** Where the smoke curls into the ball (the world of the car acts). */
 export const SMOKE_CENTER = { x: -1.35, y: 0, z: 0.8 } as const;
 

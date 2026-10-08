@@ -118,12 +118,11 @@ export function drawHoop(pen: Pen, o: CourtDraw): void {
   ctx.fillStyle = '#fff';
   const boardY = RIM_RADIUS + 0.15;
 
-  // support: a post behind the baseline and an arm to the board
+  // support arm going back from the board (the post itself would only clutter the view)
   ctx.globalAlpha = 0.6 * o.alpha;
   ctx.lineWidth = o.lw * 1.2;
   ctx.beginPath();
-  pen.line(0, BASELINE_Y + 1.2, 0, 0, BASELINE_Y + 1.2, HOOP_HEIGHT + 0.3);
-  pen.line(0, BASELINE_Y + 1.2, HOOP_HEIGHT + 0.3, 0, boardY, HOOP_HEIGHT + 0.3);
+  pen.line(0, boardY, HOOP_HEIGHT + 0.25, 0, BASELINE_Y + 1.4, HOOP_HEIGHT + 0.5);
   ctx.stroke();
 
   // backboard
@@ -186,7 +185,8 @@ export function drawHoop(pen: Pen, o: CourtDraw): void {
   }
   ctx.stroke();
 
-  // rim
+  // rim (orange, like the real thing)
+  ctx.strokeStyle = '#ff9632';
   ctx.globalAlpha = 1 * o.alpha;
   ctx.lineWidth = o.lw * 1.5;
   ctx.beginPath();
