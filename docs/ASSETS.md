@@ -20,7 +20,6 @@ W Next.js dwa miejsca na pliki to nie to samo:
 public/assets/
 ├── portrait/        # zdjęcie profilowe (to, w co „zamieniają się” cyfry)
 │   └── portrait-placeholder.svg   # tymczasowa sylwetka, do zastąpienia
-├── blueprints/      # maski rysunków z animacji startowej (silnik, F1, reaktor, Gwiazda Śmierci, piłka)
 ├── cv/              # CV w PDF (dodamy, gdy je podeślesz)
 ├── projects/        # zrzuty ekranu projektów (faza 4)
 └── og/              # obrazy podglądu linków (LinkedIn, komunikatory)
@@ -36,17 +35,10 @@ public/assets/
 4. W `src/content/profile.ts` zmień jedną linię: `portrait.src` na `/assets/portrait/portrait.webp`.
 5. `npm run dev` i kliknij w intro. Nic więcej nie trzeba zmieniać: cyfry układają się w portret i przechodzą w to zdjęcie.
 
-## Blueprinty z animacji startowej
+## Animacja startowa nie używa obrazów
 
-Pliki `public/assets/blueprints/*.webp` to małe maski (białe linie na czarnym tle, ok. 340 px, 10 do 20 kB każda).
-Powstały z grafik dostarczonych przez autora skryptem `scripts/make-blueprint-masks.py` (kadrowanie, usunięcie napisów i znaków wodnych,
-zwiększenie kontrastu). Oryginałów nie ma w repo.
-
-- **Zmiana jednego rysunku** (np. lepsza piłka): zapisz oryginał jako `basketball.png` (lub `.jpg`) w dowolnym folderze, ustaw ramkę kadrowania w `SPECS`
-  w skrypcie i uruchom `python scripts/make-blueprint-masks.py <folder>` (wymaga `pip install pillow`). Albo wrzuć gotową maskę pod tą samą nazwą.
-  Kod działa na dowolnym obrazie (mierzy odległość od koloru tła), ale najlepiej wyglądają wyraźne, jasne linie na ciemnym tle.
-- **Prawa autorskie:** pierwsze grafiki pochodzą z internetu (m.in. zdjęcie sklepowe z Etsy i obraz z widocznym znakiem wodnym stocka). Cyfry tworzą tylko
-  mocno uproszczony kształt, ale zanim strona trafi do publicznego użytku, upewnij się, że masz prawo do użycia tych obrazów, albo zastąp je własnymi lub licencjonowanymi.
+Film po kliknięciu (V8, F1, piłka, hala, reaktor, Gwiazda Śmierci) jest w całości rysowany kodem (`src/engine/scene/`), więc nie ma tu żadnych plików do podmiany
+ani praw autorskich do sprawdzania. Jedyny obraz, który animacja wczytuje, to zdjęcie profilowe z `public/assets/portrait/`.
 
 ## Limity (dlatego pilnujemy rozmiarów)
 

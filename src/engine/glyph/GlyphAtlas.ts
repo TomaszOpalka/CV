@@ -1,8 +1,10 @@
+import { PALETTES } from './palette';
 import { rampFromCoverage } from './portrait';
 
 /**
  * Pre-rendered sprite sheet of the digits 0-9 at several brightness levels.
- * Columns are digits, rows are tone levels. Drawing a glyph is then one `drawImage` call.
+ * Columns are digits, rows are tone levels, repeated once per colour palette (`palette * toneLevels + tone`).
+ * Drawing a glyph is then one `drawImage` call.
  * Sizes are in device pixels so glyphs stay crisp on high-DPI screens.
  */
 export class GlyphAtlas {
@@ -20,7 +22,7 @@ export class GlyphAtlas {
 
     const canvas = document.createElement('canvas');
     canvas.width = this.glyphW * 10;
-    canvas.height = this.glyphH * toneLevels;
+    canvas.height = this.glyphH * toneLevels * PALETTES.length;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new Error('2D canvas is not available');
 
@@ -28,15 +30,19 @@ export class GlyphAtlas {
     ctx.textBaseline = 'middle';
     ctx.font = `500 ${Math.round(this.glyphH * 0.9)}px ${fontFamily}`;
 
-    for (let tone = 0; tone < toneLevels; tone++) {
-      const lum = Math.round(255 * (0.16 + 0.84 * (tone / (toneLevels - 1))));
-      ctx.fillStyle = `rgb(${lum},${lum},${lum})`;
-      for (let digit = 0; digit < 10; digit++) {
-        ctx.fillText(
-          String(digit),
-          digit * this.glyphW + this.glyphW / 2,
-          tone * this.glyphH + this.glyphH / 2 + 1,
-        );
+    for (let palette = 0; palette < PALETTES.length; palette++) {
+      const [pr, pg, pb] = PALETTES[palette]!;
+      for (let tone = 0; tone < toneLevels; tone++) {
+        const k = 0.16 + 0.84 * (tone / (toneLevels - 1));
+        ctx.fillStyle = `rgb(${Math.round(pr * k)},${Math.round(pg * k)},${Math.round(pb * k)})`;
+        const row = palette * toneLevels + tone;
+        for (let digit = 0; digit < 10; digit++) {
+          ctx.fillText(
+            String(digit),
+            digit * this.glyphW + this.glyphW / 2,
+            row * this.glyphH + this.glyphH / 2 + 1,
+          );
+        }
       }
     }
 

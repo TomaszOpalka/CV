@@ -16,7 +16,7 @@ a po lewej pojawia się tekst „O mnie”.
 
 ## Stan wdrożenia (08.10.2026)
 
-Zbudowane i działające (desktop i telefon): siatka cyfr reagująca na wskaźnik → wybuch → seria blueprintów (silnik, F1, reaktor, Gwiazda Śmierci, piłka) → zoom i wstrząs → portret z cyfr → pikselowe przejście w zdjęcie →
+Zbudowane i działające (desktop i telefon): siatka cyfr reagująca na wskaźnik → wybuch → **film** rysowany w 3D i zamieniany na cyfry (V8, F1, dym, piłka, hala, reaktor, Gwiazda Śmierci, wybuch, deszcz Matrixa) → portret z cyfr → pikselowe przejście w zdjęcie →
 tekst „O mnie” z nazwiskiem „odkodowującym się” z cyfr. Zdjęcie jest na razie **placeholderem** (sylwetka), podmiana opisana w [`docs/ASSETS.md`](../ASSETS.md).
 
 Odstępstwa od pierwotnego scenariusza (świadome):
@@ -34,33 +34,44 @@ Przegląd adwersarialny (5 recenzentów, 45 agentów): 20 znalezisk, 19 potwierd
 fizyka zależna od liczby klatek, treść ukryta przed czytnikami ekranu, pusta strona przy awarii skryptu, utrata fokusu klawiatury, układ telefonu poziomo,
 rozmycie przy przejściu na zdjęcie na ekranach 2×, prawy i środkowy klik startujące wybuch.
 
-## Sekwencja po kliknięciu (wersja rozszerzona, 08.10.2026)
+## Sekwencja po kliknięciu: film (wersja z 08.10.2026, scenariusz autora)
 
-Zamiast od razu układać portret, cyfry przechodzą przez serię „blueprintów” rysowanych tym samym silnikiem (jeden canvas, ta sama siatka znaków).
-Łącznie ok. 13,5 s, w każdej chwili można pominąć („skip intro”).
+Pierwsza wersja (seria statycznych „blueprintów” morfujących jeden w drugi) wyglądała tandetnie: kształty zbiegały się od krawędzi do środka, nic się nie ruszało.
+Dlatego sekwencja jest teraz **prawdziwym filmem**: scena 3D rysowana wektorowo, z kamerą, animowanymi modelami i fizyką, a dopiero potem zamieniana na cyfry.
+Całość trwa ok. 33 s (plus 0,65 s wybuchu po kliknięciu i 1,1 s odsłonięcia zdjęcia), w każdej chwili można ją pominąć („skip intro”).
 
-| Stan                 | Czas   | Co się dzieje                                                                                                                                    |
-| -------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `exploding`          | 0,65 s | Wybuch od miejsca kliknięcia                                                                                                                     |
-| `morphingEngine`     | 2,1 s  | Cyfry zbiegają się w silnik V8                                                                                                                   |
-| `morphingF1`         | 2,6 s  | Silnik płynnie zamienia się w bolid F1 z lotu ptaka. Cele **przesuwają się** z lewej na prawą (na wąskim ekranie: bolid obrócony, jedzie w górę) |
-| `morphingReactor`    | 1,8 s  | Bolid → reaktor łukowy                                                                                                                           |
-| `morphingDeathStar`  | 1,8 s  | Reaktor → Gwiazda Śmierci                                                                                                                        |
-| `morphingBasketball` | 1,5 s  | Gwiazda Śmierci → piłka do koszykówki                                                                                                            |
-| `zooming`            | 1,4 s  | Piłka rośnie (cele i same cyfry skalują się 5,5×), jak lot prosto w kamerę                                                                       |
-| `impact`             | 0,8 s  | Wstrząs ekranu (camera shake) i biały błysk. Cyfry **błyskawicznie** (sprężyna 3× sztywniejsza) zbiegają się w portret                           |
-| `revealing`          | 1,1 s  | Pikselowe przejście w zdjęcie i tekst „O mnie” (jak wcześniej)                                                                                   |
+| Akt (`data-act`) | Czas  | Co widać                                                                                                                                                                 |
+| ---------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `engine`         | 4,4 s | V8: osiem tłoków pracuje naprawdę (korba, korbowody, wtryski ognia), kamera powoli okrąża silnik, z góry spływają pojedyncze zielone cyfry jak w Matrixie                |
+| `turn`           | 2,6 s | Silnik obraca się w lewo (kamera skręca i wznosi się), wokół niego rysuje się bolid F1, widok z góry                                                                     |
+| `orbit`          | 2,6 s | Kamera zjeżdża znad bolidu do profilu na wysokość silnika, silnik dostaje pokrywę (opada z góry)                                                                         |
+| `pullback`       | 1,8 s | Kamera oddala się od bolidu                                                                                                                                              |
+| `drive`          | 2,4 s | Bolid ruszy, kręcą się koła, spod kół wylatuje kłąb dymu                                                                                                                 |
+| `smoke`          | 2,0 s | Kamera wjeżdża w dym, dym zawija się wirem w piłkę do kosza                                                                                                              |
+| `fall`           | 2,0 s | Piłka na środku ekranu „spada”: tło ucieka w górę smugami, kamera się odchyla                                                                                            |
+| `hoop`           | 3,6 s | Pod kątem ok. 25 do 30° widać halę (linie boiska, tablica, obręcz z siatką), piłka wpada do kosza i odbija się trzy razy                                                 |
+| `reactor`        | 2,6 s | Kamera podjeżdża do piłki, od środka zapala się rdzeń Starka (cyjan), wokół obracają się pierścienie i tłoczki jak mechanizm, tło lekko dryfuje                          |
+| `deathStar`      | 5,0 s | Rdzeń zamienia się w **jedną** Gwiazdę Śmierci: rośnie na środku, obraca działo w stronę widza, oddala się, ładuje (zielone promienie) i strzela w ekran                 |
+| `explosion`      | 1,4 s | Biały błysk, kula ognia, pierścienie uderzeniowe, a same cyfry zostają rozrzucone jak odłamki                                                                            |
+| `matrix`         | 3,0 s | Po chwili ciszy zielony deszcz liter zalewa cały ekran od góry, a potem fala głów deszczu zostawia za sobą portret z cyfr; zaraz potem `revealing` zamienia go w zdjęcie |
 
-Jak to działa technicznie:
+Stany maszyny: `boot → idle → exploding (0,65 s) → playing (cały film) → revealing (1,1 s) → done`. Aktualny akt jest w atrybucie `data-act` sekcji (używają go testy e2e).
 
-- Rysunki to małe maski (białe linie na czarnym, `public/assets/blueprints/*.webp`, razem ok. 80 kB), przycięte z grafik od autora skryptem
-  `scripts/make-blueprint-masks.py` (usuwa napisy i znaki wodne, odwraca bolid dziobem w prawo). Oryginały **nie** są w repo.
-- Próbkowanie (`sampleInk`) mierzy odległość każdego piksela od koloru tła, więc działa dla białych linii na niebieskim, cyjanu na czarnym i odwrotnie.
-  Komórka bierze średnią i maksimum, dzięki czemu cienkie linie nie znikają przy zgrubnej siatce.
-- Przydział cząstek (`rankAssign`): n-ty cel w kolejności czytania dostaje cząstkę o tej samej randze pozycji, więc lewa część silnika zamienia się w lewą część bolidu
-  i morf płynie, zamiast się krzyżować.
-- Jeśli któryś obraz się nie wczyta, ten etap jest pomijany; bez zdjęcia profilowego sekwencja przechodzi od razu do widoku końcowego.
-- Podmiana obrazów: wrzuć własne maski o tych samych nazwach albo uruchom skrypt na nowych oryginałach (instrukcja w `docs/ASSETS.md`).
+Jak to działa technicznie (`src/engine/scene/`):
+
+- **Scena jako funkcja czasu.** `World.render(t)` rysuje świat w sekundzie `t` filmu na pomocniczym canvasie 2D (dwa razy gęstszym niż siatka cyfr). Nic nie jest „całkowane” w klatkach,
+  więc pomijanie, przewijanie i testy są proste. Kamera (`Camera3D`) to orbita z perspektywą, ścieżka kamery (`KeyTrack`) to monotoniczna interpolacja kluczy (bez przestrzałów, równe klucze = zatrzymanie).
+- **Modele** to druciane modele rysowane przez `Pen` (rzut 3D na linie i wielokąty): `models/engine.ts` (V8 z geometrią korby i korbowodów), `models/car.ts` + `models/loft.ts` (bolid jako loft przekrojów,
+  sortowanie ścian od najdalszej, ukrywanie tyłów, pogrubiona sylwetka), `models/smoke.ts`, `models/ball.ts`, `models/court.ts` (boisko FIBA, tablica, obręcz, siatka),
+  `models/hero.ts` (rdzeń, Gwiazda Śmierci z działem, promień, wybuch, smugi).
+- **Fizyka piłki** (`ballFlight.ts`) jest policzona analitycznie: spadek, spowolnienie przy obręczy, swobodny lot, trzy odbicia o współczynniku 0,58.
+- **Od obrazu do cyfr.** `SceneRaster` zmniejsza narysowaną scenę do jednego piksela na komórkę siatki; `CellShader` zamienia jasność na gęstość cyfry i ton, a kolor pędzla na paletę
+  (biała, zielona, cyjan, ogień; `glyph/palette.ts`). Atlas cyfr ma po 8 tonów dla każdej palety, więc rysowanie to wciąż jedno `drawImage` na cyfrę.
+- **Deszcz Matrixa** (`matrixRain.ts`) działa już na komórkach: pojedyncze krople w akcie `engine`, zalew od góry i fala, która „krystalizuje” portret (`wave`).
+- **Cyfry po kliknięciu i po wybuchu.** Po kliknięciu cyfry rozlatują się (`explode`), a gdy zaczyna się film, wracają do siatki (`beginScene`) i w locie układają się w obraz.
+  Wielki wybuch w filmie rozrzuca je ponownie (`blast`), a przed deszczem wracają.
+- Jeśli zdjęcie się nie wczyta albo nie ma canvasa 2D, pokazywany jest od razu widok końcowy. Zmiana rozmiaru okna w trakcie filmu też przeskakuje do widoku końcowego.
+- Żadnych obrazów, filmów ani modeli z zewnątrz: wszystko jest rysowane kodem (stąd brak problemów z prawami autorskimi, które miały maski z poprzedniej wersji).
 
 ## Kontekst dla sesji AI
 
@@ -101,20 +112,22 @@ wracają cyfry (efekt „soczewki”).
 
 ### Moduły silnika: `src/engine/` (czyste TypeScript, bez Reacta)
 
-| Plik                        | Odpowiedzialność                                                                                                                                           |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/Ticker.ts`            | Jedna pętla `requestAnimationFrame`, ograniczenie skoku czasu, samoczynne zatrzymanie bez subskrybentów                                                    |
-| `core/PointerTracker.ts`    | Pointer Events: mysz (start od razu, tylko lewy przycisk), palec (start po stuknięciu, pierwszy palec), `data-intro-ignore`                                |
-| `core/QualityGovernor.ts`   | Średnie fps w oknach, histereza, **nigdy nie wraca do poziomu, który był za wolny**, ponowne uzbrojenie po przebudowie                                     |
-| `glyph/forces.ts`           | Czyste funkcje: opadanie wpływu, impuls wybuchu, tarcie niezależne od fps, krok sprężyny                                                                   |
-| `glyph/portrait.ts`         | Siatka, kadrowanie `cover`, jasność komórek, autopoziomy, rampa cyfr wg „tuszu”, losowość doboru cyfry, przydział celów                                    |
-| `glyph/GlyphField.ts`       | Cząstki w tablicach `Float32Array`/`Uint8Array`: fazy `idle`, `explode`, `morph`, `hold`; zero alokacji w klatce; ok. 0,2 ms na klatkę dla 15 tys. cząstek |
-| `glyph/GlyphAtlas.ts`       | Cyfry `0`-`9` w 8 poziomach szarości narysowane raz; pomiar „tuszu” każdej cyfry                                                                           |
-| `glyph/Canvas2DRenderer.ts` | Jedno `drawImage` na cyfrę, współrzędne w pikselach urządzenia                                                                                             |
-| `intro/introMachine.ts`     | Czysta maszyna stanów `boot → idle → exploding → morphing → revealing → done` + czasy etapów                                                               |
-| `intro/introStore.ts`       | Stan intro dla Reacta (`useSyncExternalStore`)                                                                                                             |
-| `intro/PixelateReveal.ts`   | Zdjęcie od bloków 30 px do 1 px, ostatnia klatka rysowana wprost z pliku, dopasowana do pikseli urządzenia                                                 |
-| `intro/IntroController.ts`  | Spina całość: rozmiar, jakość, obraz, cele portretu, pętla, resize, zwolnienie zasobów po zakończeniu                                                      |
+| Plik                        | Odpowiedzialność                                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/Ticker.ts`            | Jedna pętla `requestAnimationFrame`, ograniczenie skoku czasu, samoczynne zatrzymanie bez subskrybentów                                                             |
+| `core/PointerTracker.ts`    | Pointer Events: mysz (start od razu, tylko lewy przycisk), palec (start po stuknięciu, pierwszy palec), `data-intro-ignore`                                         |
+| `core/QualityGovernor.ts`   | Średnie fps w oknach, histereza, **nigdy nie wraca do poziomu, który był za wolny**, ponowne uzbrojenie po przebudowie                                              |
+| `glyph/forces.ts`           | Czyste funkcje: opadanie wpływu, impuls wybuchu, tarcie niezależne od fps, krok sprężyny                                                                            |
+| `glyph/portrait.ts`         | Siatka, kadrowanie `cover`, jasność komórek, autopoziomy, rampa cyfr wg „tuszu”, losowość doboru cyfry                                                              |
+| `glyph/GlyphField.ts`       | Cząstki w tablicach `Float32Array`/`Uint8Array`: fazy `idle`, `explode`, `blast`, `scene`, `hold`; zero alokacji w klatce; ok. 0,2 ms na klatkę dla 15 tys. cząstek |
+| `glyph/GlyphAtlas.ts`       | Cyfry `0`-`9` w 8 tonach i 4 paletach kolorów narysowane raz; pomiar „tuszu” każdej cyfry                                                                           |
+| `glyph/palette.ts`          | Palety (biała, zielona, cyjan, ogień) i rozpoznawanie koloru pędzla                                                                                                 |
+| `scene/*`                   | Film: kamera, modele, oś czasu, deszcz Matrixa, zamiana sceny na cyfry (opis wyżej)                                                                                 |
+| `glyph/Canvas2DRenderer.ts` | Jedno `drawImage` na cyfrę, współrzędne w pikselach urządzenia                                                                                                      |
+| `intro/introMachine.ts`     | Czysta maszyna stanów `boot → idle → exploding → playing → revealing → done` + czasy etapów                                                                         |
+| `intro/introStore.ts`       | Stan intro dla Reacta (`useSyncExternalStore`)                                                                                                                      |
+| `intro/PixelateReveal.ts`   | Zdjęcie od bloków 30 px do 1 px, ostatnia klatka rysowana wprost z pliku, dopasowana do pikseli urządzenia                                                          |
+| `intro/IntroController.ts`  | Spina całość: rozmiar, jakość, mapa portretu, pętla, resize, zwolnienie zasobów po zakończeniu                                                                      |
 
 ### Komponenty React
 

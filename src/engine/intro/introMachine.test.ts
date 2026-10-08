@@ -22,18 +22,7 @@ describe('nextIntroState', () => {
       state = nextIntroState(state, 'elapsed');
       visited.push(state);
     }
-    expect(visited).toEqual([
-      'exploding',
-      'morphingEngine',
-      'morphingF1',
-      'morphingReactor',
-      'morphingDeathStar',
-      'morphingBasketball',
-      'zooming',
-      'impact',
-      'revealing',
-      'done',
-    ]);
+    expect(visited).toEqual(['exploding', 'playing', 'revealing', 'done']);
   });
 
   it('ignores a press before the intro is ready and during the explosion', () => {
@@ -43,7 +32,7 @@ describe('nextIntroState', () => {
 
   it('does not advance on timers while waiting for a click, nor on a stray press mid-sequence', () => {
     expect(run('idle', ['elapsed', 'elapsed'])).toBe('idle');
-    expect(run('morphingF1', ['press', 'ready'])).toBe('morphingF1');
+    expect(run('playing', ['press', 'ready'])).toBe('playing');
   });
 
   it('can be skipped from every state and stays done afterwards', () => {
@@ -61,9 +50,9 @@ describe('nextIntroState', () => {
     expect(isTimedState('idle')).toBe(false);
   });
 
-  it('the whole sequence after the click is long enough to enjoy but not endless', () => {
+  it('the whole sequence after the click is a proper film, but not endless', () => {
     const total = TIMED_STATES.reduce((sum, s) => sum + INTRO_DURATIONS[s], 0);
-    expect(total).toBeGreaterThan(10_000);
-    expect(total).toBeLessThan(18_000);
+    expect(total).toBeGreaterThan(25_000);
+    expect(total).toBeLessThan(45_000);
   });
 });

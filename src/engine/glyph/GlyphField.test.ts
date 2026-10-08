@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { GlyphField, type MorphTargets, type PointerState } from './GlyphField';
-import { assignTargets, computeGrid } from './portrait';
+import { GlyphField, type PointerState } from './GlyphField';
+import { computeGrid } from './portrait';
 
 /** Small deterministic PRNG so the simulation tests are repeatable. */
 function mulberry32(seed: number): () => number {
@@ -57,7 +57,7 @@ describe('GlyphField idle', () => {
   });
 });
 
-describe('GlyphField explode + morph', () => {
+describe('GlyphField explode + scene', () => {
   it('explosion moves particles away from the origin', () => {
     const f = makeField();
     const ox = 150;
@@ -69,66 +69,38 @@ describe('GlyphField explode + morph', () => {
     expect(meanDistance(f, ox, oy)).toBeGreaterThan(before + 20);
   });
 
-  it('morph pulls targeted particles onto their targets and fades the rest', () => {
+  it('a scene pulls every digit back to its own cell', () => {
     const f = makeField();
     f.explode(150, 100);
     run(f, 0.65);
-
-    const targetCount = 120;
-    const particles = assignTargets(targetCount, f.count);
-    const targets: MorphTargets = {
-      particles,
-      xs: Float32Array.from({ length: targetCount }, (_, k) => 200 + (k % 12) * 6),
-      ys: Float32Array.from({ length: targetCount }, (_, k) => 50 + Math.floor(k / 12) * 10),
-      glyphs: Uint8Array.from({ length: targetCount }, (_, k) => k % 10),
-      tones: Float32Array.from({ length: targetCount }, () => 6),
-    };
-    f.morphTo(targets);
-    run(f, 1.8);
-
-    expect(f.maxTargetError()).toBeLessThan(1.5);
-    const first = particles[0]!;
-    expect(f.glyph[first]).toBe(0);
-    expect(f.tone[first]).toBeGreaterThan(5);
-
-    const targeted = new Set(particles);
-    let faded = 0;
-    for (let i = 0; i < f.count; i++) if (!targeted.has(i) && f.tone[i]! < 0.5) faded++;
-    expect(faded).toBe(f.count - targetCount);
-  });
-
-  it('hold() snaps a half-finished morph onto the targets (slow device)', () => {
-    const f = makeField();
-    const particles = assignTargets(60, f.count);
-    f.morphTo({
-      particles,
-      xs: Float32Array.from({ length: 60 }, (_, k) => 20 + (k % 10) * 8),
-      ys: Float32Array.from({ length: 60 }, (_, k) => 20 + Math.floor(k / 10) * 12),
-      glyphs: Uint8Array.from({ length: 60 }, (_, k) => k % 10),
-      tones: Float32Array.from({ length: 60 }, () => 6),
-    });
-    for (let t = 0; t < 0.2; t += 0.1) f.step(0.1, NO_POINTER); // only a couple of coarse frames
-    expect(f.maxTargetError()).toBeGreaterThan(5);
-    f.hold();
-    expect(f.maxTargetError()).toBe(0);
+    expect(maxHomeError(f)).toBeGreaterThan(20);
+    f.beginScene();
+    expect(f.phase).toBe('scene');
+    run(f, 2);
+    expect(maxHomeError(f)).toBeLessThan(0.5);
   });
 
   it('converges to the same place at 20 fps as at 60 fps (frame-rate independent damping)', () => {
     const settle = (dt: number): number => {
       const f = makeField();
-      const particles = assignTargets(60, f.count);
-      f.morphTo({
-        particles,
-        xs: Float32Array.from({ length: 60 }, () => 250),
-        ys: Float32Array.from({ length: 60 }, () => 150),
-        glyphs: new Uint8Array(60),
-        tones: new Float32Array(60).fill(5),
-      });
+      f.explode(150, 100);
+      for (let t = 0; t < 0.65; t += 1 / 60) f.step(1 / 60, NO_POINTER);
+      f.beginScene();
       for (let t = 0; t < 1.5; t += dt) f.step(dt, NO_POINTER);
-      return f.maxTargetError();
+      return maxHomeError(f);
     };
-    expect(settle(1 / 60)).toBeLessThan(2);
-    expect(settle(1 / 20)).toBeLessThan(6);
+    expect(settle(1 / 60)).toBeLessThan(1);
+    expect(settle(1 / 20)).toBeLessThan(3);
+  });
+
+  it('hold() freezes the digits', () => {
+    const f = makeField();
+    f.explode(150, 100);
+    run(f, 0.3);
+    f.hold();
+    const x = Array.from(f.x);
+    run(f, 0.5);
+    expect(Array.from(f.x)).toEqual(x);
   });
 
   it('fade() drives all tones to zero', () => {
@@ -145,6 +117,14 @@ describe('GlyphField explode + morph', () => {
     expect(f.x.every(Number.isFinite) && f.y.every(Number.isFinite)).toBe(true);
   });
 });
+
+function maxHomeError(f: GlyphField): number {
+  let max = 0;
+  for (let i = 0; i < f.count; i++) {
+    max = Math.max(max, Math.hypot(f.x[i]! - f.homeX[i]!, f.y[i]! - f.homeY[i]!));
+  }
+  return max;
+}
 
 function meanDistance(f: GlyphField, ox: number, oy: number): number {
   let sum = 0;

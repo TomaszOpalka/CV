@@ -1,39 +1,18 @@
+import { SEQUENCE_SECONDS } from '../scene/timeline';
+
 /**
  * State machine of the intro animation. Pure: the controller feeds it events and owns the timing.
  *
- * click -> exploding -> a chain of "blueprint" morphs (engine -> F1 -> reactor -> Death Star -> ball)
- *       -> zooming (the ball flies at the camera) -> impact (camera shake, snap into the portrait)
- *       -> revealing (pixelated photo) -> done
+ * click -> exploding -> playing (the whole film: V8, F1, smoke, basketball, reactor, Death Star,
+ * explosion, Matrix rain turning into the portrait) -> revealing (pixelated photo) -> done
  */
 
-export type IntroState =
-  | 'boot'
-  | 'idle'
-  | 'exploding'
-  | 'morphingEngine'
-  | 'morphingF1'
-  | 'morphingReactor'
-  | 'morphingDeathStar'
-  | 'morphingBasketball'
-  | 'zooming'
-  | 'impact'
-  | 'revealing'
-  | 'done';
+export type IntroState = 'boot' | 'idle' | 'exploding' | 'playing' | 'revealing' | 'done';
 
 export type IntroEvent = 'ready' | 'press' | 'elapsed' | 'skip';
 
 /** The timed stages after the click, in order. Each one advances on `elapsed`. */
-export const TIMED_STATES = [
-  'exploding',
-  'morphingEngine',
-  'morphingF1',
-  'morphingReactor',
-  'morphingDeathStar',
-  'morphingBasketball',
-  'zooming',
-  'impact',
-  'revealing',
-] as const;
+export const TIMED_STATES = ['exploding', 'playing', 'revealing'] as const;
 
 export type TimedState = (typeof TIMED_STATES)[number];
 
@@ -41,13 +20,7 @@ export type TimedState = (typeof TIMED_STATES)[number];
 export const INTRO_DURATIONS: Readonly<Record<'boot' | TimedState, number>> = {
   boot: 900,
   exploding: 650,
-  morphingEngine: 2100,
-  morphingF1: 2600,
-  morphingReactor: 1800,
-  morphingDeathStar: 1800,
-  morphingBasketball: 1500,
-  zooming: 1400,
-  impact: 800,
+  playing: Math.round(SEQUENCE_SECONDS * 1000),
   revealing: 1100,
 };
 

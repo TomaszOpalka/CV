@@ -1,6 +1,6 @@
 # CV / Portfolio
 
-Interaktywne portfolio. Na starcie siatka cyfr reaguje na kursor, a po kliknięciu „wybucha” i układa się w portret autora
+Interaktywne portfolio. Na starcie siatka cyfr reaguje na kursor, a po kliknięciu „wybucha” i zaczyna się krótki film z cyfr (V8, F1, piłka w hali, rdzeń, Gwiazda Śmierci, deszcz Matrixa), który kończy się portretem autora
 z opisem „O mnie”. Niżej pole migających kwadratów: jego wybuch odsłania linki do innych CV i zapisuje w API datę wybuchu.
 Do tego kursor z emoji zmieniającym się między sekcjami, podstrony (doświadczenie, stack, portfolio) i formularz „Zgłoś się po stronę”.
 

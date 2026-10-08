@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { ACT_LENGTHS, ACT_NAMES } from '../../src/engine/scene/timeline';
+
 const SHOTS = 'test-results/shots';
 
 async function openHome(page: Page): Promise<string[]> {
@@ -20,9 +22,10 @@ test('the heading and about text are in the server-rendered HTML', async ({ requ
   expect(html).toContain('data-state="boot"');
 });
 
-test('boot -> idle -> click -> blueprints -> zoom -> impact -> photo + text', async ({
+test('boot -> idle -> click -> the whole film act by act -> photo + text', async ({
   page,
 }, info) => {
+  test.setTimeout(120_000);
   const problems = await openHome(page);
   const shot = (name: string) =>
     page.screenshot({ path: `${SHOTS}/${info.project.name}-${name}.png` });
@@ -30,7 +33,7 @@ test('boot -> idle -> click -> blueprints -> zoom -> impact -> photo + text', as
   await expect(page.locator('section[data-state="boot"]')).toBeVisible();
   await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
   await page.waitForTimeout(400);
-  await shot('1-idle');
+  await shot('01-idle');
 
   // Hover / drag so the digits are pushed away from the pointer.
   const box = (await page.locator('section[data-state]').boundingBox())!;
@@ -39,28 +42,24 @@ test('boot -> idle -> click -> blueprints -> zoom -> impact -> photo + text', as
   await page.mouse.move(cx, cy, { steps: 4 });
   await page.mouse.move(cx + 60, cy + 10, { steps: 6 });
   await page.waitForTimeout(250);
-  await shot('2-repel');
+  await shot('02-repel');
 
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  // Every stage of the sequence, with a screenshot shortly before it ends (when the picture is formed).
-  const stages: Array<[string, number]> = [
-    ['exploding', 300],
-    ['morphingEngine', 1700],
-    ['morphingF1', 700],
-    ['morphingF1', 1100],
-    ['morphingReactor', 1400],
-    ['morphingDeathStar', 1400],
-    ['morphingBasketball', 1100],
-    ['zooming', 900],
-    ['impact', 150],
-    ['revealing', 450],
-  ];
-  let step = 3;
-  for (const [stage, wait] of stages) {
-    await expect(page.locator(`section[data-state="${stage}"]`)).toBeVisible({ timeout: 6_000 });
-    await page.waitForTimeout(wait);
-    await shot(`${step++}-${stage}`);
+  await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
+  await page.waitForTimeout(300);
+  await shot('03-exploding');
+
+  // Every act of the film, with a screenshot a little while after it starts.
+  let step = 4;
+  for (const act of ACT_NAMES) {
+    await expect(page.locator(`section[data-act="${act}"]`)).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(Math.min(1100, ACT_LENGTHS[act] * 650));
+    await shot(`${String(step++).padStart(2, '0')}-${act}`);
   }
+
+  await expect(page.locator('section[data-state="revealing"]')).toBeVisible({ timeout: 5_000 });
+  await page.waitForTimeout(450);
+  await shot(`${String(step++).padStart(2, '0')}-revealing`);
 
   await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 5_000 });
   await page.waitForTimeout(900);
@@ -70,6 +69,7 @@ test('boot -> idle -> click -> blueprints -> zoom -> impact -> photo + text', as
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'skip intro' })).toHaveCount(0);
+  expect(await page.locator('section').getAttribute('data-act')).toBeNull();
   expect(problems).toEqual([]);
 });
 
@@ -95,7 +95,10 @@ test('the intro can be started from the keyboard', async ({ page }) => {
   await page.getByRole('button', { name: /turn on animation/ }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
-  await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 22_000 });
+  await expect(page.locator('section[data-state="playing"]')).toBeVisible({ timeout: 3_000 });
+  await expect(page.locator('section[data-act="engine"]')).toBeVisible();
+  await page.getByRole('button', { name: 'skip intro' }).click();
+  await expect(page.locator('section[data-state="done"]')).toBeVisible();
 });
 
 test('frame pacing while the intro plays (informational)', async ({ page }, info) => {
@@ -117,7 +120,7 @@ test('frame pacing while the intro plays (informational)', async ({ page }, info
   for (let i = 0; i < 30; i++)
     await page.mouse.move(box.x + 100 + i * 30, box.y + 300 + Math.sin(i / 3) * 120);
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 22_000 });
+  await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 60_000 });
 
   const frames = await page.evaluate(() =>
     (window as unknown as { __frames: number[] }).__frames.slice(5),
@@ -152,7 +155,9 @@ test('touch: a swipe pushes digits without exploding, a tap explodes', async ({ 
 
   await page.touchscreen.tap(200, 420);
   await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
-  await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 22_000 });
+  await expect(page.locator('section[data-state="playing"]')).toBeVisible({ timeout: 3_000 });
+  await page.getByRole('button', { name: 'skip intro' }).click();
+  await expect(page.locator('section[data-state="done"]')).toBeVisible();
   await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   expect(problems).toEqual([]);
 });
@@ -234,6 +239,8 @@ test('a phone held sideways: the prompt is on screen and everything fits', async
   const frame = (await page.locator('section div[class*="frame"]').boundingBox())!;
   expect(frame.y + frame.height).toBeLessThanOrEqual(342);
   await page.touchscreen.tap(300, 170);
-  await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 22_000 });
+  await expect(page.locator('section[data-state="playing"]')).toBeVisible({ timeout: 4_000 });
+  await page.getByRole('button', { name: 'skip intro' }).click();
+  await expect(page.locator('section[data-state="done"]')).toBeVisible();
   await context.close();
 });
