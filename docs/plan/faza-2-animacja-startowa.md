@@ -24,7 +24,7 @@ Odstępstwa od pierwotnego scenariusza (świadome):
 | Plan                                                     | Zrobione                                                                                                                                                                    |
 | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Lewa połowa cyfr układa się w nagłówek                   | Cyfry formują tylko portret. Nagłówek „odkodowuje się” z cyfr w nazwisko (GSAP ScrambleText). Nagłówek z cyfr przy jednej wielkości siatki byłby nieczytelny                |
-| Napis „KLIKNIJ” złożony z cyfr                           | Przycisk `[ kliknij ]` (na telefonie `[ dotknij ]`) w ramce, dostępny z klawiatury                                                                                          |
+| Napis „KLIKNIJ” złożony z cyfr                           | Przycisk `[ click ]` (na telefonie `[ touch ]`) w ramce, dostępny z klawiatury                                                                                              |
 | Dotknięcie = kliknięcie                                  | Mysz startuje wybuch od razu. Palec **po stuknięciu** (puszczenie bez przesunięcia), dzięki czemu można najpierw przeciągnąć po cyfrach                                     |
 | Powrót na stronę: flaga w `sessionStorage`               | Stan intro w pamięci modułu: nawigacja wewnątrz strony pomija intro, pełne przeładowanie odtwarza je od nowa (wygodne przy pracy nad animacją). `sessionStorage` do decyzji |
 | Maszyna stanów w `hooks/useIntroState.ts`                | `engine/intro/introMachine.ts` (czysta) + `introStore.ts` (mały store czytany przez `useSyncExternalStore`)                                                                 |
@@ -45,7 +45,7 @@ rozmycie przy przejściu na zdjęcie na ekranach 2×, prawy i środkowy klik sta
 ## Zakres
 
 **W zakresie:** intro z cyframi, reakcja na kursor i dotyk, wybuch po kliknięciu, morphing w portret, przejście w zdjęcie,
-sekcja „O mnie”, przycisk „Pomiń intro”, wersja `prefers-reduced-motion`, optymalizacja na telefony.
+sekcja „O mnie”, przycisk „skip intro”, wersja `prefers-reduced-motion`, optymalizacja na telefony.
 
 **Poza zakresem:** kursor z emoji, pole migających kwadratów, zapis do API (faza 3), podstrony (faza 4), formularz (faza 5).
 
@@ -94,7 +94,7 @@ wracają cyfry (efekt „soczewki”).
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `components/sections/Intro/`  | Sekcja: canvas, tekst, ramka zdjęcia, przyciski. Treść w DOM i w drzewie dostępności od pierwszego renderu, animowana tylko przezroczystość |
 | `hooks/useIntro.ts`           | Ładuje silnik leniwie, oznacza sekcję `data-armed`, limit 6 s na start silnika, zwalnia kontroler i canvas po zakończeniu                   |
-| `hooks/useIntroFocus.ts`      | Oddaje fokus klawiatury po zniknięciu przycisku (do „Pomiń intro”, a po zakończeniu do nagłówka)                                            |
+| `hooks/useIntroFocus.ts`      | Oddaje fokus klawiatury po zniknięciu przycisku (do „skip intro”, a po zakończeniu do nagłówka)                                             |
 | `hooks/useHeadingScramble.ts` | Nazwisko „odkodowuje się” z cyfr (GSAP ScrambleText); kod GSAP pobierany z wyprzedzeniem w stanie `idle`                                    |
 
 ### Rozmiary siatki
@@ -146,22 +146,22 @@ Gdy Canvas 2D nie spełni budżetu na prawdziwym urządzeniu, `QualityGovernor` 
 ### Testy
 
 - **Vitest (47 testów):** fizyka i próbkowanie portretu, symulacja cząstek (odpychanie, wybuch, zbieżność do celów niezależna od fps), maszyna stanów, kontroler jakości, śledzenie wskaźnika (mysz, stuknięcie, przeciągnięcie, prawy klik, drugi palec).
-- **Playwright (`npm run test:e2e`, desktop i telefon):** pełna sekwencja ze zrzutami, „Pomiń intro”, reduced-motion, klawiatura i fokus, dotyk (przeciągnięcie i stuknięcie), treść w drzewie dostępności, awaria skryptów (awaryjne ujawnienie treści), telefon poziomo.
+- **Playwright (`npm run test:e2e`, desktop i telefon):** pełna sekwencja ze zrzutami, „skip intro”, reduced-motion, klawiatura i fokus, dotyk (przeciągnięcie i stuknięcie), treść w drzewie dostępności, awaria skryptów (awaryjne ujawnienie treści), telefon poziomo.
   Lokalnie wystarczy `npx playwright install chromium` (jednorazowo), potem `npm run test:e2e`.
 
 ---
 
 ## Etapy
 
-| #   | Etap                                                                           | Status                                                  |
-| --- | ------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| 2.1 | Siatka cyfr, odpychanie, wybuch                                                | ✅                                                      |
-| 2.2 | Portret z cyfr: próbkowanie, rampa cyfr, autopoziomy                           | ✅ (na placeholderze; do oceny na Twoim zdjęciu)        |
-| 2.3 | Choreografia i maszyna stanów                                                  | ✅                                                      |
-| 2.4 | Sekcja „O mnie”: układ, typografia                                             | ✅ (teksty tymczasowe, czekają na Twoje)                |
-| 2.5 | Telefony i dostępność: dotyk, obrót, reduced-motion, „Pomiń intro”, klawiatura | ✅                                                      |
-| 2.6 | Optymalizacja: kontroler jakości, leniwe ładowanie, zwalnianie zasobów         | ✅ (pomiar na prawdziwych urządzeniach czeka na Ciebie) |
-| 2.7 | Przegląd z autorem i poprawki                                                  | ⏳ PR do `main`                                         |
+| #   | Etap                                                                          | Status                                                  |
+| --- | ----------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 2.1 | Siatka cyfr, odpychanie, wybuch                                               | ✅                                                      |
+| 2.2 | Portret z cyfr: próbkowanie, rampa cyfr, autopoziomy                          | ✅ (na placeholderze; do oceny na Twoim zdjęciu)        |
+| 2.3 | Choreografia i maszyna stanów                                                 | ✅                                                      |
+| 2.4 | Sekcja „O mnie”: układ, typografia                                            | ✅ (teksty tymczasowe, czekają na Twoje)                |
+| 2.5 | Telefony i dostępność: dotyk, obrót, reduced-motion, „skip intro”, klawiatura | ✅                                                      |
+| 2.6 | Optymalizacja: kontroler jakości, leniwe ładowanie, zwalnianie zasobów        | ✅ (pomiar na prawdziwych urządzeniach czeka na Ciebie) |
+| 2.7 | Przegląd z autorem i poprawki                                                 | ⏳ PR do `main`                                         |
 
 ## Kryteria ukończenia
 
@@ -170,7 +170,7 @@ Gdy Canvas 2D nie spełni budżetu na prawdziwym urządzeniu, `QualityGovernor` 
 - [ ] Działa w Chrome, Firefox, Safari (macOS i iOS) oraz Chrome na Androidzie (sprawdzone: Chromium, w tym emulacja telefonu i dotyku)
 - [ ] Spełniony budżet wydajności na prawdziwych urządzeniach: 60 fps desktop, ≥ 50 fps średni telefon
 - [x] Widok końcowy: zdjęcie po prawej i tekst po lewej (desktop), poprawny układ na telefonie (także poziomo)
-- [x] Działają „Pomiń intro”, klawiatura i `prefers-reduced-motion`
+- [x] Działają „skip intro”, klawiatura i `prefers-reduced-motion`
 
 ## Ryzyka
 

@@ -419,7 +419,7 @@ Aliasy importu: `@/…` → `src/…`, `@shared/…` → `src/shared/…`.
 | Commity                     | Conventional Commits                                  | `feat(intro): explode glyphs on click`                |
 | Branche                     | `feat/…`, `fix/…`, `docs/…`, `chore/…`                | `feat/intro-digit-grid`                               |
 
-Język kodu i nazw: angielski. Treści na stronie: polski (EN do decyzji, pytanie 4).
+Język kodu i nazw: angielski. Treści na stronie: angielski (decyzja autora, 08.10.2026). Dokumentacja: polski.
 
 ### 7.2 Typy
 
@@ -479,7 +479,7 @@ src/styles/
 - **Lokalnie:** `npm run dev` (sama strona) albo `npm run dev:full` (strona + funkcje przez Netlify CLI). Szczegóły w [`docs/SETUP.md`](../SETUP.md).
 - **Przed commitem:** `npm run check` (lint, style, typy, testy, build).
 - **Deploy:** Netlify buduje `main` (komenda `npm run build`, katalog publikacji `out/`). Zgodnie z Twoją decyzją **podłączamy repo i publikujemy dopiero po napisaniu aplikacji**.
-- GitHub Actions z lintem i testami na PR-ach jest opcjonalne (darmowe w publicznym repo). Dodamy je, jeśli będziesz pracować z kilku maszyn.
+- **GitHub Actions** (`.github/workflows/ci.yml`): `npm ci` i `npm run check` na PR-ach i na `main`, na **Linuksie i Windowsie**. Powód: błąd Sass „Can't find stylesheet" występował tylko na Windowsie. W publicznym repo darmowe, w prywatnym minuty Windows liczą się podwójnie (limit 2000 minut).
 
 ---
 
@@ -508,7 +508,7 @@ src/styles/
 1. Jaka domena i końcówka (`.pl`, `.dev`, `.com`)?
 2. Magazyn wybuchów: Netlify Blobs (rekomendowane), DynamoDB czy inny?
 3. Jakie „inne CV/portfolia” pokazujemy po wybuchu? Potrzebna lista adresów.
-4. Tylko polski, czy polski i angielski?
+4. ~~Tylko polski, czy polski i angielski?~~ Rozstrzygnięte: treści strony po angielsku.
 5. Czy masz zdjęcie w dobrej rozdzielczości, na jednolitym tle, z wyraźnym światłem? To ważne dla portretu z cyfr.
 6. 100% skali szarości, czy jeden kolor akcentu?
 7. Czy chcesz opcjonalną analitykę odwiedzin (Umami Cloud Hobby), czy wystarczy Google Search Console?

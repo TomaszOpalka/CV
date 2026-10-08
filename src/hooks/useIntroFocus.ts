@@ -8,7 +8,7 @@ import { introStore } from '@/engine/intro/introStore';
 /**
  * The prompt and skip buttons unmount on the very state change their own activation causes, which
  * would drop keyboard focus to <body>. Remember (before React commits) whether focus was inside
- * the section, and if it was lost, hand it on: to "Pomiń intro" while the intro plays, to the
+ * the section, and if it was lost, hand it on: to "Skip intro" while the intro plays, to the
  * heading once it is over.
  */
 export function useIntroFocus(

@@ -5,7 +5,7 @@ import type { Profile } from '@/types';
  * Photo: drop the file into public/assets/portrait/ and change `portrait.src` (see docs/ASSETS.md).
  */
 export const profile: Profile = {
-  name: 'Tomasz Opalka',
+  name: 'Tomasz Opałka',
   role: 'Fullstack Developer',
   about: [
     'Hi, I’m Tomasz Opałka. I’m a Full-Stack Developer based in Wrocław. I build modern web applications by combining engineering precision with the speed provided by AI tools.',
@@ -13,7 +13,7 @@ export const profile: Profile = {
   ],
   portrait: {
     src: '/assets/portrait/portrait-placeholder.svg',
-    alt: 'Portret autora strony (zdjęcie tymczasowe)',
+    alt: 'Portrait of Tomasz Opałka (placeholder photo)',
     width: 800,
     height: 1000,
     focalY: 0.35,

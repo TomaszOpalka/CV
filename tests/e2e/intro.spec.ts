@@ -14,8 +14,9 @@ async function openHome(page: Page): Promise<string[]> {
 
 test('the heading and about text are in the server-rendered HTML', async ({ request }) => {
   const html = await (await request.get('/')).text();
-  expect(html).toContain('Tomasz Opalka');
-  expect(html).toContain('To jest miejsce na krótki opis o mnie');
+  expect(html).toContain('Tomasz Opałka');
+  expect(html).toContain('Full-Stack Developer based in Wrocław');
+  expect(html).toContain('<html lang="en"');
   expect(html).toContain('data-state="boot"');
 });
 
@@ -55,18 +56,18 @@ test('boot -> idle -> click -> explosion -> portrait -> photo + text', async ({ 
   await page.waitForTimeout(900);
   await shot('6-done');
 
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tomasz Opalka');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tomasz Opałka');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await expect(page.getByAltText(/Portret autora/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Pomiń intro' })).toHaveCount(0);
+  await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'skip intro' })).toHaveCount(0);
   expect(problems).toEqual([]);
 });
 
-test('"Pomiń intro" jumps straight to the final view', async ({ page }) => {
+test('"skip intro" jumps straight to the final view', async ({ page }) => {
   const problems = await openHome(page);
-  await page.getByRole('button', { name: 'Pomiń intro' }).click();
+  await page.getByRole('button', { name: 'skip intro' }).click();
   await expect(page.locator('section[data-state="done"]')).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tomasz Opalka');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tomasz Opałka');
   expect(problems).toEqual([]);
 });
 
@@ -74,14 +75,14 @@ test('prefers-reduced-motion shows the final view with no animation', async ({ p
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const problems = await openHome(page);
   await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 3_000 });
-  await expect(page.getByAltText(/Portret autora/)).toBeVisible();
+  await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   expect(problems).toEqual([]);
 });
 
 test('the intro can be started from the keyboard', async ({ page }) => {
   await openHome(page);
   await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
-  await page.getByRole('button', { name: /uruchomić animację/ }).focus();
+  await page.getByRole('button', { name: /turn on animation/ }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
   await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 8_000 });
@@ -142,7 +143,7 @@ test('touch: a swipe pushes digits without exploding, a tap explodes', async ({ 
   await page.touchscreen.tap(200, 420);
   await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
   await expect(page.locator('section[data-state="done"]')).toBeVisible({ timeout: 8_000 });
-  await expect(page.getByAltText(/Portret autora/)).toBeVisible();
+  await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   expect(problems).toEqual([]);
 });
 
@@ -151,8 +152,8 @@ test('the heading and text are in the accessibility tree while the intro plays',
 }) => {
   await openHome(page);
   await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByRole('heading', { level: 1, name: 'Tomasz Opalka' })).toBeAttached();
-  await expect(page.getByText('To jest miejsce na krótki opis')).toBeAttached();
+  await expect(page.getByRole('heading', { level: 1, name: 'Tomasz Opałka' })).toBeAttached();
+  await expect(page.getByText(/Full-Stack Developer based in Wrocław/)).toBeAttached();
   // ...but not visible yet
   const opacity = await page.locator('h1').evaluate((el) => getComputedStyle(el).opacity);
   expect(opacity).toBe('0');
@@ -172,11 +173,11 @@ test('keyboard focus is handed on, never dropped to <body>', async ({ page }, in
   test.skip(info.project.name !== 'desktop', 'keyboard flow is checked on desktop');
   await openHome(page);
   await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
-  await page.getByRole('button', { name: /uruchomić animację/ }).focus();
+  await page.getByRole('button', { name: /turn on animation/ }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
-  // The prompt unmounted: focus moved to "Pomiń intro".
-  await expect(page.getByRole('button', { name: 'Pomiń intro' })).toBeFocused();
+  // The prompt unmounted: focus moved to "skip intro".
+  await expect(page.getByRole('button', { name: 'skip intro' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('section[data-state="done"]')).toBeVisible();
   // The skip button unmounted: focus moved to the heading.
@@ -196,9 +197,9 @@ test('if the scripts never load, the content is revealed by a CSS failsafe', asy
   await page.goto('/');
   expect(await page.locator('section').getAttribute('data-armed')).toBeNull();
   await expect(page.locator('h1')).toHaveCSS('opacity', '1', { timeout: 7_000 });
-  await expect(page.getByAltText(/Portret autora/)).toBeVisible();
+  await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   // and the dead "skip" button is not offered
-  await expect(page.getByRole('button', { name: 'Pomiń intro' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'skip intro' })).toBeHidden();
   expect(await page.locator('section').evaluate((el) => getComputedStyle(el).touchAction)).toBe(
     'auto',
   );
@@ -216,7 +217,7 @@ test('a phone held sideways: the prompt is on screen and everything fits', async
   const page = await context.newPage();
   await page.goto('/');
   await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
-  const prompt = page.getByRole('button', { name: /uruchomić animację/ });
+  const prompt = page.getByRole('button', { name: /turn on animation/ });
   const box = (await prompt.boundingBox())!;
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.y + box.height).toBeLessThanOrEqual(342);

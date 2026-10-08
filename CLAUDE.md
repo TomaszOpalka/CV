@@ -41,9 +41,12 @@ własny silnik Canvas 2D · TanStack Query · Zod · npm. Nie używamy jQuery, G
 - **Typy:** props jako `interface <Nazwa>Props` nad komponentem. Typy domenowe w `src/types/index.ts`,
   kontrakt API (front i funkcje) w `src/shared/types.ts`. Zawsze `import type`. Zakaz `any`.
 - **Sass:** tylko `@use` / `@forward`. Tokeny w `src/styles/abstracts/`. Klasy w modułach: camelCase, stany z prefiksem `is`.
+  Importy między plikami SCSS zawsze jako **jawne ścieżki względne** (`@forward '../abstracts/tokens'`). Goły `@forward 'tokens'`
+  buduje się na Linuksie, ale na Windowsie z Turbopackiem kończy się błędem „Can't find stylesheet to import”.
 - **Wydajność animacji:** jedna pętla `requestAnimationFrame` (`Ticker`), zero `setState` w klatce, bez alokacji w pętli,
   pauza poza ekranem i w ukrytej karcie, obsługa `prefers-reduced-motion`.
-- **Język:** kod, nazwy i komentarze po angielsku. Treści na stronie i dokumentacja po polsku.
+- **Język:** kod, nazwy i komentarze po angielsku. **Treści na stronie po angielsku** (autor zmienił teksty na angielskie 08.10.2026,
+  `<html lang="en">`), dokumentacja i rozmowa po polsku.
 - Next.js 16 różni się od starszych wersji. Zanim użyjesz API, sprawdź dokumentację w `node_modules/next/dist/docs/`.
 
 ## Czego nie robić
