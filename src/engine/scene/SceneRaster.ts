@@ -22,7 +22,9 @@ export class SceneRaster {
     this.canvas = document.createElement('canvas');
     this.canvas.width = cols * supersample;
     this.canvas.height = rows * supersample;
-    const ctx = this.canvas.getContext('2d');
+    // Both canvases live in CPU memory (`willReadFrequently`): the picture is read back every frame, and
+    // reading a GPU-backed canvas stalls the main thread (about 15 ms per frame measured in DevTools).
+    const ctx = this.canvas.getContext('2d', { willReadFrequently: true });
     this.small = document.createElement('canvas');
     this.small.width = cols;
     this.small.height = rows;
