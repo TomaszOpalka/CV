@@ -9,12 +9,20 @@ a przegląd faz w [`README.md`](README.md). Przed rozpoczęciem pracy przeczytaj
    (`feat/...`, `fix/...`, `docs/...`, `chore/...`).
 2. **Przed commitem testujemy lokalnie:** `npm run lint`, `npm run typecheck`, `npm test` i `npm run build`.
    Commit powstaje dopiero, gdy wszystko przechodzi.
-3. **Do `main` trafia gotowa, przetestowana praca** (merge z brancha po zakończeniu funkcji lub etapu fazy).
-   Commity robimy małe, w stylu Conventional Commits (`feat(intro): ...`).
-4. **Deploy robi autor po napisaniu aplikacji** (Netlify, produkcyjnie z `main`). Nie uruchamiamy deployów w trakcie
+3. **Do `main` trafia gotowa, przetestowana praca**, wyłącznie przez Pull Request. Commity robimy małe, w stylu Conventional Commits
+   (`feat(intro): ...`).
+4. **Po ukończeniu każdego etapu (fazy lub jej wyraźnej części) wypychamy branch i wystawiamy PR do `main`.**
+   Autor sam go przegląda i zatwierdza (merge). My nie mergujemy PR-ów i nie czekamy na prośbę o ich utworzenie.
+   W opisie PR: co zrobiono, jak sprawdzić lokalnie, co świadomie odłożono.
+5. **Deploy robi autor po napisaniu aplikacji** (Netlify, produkcyjnie z `main`). Nie uruchamiamy deployów w trakcie
    pisania i nie wypychamy niedokończonych rzeczy na `main`. Limity kredytów Netlify nie są problemem, bo budujemy i testujemy lokalnie.
-5. Pull requesta tworzymy tylko na wyraźną prośbę autora.
-6. Gdy sesja ma wyznaczony branch, pracujemy i pushujemy tylko na nim.
+6. Gdy sesja ma wyznaczony branch, pracujemy i pushujemy tylko na nim (PR idzie z tego brancha do `main`).
+
+## Zasoby (zdjęcia, CV, grafiki)
+
+- Wszystkie pliki statyczne leżą w `public/assets/` (serwowane pod `/assets/...`). Mapa folderów: [`docs/ASSETS.md`](docs/ASSETS.md).
+- Do repo trafiają tylko **zoptymalizowane** pliki (zdjęcie AVIF/WebP ≤ 120 kB, obrazy projektów ≤ 200 kB). Oryginały, RAW i PSD zostają poza repo
+  (GitHub odrzuca pojedyncze pliki > 100 MB, a Netlify liczy transfer w kredytach).
 
 ## Zasady kosztowe
 
@@ -33,9 +41,12 @@ własny silnik Canvas 2D · TanStack Query · Zod · npm. Nie używamy jQuery, G
 - **Typy:** props jako `interface <Nazwa>Props` nad komponentem. Typy domenowe w `src/types/index.ts`,
   kontrakt API (front i funkcje) w `src/shared/types.ts`. Zawsze `import type`. Zakaz `any`.
 - **Sass:** tylko `@use` / `@forward`. Tokeny w `src/styles/abstracts/`. Klasy w modułach: camelCase, stany z prefiksem `is`.
+  Importy między plikami SCSS zawsze jako **jawne ścieżki względne** (`@forward '../abstracts/tokens'`). Goły `@forward 'tokens'`
+  buduje się na Linuksie, ale na Windowsie z Turbopackiem kończy się błędem „Can't find stylesheet to import”.
 - **Wydajność animacji:** jedna pętla `requestAnimationFrame` (`Ticker`), zero `setState` w klatce, bez alokacji w pętli,
   pauza poza ekranem i w ukrytej karcie, obsługa `prefers-reduced-motion`.
-- **Język:** kod, nazwy i komentarze po angielsku. Treści na stronie i dokumentacja po polsku.
+- **Język:** kod, nazwy i komentarze po angielsku. **Treści na stronie po angielsku** (autor zmienił teksty na angielskie 08.10.2026,
+  `<html lang="en">`), dokumentacja i rozmowa po polsku.
 - Next.js 16 różni się od starszych wersji. Zanim użyjesz API, sprawdź dokumentację w `node_modules/next/dist/docs/`.
 
 ## Czego nie robić
