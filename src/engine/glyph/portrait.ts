@@ -139,3 +139,49 @@ export function brightnessToGlyph(
   const idx = Math.min(ramp.length - 1, Math.max(0, Math.floor(position)));
   return ramp[idx]!;
 }
+
+/**
+ * Unsharp mask on a `cols` x `rows` brightness grid: adds `amount` times the difference between each
+ * cell and the average of its surroundings (box of `radius` cells). Busy photos (a face against
+ * mountains) keep their features after the reduction to a coarse grid. Mutates and returns `values`.
+ */
+export function localContrast(
+  values: Float32Array,
+  cols: number,
+  rows: number,
+  radius = 2,
+  amount = 1,
+): Float32Array {
+  const blur = new Float32Array(values.length);
+  const tmp = new Float32Array(values.length);
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      let sum = 0;
+      let n = 0;
+      for (let dx = -radius; dx <= radius; dx++) {
+        const xx = x + dx;
+        if (xx < 0 || xx >= cols) continue;
+        sum += values[y * cols + xx]!;
+        n++;
+      }
+      tmp[y * cols + x] = sum / n;
+    }
+  }
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      let sum = 0;
+      let n = 0;
+      for (let dy = -radius; dy <= radius; dy++) {
+        const yy = y + dy;
+        if (yy < 0 || yy >= rows) continue;
+        sum += tmp[yy * cols + x]!;
+        n++;
+      }
+      blur[y * cols + x] = sum / n;
+    }
+  }
+  for (let i = 0; i < values.length; i++) {
+    values[i] = Math.min(1, Math.max(0, values[i]! + amount * (values[i]! - blur[i]!)));
+  }
+  return values;
+}

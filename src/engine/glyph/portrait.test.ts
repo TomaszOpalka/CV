@@ -5,6 +5,7 @@ import {
   brightnessToGlyph,
   computeGrid,
   coverCrop,
+  localContrast,
   rampFromCoverage,
   sampleLuminance,
 } from './portrait';
@@ -94,5 +95,32 @@ describe('ramp helpers', () => {
     expect(brightnessToGlyph(0.55, ramp, 0.5, 1.1)).not.toBe(brightnessToGlyph(0.55, ramp, 0, 1.1));
     expect(brightnessToGlyph(0, ramp, -0.5, 3)).toBe(1); // clamped at the light end
     expect(brightnessToGlyph(1, ramp, 0.5, 3)).toBe(8); // clamped at the dense end
+  });
+});
+
+describe('localContrast', () => {
+  it('leaves a flat area alone', () => {
+    const v = new Float32Array(25).fill(0.5);
+    localContrast(v, 5, 5, 1, 1);
+    for (const x of v) expect(x).toBeCloseTo(0.5);
+  });
+
+  it('exaggerates an edge: the dark side gets darker and the bright side brighter', () => {
+    const cols = 12;
+    const v = new Float32Array(cols * 3);
+    for (let y = 0; y < 3; y++) for (let x = 0; x < cols; x++) v[y * cols + x] = x < 6 ? 0.4 : 0.6;
+    localContrast(v, cols, 3, 2, 1);
+    expect(v[1 * cols + 5]!).toBeLessThan(0.4);
+    expect(v[1 * cols + 6]!).toBeGreaterThan(0.6);
+    expect(v[1 * cols + 0]!).toBeCloseTo(0.4, 1);
+  });
+
+  it('keeps values inside 0..1', () => {
+    const v = Float32Array.from({ length: 36 }, (_, i) => (i % 2 ? 1 : 0));
+    localContrast(v, 6, 6, 1, 3);
+    for (const x of v) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(1);
+    }
   });
 });

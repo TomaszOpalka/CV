@@ -17,7 +17,7 @@ a po lewej pojawia się tekst „O mnie”.
 ## Stan wdrożenia (08.10.2026)
 
 Zbudowane i działające (desktop i telefon): siatka cyfr reagująca na wskaźnik → wybuch → **film** rysowany w 3D i zamieniany na cyfry (V8, F1, dym, piłka, hala, reaktor, Gwiazda Śmierci, wybuch, deszcz Matrixa) → portret z cyfr → pikselowe przejście w zdjęcie →
-tekst „O mnie” z nazwiskiem „odkodowującym się” z cyfr. Zdjęcie jest na razie **placeholderem** (sylwetka), podmiana opisana w [`docs/ASSETS.md`](../ASSETS.md).
+tekst „O mnie” z nazwiskiem „odkodowującym się” z cyfr. Używa prawdziwego zdjęcia autora (`public/assets/portrait/portrait.webp`), sposób podmiany opisany w [`docs/ASSETS.md`](../ASSETS.md).
 
 Odstępstwa od pierwotnego scenariusza (świadome):
 
@@ -197,7 +197,7 @@ Gdy Canvas 2D nie spełni budżetu na prawdziwym urządzeniu, `QualityGovernor` 
 | #   | Etap                                                                          | Status                                                  |
 | --- | ----------------------------------------------------------------------------- | ------------------------------------------------------- |
 | 2.1 | Siatka cyfr, odpychanie, wybuch                                               | ✅                                                      |
-| 2.2 | Portret z cyfr: próbkowanie, rampa cyfr, autopoziomy                          | ✅ (na placeholderze; do oceny na Twoim zdjęciu)        |
+| 2.2 | Portret z cyfr: próbkowanie, rampa cyfr, autopoziomy                          | ✅ (sprawdzone na prawdziwym zdjęciu)                   |
 | 2.3 | Choreografia i maszyna stanów                                                 | ✅                                                      |
 | 2.4 | Sekcja „O mnie”: układ, typografia                                            | ✅ (teksty tymczasowe, czekają na Twoje)                |
 | 2.5 | Telefony i dostępność: dotyk, obrót, reduced-motion, „skip intro”, klawiatura | ✅                                                      |

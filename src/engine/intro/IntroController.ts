@@ -9,6 +9,7 @@ import {
   CELL_ASPECT,
   computeGrid,
   coverCrop,
+  localContrast,
   sampleLuminance,
 } from '../glyph/portrait';
 import { IntroSequence } from '../scene/IntroSequence';
@@ -239,7 +240,12 @@ export class IntroController {
       return null; // tainted or undecodable image: skip the film
     }
 
-    const levels = autoLevels(sampleLuminance(pixels, sw, sh, cols, rows));
+    const levels = autoLevels(
+      localContrast(sampleLuminance(pixels, sw, sh, cols, rows), cols, rows, 3, 1.4),
+      0.03,
+      0.97,
+      0.85,
+    );
     const brightness = new Float32Array(this.field.count);
     const inside = new Uint8Array(this.field.count);
     for (let r = 0; r < rows; r++) {

@@ -19,13 +19,13 @@ W Next.js dwa miejsca na pliki to nie to samo:
 ```
 public/assets/
 ├── portrait/        # zdjęcie profilowe (to, w co „zamieniają się” cyfry)
-│   └── portrait-placeholder.svg   # tymczasowa sylwetka, do zastąpienia
+│   └── portrait.webp              # zdjęcie profilowe (800 × 1067, ok. 110 kB)
 ├── cv/              # CV w PDF (dodamy, gdy je podeślesz)
 ├── projects/        # zrzuty ekranu projektów (faza 4)
 └── og/              # obrazy podglądu linków (LinkedIn, komunikatory)
 ```
 
-## Jak podmienić placeholder na swoje zdjęcie (jedna zmiana)
+## Jak podmienić zdjęcie na inne (jedna zmiana)
 
 1. Zrób zdjęcie **pionowe, proporcje 4:5** (np. 1200 × 1500 px), z twarzą w górnych 2/3 kadru, na jednolitym, najlepiej jasnym lub ciemnym tle,
    z wyraźnym światłem. Od kontrastu zależy, jak czytelny będzie portret ułożony z cyfr.
