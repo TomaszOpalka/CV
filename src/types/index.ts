@@ -25,25 +25,36 @@ export interface Profile {
 }
 
 /** One block of the home page, in order of appearance (also drives the header). */
+export interface ExternalLink {
+  label: string;
+  url: string;
+}
+
+/** One project inside a job, with what was done and the technologies used. */
+export interface ProjectItem {
+  id: string;
+  name: string;
+  summary: string;
+  achievements: string[];
+  tech: string[];
+  links?: ExternalLink[];
+}
+
 export interface ExperienceItem {
   id: string;
   company: string;
   role: string;
-  /** Human readable period, e.g. "2023 - present". */
-  period: string;
+  /** Human readable period, e.g. "2025 - 2026". */
+  period?: string;
   summary: string;
-  achievements: string[];
-  /** Names of technologies, matching `SkillItem.name`. */
-  tech: string[];
+  projects: ProjectItem[];
 }
 
 export interface SkillItem {
   id: string;
   name: string;
-  /** Where it was used (company or project). */
-  usedAt: string;
-  /** Since when, e.g. "2021". */
-  since: string;
+  /** Where it was used, when the CV says so (company or project). */
+  usedAt?: string;
 }
 
 export interface SkillGroup {
@@ -58,6 +69,19 @@ export interface EducationItem {
   degree: string;
   period: string;
   note?: string;
+}
+
+export interface CertificateItem {
+  id: string;
+  name: string;
+  issuer: string;
+  year: string;
+}
+
+export interface LanguageItem {
+  id: string;
+  name: string;
+  level: string;
 }
 
 export interface PortfolioLink {

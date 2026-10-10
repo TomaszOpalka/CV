@@ -1,50 +1,61 @@
 import type { SkillGroup } from '@/types';
 
-/** PLACEHOLDER CONTENT: replace with the real stack, where each technology was used and since when. */
+/** Source: the SKILLS block of the author's CV. `usedAt` only where the CV names the project. */
 export const skillGroups: readonly SkillGroup[] = [
   {
     id: 'frontend',
-    title: 'Frontend',
+    title: 'Languages & Frontend',
     items: [
-      { id: 'typescript', name: 'TypeScript', usedAt: 'Company A, Company B', since: '2020' },
-      { id: 'react', name: 'React', usedAt: 'Company A, Company B', since: '2020' },
-      { id: 'nextjs', name: 'Next.js', usedAt: 'Company A, this portfolio', since: '2022' },
-      { id: 'scss', name: 'SCSS', usedAt: 'Company B, this portfolio', since: '2019' },
+      { id: 'typescript', name: 'TypeScript' },
+      { id: 'javascript', name: 'JavaScript (ES6+)' },
+      { id: 'python', name: 'Python' },
+      { id: 'react', name: 'React 19' },
+      { id: 'nextjs', name: 'Next.js 15' },
+      { id: 'nodejs', name: 'Node.js' },
+      { id: 'tailwind', name: 'Tailwind CSS' },
+      { id: 'mantine', name: 'Mantine', usedAt: 'BCF, live video monitoring' },
+      { id: 'zustand', name: 'Zustand' },
+      { id: 'tanstack-query', name: 'TanStack Query', usedAt: 'BCF, live video monitoring' },
+    ],
+  },
+  {
+    id: 'ai',
+    title: 'AI & Agents',
+    items: [
+      { id: 'agents', name: 'LLM agent architecture' },
+      { id: 'sdks', name: 'Anthropic / OpenAI SDKs' },
+      { id: 'mcp', name: 'MCP' },
+      { id: 'tool-dispatch', name: 'Tool dispatch' },
+      { id: 'prompt-caching', name: 'Prompt caching' },
+      { id: 'pgvector', name: 'Semantic memory (pgvector)' },
     ],
   },
   {
     id: 'backend',
-    title: 'Backend',
+    title: 'Backend & Integrations',
     items: [
-      { id: 'nodejs', name: 'Node.js', usedAt: 'Company A', since: '2021' },
-      { id: 'rest', name: 'REST APIs', usedAt: 'Company A, Company B', since: '2021' },
-    ],
-  },
-  {
-    id: 'databases',
-    title: 'Databases',
-    items: [{ id: 'postgresql', name: 'PostgreSQL', usedAt: 'Company A', since: '2022' }],
-  },
-  {
-    id: 'devops',
-    title: 'DevOps and cloud',
-    items: [
-      {
-        id: 'github-actions',
-        name: 'GitHub Actions',
-        usedAt: 'Company A, this portfolio',
-        since: '2021',
-      },
-      { id: 'netlify', name: 'Netlify', usedAt: 'This portfolio', since: '2026' },
+      { id: 'prisma', name: 'Prisma ORM', usedAt: 'BCF, Diocese of Bridgeport' },
+      { id: 'fastapi', name: 'FastAPI', usedAt: 'BCF, live video monitoring' },
+      { id: 'postgresql', name: 'PostgreSQL', usedAt: 'BCF, Husariabygg' },
+      { id: 'dynamodb', name: 'DynamoDB', usedAt: 'BCF, live video monitoring' },
+      { id: 'rest', name: 'REST APIs' },
+      { id: 'oauth', name: 'OAuth 2.1' },
+      { id: 'stripe', name: 'Stripe' },
+      { id: 'aws', name: 'AWS (Cognito, S3, IoT Core, CloudFront)' },
     ],
   },
   {
     id: 'tools',
-    title: 'Tools',
+    title: 'Tools, Testing & Cloud',
     items: [
-      { id: 'git', name: 'Git', usedAt: 'Everywhere', since: '2018' },
-      { id: 'playwright', name: 'Playwright', usedAt: 'Company A, this portfolio', since: '2023' },
-      { id: 'vitest', name: 'Vitest', usedAt: 'This portfolio', since: '2024' },
+      { id: 'git', name: 'Git' },
+      { id: 'github-actions', name: 'GitHub Actions' },
+      { id: 'docker', name: 'Docker' },
+      { id: 'vercel', name: 'Vercel' },
+      { id: 'playwright', name: 'Playwright' },
+      { id: 'vitest', name: 'Vitest', usedAt: 'BCF, live video monitoring' },
+      { id: 'pytest', name: 'Pytest', usedAt: 'BCF, live video monitoring' },
+      { id: 'capacitor', name: 'Capacitor', usedAt: 'BCF, live video monitoring' },
     ],
   },
 ];

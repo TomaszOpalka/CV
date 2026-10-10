@@ -165,6 +165,8 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
 - **Dotyk:** przy wejściu w nową sekcję na górze (pod nagłówkiem) pojawia się na 0,9 s ta sama ikona z cyfr co przy kursorze (zamiast emoji).
 - **Napisy dekodują się z cyfr** przy pierwszym wejściu w ekran (nagłówki sekcji i kart, nawigacja, „Hire me”), a potem rzadko (co kilka sekund,
   jeden napis naraz, 0,17 s) jedna litera zamienia się w cyfrę, nigdy obok drugiej cyfry. Kopia dla czytników ekranu zawsze ma prawdziwy tekst.
+- **Treści z CV (PDF autora):** `src/content/*` zawiera już prawdziwe dane: BCF z czterema projektami, SG Consulting, wczesne projekty, szkoły, certyfikaty, języki,
+  umiejętności i linki do portfolio. Numer telefonu z CV celowo nie jest publikowany. Serce (czerwone) to ikona sekcji „Other CVs”.
 - **Przycisk „Hire me”** w nagłówku (schodkowe rogi), prowadzi do sekcji Contact.
 - **Intro zawsze startuje od góry** (`scrollRestoration = 'manual'`): bez tego przeładowanie przywracało pozycję scrolla, blokada scrolla zamrażała stronę
   przesuniętą w dół i na dole intro pojawiał się czarny pas. Lenis i GSAP ładują się dopiero po intro.

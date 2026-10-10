@@ -1,26 +1,23 @@
 import type { PortfolioLink } from '@/types';
 
-/**
- * PLACEHOLDER CONTENT: links to the author's other CVs and portfolios, revealed by the explosion.
- * Replace the addresses with the real ones.
- */
+/** Links revealed by the explosion: the author's other portfolios and code (from the CV). */
 export const portfolioLinks: readonly PortfolioLink[] = [
   {
-    id: 'cv-fullstack',
-    name: 'CV: Full-Stack',
-    url: 'https://example.com/cv-fullstack',
-    description: 'The same engineering, aimed at full-stack roles.',
+    id: 'portfolio-1',
+    name: 'Portfolio 1',
+    url: 'https://portfolio1tomaszopalka.netlify.app',
+    description: 'An early frontend project, written by hand before AI coding tools.',
   },
   {
-    id: 'cv-frontend',
-    name: 'CV: Frontend',
-    url: 'https://example.com/cv-frontend',
-    description: 'Interfaces, animation and design systems.',
+    id: 'portfolio-2',
+    name: 'Portfolio 2',
+    url: 'https://portfolio2tomaszopalka.netlify.app',
+    description: 'A second early frontend project, also written by hand.',
   },
   {
-    id: 'portfolio-projects',
-    name: 'Projects portfolio',
-    url: 'https://example.com/projects',
-    description: 'A longer look at selected client and personal projects.',
+    id: 'github',
+    name: 'GitHub',
+    url: 'https://github.com/TomaszOpalka',
+    description: 'Code and repositories.',
   },
 ];

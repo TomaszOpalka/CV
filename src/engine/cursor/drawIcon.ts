@@ -6,7 +6,7 @@ import type { PixelIcon } from './pixelIcons';
 export const FLICKER_MS = 110;
 /** A dark veil under every lit cell (heavier under the outline), so an icon reads over text. */
 const VEIL_OUTLINE = 'rgb(11 11 11 / 80%)';
-const VEIL_FILL = 'rgb(11 11 11 / 55%)';
+const VEIL_FILL = 'rgb(11 11 11 / 70%)';
 
 export interface IconDrawOptions {
   /** One digit cell in CSS px. */
@@ -32,7 +32,7 @@ export function drawIconDigits(
   top: number,
   { cellW, cellH, scale, tick, pressed = false }: IconDrawOptions,
 ): void {
-  const { rows, palette } = icon;
+  const { rows, palette, fillTone = 1 } = icon;
 
   for (let r = 0; r < rows.length; r++) {
     const row = rows[r]!;
@@ -59,7 +59,7 @@ export function drawIconDigits(
       const flicker = (tick + r + c) % 2;
       let tone: number;
       if (pressed) tone = outline ? 7 : 4;
-      else tone = outline ? 6 + flicker : 1 + flicker;
+      else tone = outline ? 6 + flicker : fillTone + flicker;
       drawGlyph(
         ctx,
         atlas,

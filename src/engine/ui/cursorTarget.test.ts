@@ -25,12 +25,12 @@ describe('resolveCursorTarget', () => {
   it('lets explicit attributes win, nearest ancestor first', () => {
     const body = mount(
       `<section id="experience" data-section>
-         <div data-cursor="card" data-cursor-label="Details" data-cursor-icon="burst"><span id="s">x</span></div>
+         <div data-cursor="card" data-cursor-label="Details" data-cursor-icon="mail"><span id="s">x</span></div>
        </section>`,
     );
     expect(resolveCursorTarget(body.querySelector('#s'))).toEqual({
       kind: 'card',
-      icon: 'burst',
+      icon: 'mail',
       theme: 'negative',
       label: 'Details',
     });

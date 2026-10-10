@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyColor, CYAN, FIRE, GREEN, PALETTES, WHITE } from './palette';
+import { classifyColor, CYAN, FIRE, GREEN, PALETTES, RED, WHITE } from './palette';
 
 describe('classifyColor', () => {
   it('keeps whites, greys and black white', () => {
@@ -20,6 +20,6 @@ describe('classifyColor', () => {
   });
 
   it('every index it returns exists in the palette list', () => {
-    for (const index of [WHITE, GREEN, CYAN, FIRE]) expect(PALETTES[index]).toBeDefined();
+    for (const index of [WHITE, GREEN, CYAN, FIRE, RED]) expect(PALETTES[index]).toBeDefined();
   });
 });

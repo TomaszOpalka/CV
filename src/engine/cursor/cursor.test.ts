@@ -14,6 +14,7 @@ describe('pixel icons', () => {
 
   it('maps sections and falls back to the heart', () => {
     expect(iconForSection('contact')).toBe('mail');
+    expect(iconForSection('pixels')).toBe('heart');
     expect(iconForSection('unknown')).toBe('heart');
     expect(iconForSection(undefined)).toBe('heart');
     expect(isIconName('mail')).toBe(true);

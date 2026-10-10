@@ -1,22 +1,24 @@
-import { CYAN, FIRE, GREEN, WHITE } from '../glyph/palette';
+import { CYAN, FIRE, GREEN, RED, WHITE } from '../glyph/palette';
 
 /**
  * Cursor icons drawn in digits. Every row is a string on a 13 x 9 grid (digit cells are taller than wide, so
  * this is roughly square on screen): `#` is the bright outline, `+` a dim fill that keeps the content under
  * the cursor readable, `.` is empty. Each icon has its own colour (a palette of the glyph atlas).
  */
-export type IconName =
-  'heart' | 'smile' | 'burst' | 'case' | 'layers' | 'cap' | 'mail' | 'arrow' | 'beam';
+export type IconName = 'heart' | 'smile' | 'case' | 'layers' | 'cap' | 'mail' | 'arrow' | 'beam';
 
 export interface PixelIcon {
   rows: readonly string[];
-  /** Palette index of the glyph atlas (white, green, cyan, fire). */
+  /** Palette index of the glyph atlas (white, green, cyan, fire, red). */
   palette: number;
+  /** Brightness (0..6) of the `+` fill; the default is a dim fill that keeps the content underneath readable. */
+  fillTone?: number;
 }
 
 export const ICONS: Readonly<Record<IconName, PixelIcon>> = {
   heart: {
-    palette: FIRE,
+    palette: RED,
+    fillTone: 4,
     rows: [
       '..###...###..',
       '.#+++#.#+++#.',
@@ -41,20 +43,6 @@ export const ICONS: Readonly<Record<IconName, PixelIcon>> = {
       '.#+##+++##+#.',
       '..#+#####+#..',
       '...#######...',
-    ],
-  },
-  burst: {
-    palette: FIRE,
-    rows: [
-      '......#......',
-      '..#...#...#..',
-      '...#..#..#...',
-      '....#.#.#....',
-      '.....###.....',
-      '#############',
-      '.....###.....',
-      '....#.#.#....',
-      '...#..#..#...',
     ],
   },
   case: {
@@ -145,7 +133,7 @@ export const ICONS: Readonly<Record<IconName, PixelIcon>> = {
 
 const BY_SECTION: Readonly<Record<string, IconName>> = {
   about: 'smile',
-  pixels: 'burst',
+  pixels: 'heart',
   experience: 'case',
   stack: 'layers',
   education: 'cap',
