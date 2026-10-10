@@ -8,7 +8,7 @@ export function Stack() {
     <Section id="stack" index="04" title="Stack" className={styles.root}>
       <div className={styles.groups}>
         {skillGroups.map((group) => (
-          <section key={group.id} aria-labelledby={`stack-${group.id}`}>
+          <section key={group.id} aria-labelledby={`stack-${group.id}`} data-reveal>
             <h3 id={`stack-${group.id}`} className={styles.groupTitle}>
               {group.title}
             </h3>

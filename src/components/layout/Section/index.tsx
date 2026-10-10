@@ -26,7 +26,7 @@ export function Section({ id, index, title, className, children }: SectionProps)
       data-emoji={emoji}
       aria-labelledby={`${id}-title`}
     >
-      <header className={styles.header}>
+      <header className={styles.header} data-reveal>
         <p className={styles.index}>{index}</p>
         <h2 id={`${id}-title`} className={styles.title}>
           {title}

@@ -143,13 +143,22 @@ Typy `ExperienceItem`, `SkillItem`, `EducationItem` i `PortfolioLink` leżą w `
 | 3.6 | Efekty dotyku na telefonie                         | Działa na iOS i Androidzie       |
 | 3.7 | Wydajność, testy, przegląd z autorem               | Akceptacja                       |
 
+## Stan realizacji (implementacja)
+
+Zrobione na branchu `feat/phase-3-cursor-pixels-nav`: nagłówek z postępem i menu mobilnym, Lenis (jedna pętla przez `gsap.ticker`), blokada
+scrolla w trakcie intro, kursor z emoji (desktop), pole pikseli z wybuchem i odsłanianiem linków (przycisk „Reveal links” dla klawiatury,
+przycisk „Rebuild”), efekty dotyku, pojawianie się elementów przy scrollu, sekcje: Experience, Stack, Education, Contact (placeholder).
+
+Świadomie odłożone na fazę 4 (razem z prawdziwą treścią CV): poziomy pin sekcji Experience (przy 3 kartach placeholderów dałby tylko ryzyko
+dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart i przyciski magnetyczne. Treści w `src/content/*` to **placeholdery**.
+
 ## Kryteria ukończenia
 
-- [ ] Nawigacja działa przez scroll i karty: doświadczenie, stack, uczelnia, linki do portfoliów
-- [ ] Kursor z emoji zmienia się między sekcjami (desktop). Na telefonie działają efekty dotyku
-- [ ] Wybuch odsłania linki do innych CV (bez zapisu i bez licznika, działa także offline)
+- [x] Nawigacja działa przez scroll i karty: doświadczenie, stack, uczelnia, linki do portfoliów
+- [x] Kursor z emoji zmienia się między sekcjami (desktop). Na telefonie działają efekty dotyku
+- [x] Wybuch odsłania linki do innych CV (bez zapisu i bez licznika, działa także offline)
 - [ ] Spełniony budżet wydajności z fazy 2 (60 fps desktop, ≥ 50 fps telefon), także w trakcie wybuchu
-- [ ] Testy: Vitest (silnik pikseli), Playwright (klik → linki widoczne, nawigacja, sekcje)
+- [x] Testy: Vitest (silnik pikseli), Playwright (klik → linki widoczne, nawigacja, sekcje)
 - [ ] Autor zaakceptował wygląd
 
 ## Ryzyka

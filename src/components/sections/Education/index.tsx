@@ -8,7 +8,7 @@ export function Education() {
     <Section id="education" index="05" title="Education">
       <ul className={styles.list}>
         {education.map((item) => (
-          <li key={item.id} className={styles.item}>
+          <li key={item.id} className={styles.item} data-reveal>
             <p className={styles.period}>{item.period}</p>
             <h3 className={styles.school}>{item.school}</h3>
             <p>{item.degree}</p>

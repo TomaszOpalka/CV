@@ -18,11 +18,17 @@ test('a menu link scrolls to its section and becomes the current one', async ({
 }) => {
   await page.goto('/');
   if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
-  await page.getByRole('link', { name: /Stack/ }).first().click();
+  await page
+    .getByRole('link', { name: /^(\d{2}\s?)?Stack$/ })
+    .first()
+    .click();
   await expect(page.locator('#stack')).toBeInViewport({ timeout: 5_000 });
   await expect(page).toHaveURL(/#stack$/);
   if (!isMobile) {
-    await expect(page.getByRole('link', { name: /Stack/ })).toHaveAttribute('aria-current', 'true');
+    await expect(page.getByRole('link', { name: /^(\d{2}\s?)?Stack$/ })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
   }
 });
 

@@ -31,3 +31,26 @@ html[data-cursor-ready],
 html[data-cursor-ready] * {
   cursor: none !important;
 }
+
+// Scroll reveal: hidden only once ScrollReveal is running (no JS or reduced motion: always visible).
+// An animation (not a transition), so it never fights with the component's own hover transitions.
+html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+}
+
+html[data-reveal-ready] [data-reveal][data-revealed] {
+  animation: reveal 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--reveal-index, 0) * 90ms);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

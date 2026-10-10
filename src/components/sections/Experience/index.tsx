@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 import { Section } from '@/components/layout/Section';
 import { experience } from '@/content/experience';
 
@@ -7,8 +9,15 @@ export function Experience() {
   return (
     <Section id="experience" index="03" title="Experience" className={styles.root}>
       <ol className={styles.track}>
-        {experience.map((item) => (
-          <li key={item.id} className={styles.card} data-cursor="card" data-cursor-label="Details">
+        {experience.map((item, index) => (
+          <li
+            key={item.id}
+            className={styles.card}
+            data-reveal
+            style={{ '--reveal-index': index } as CSSProperties}
+            data-cursor="card"
+            data-cursor-label="Details"
+          >
             <p className={styles.period}>{item.period}</p>
             <h3 className={styles.company}>{item.company}</h3>
             <p className={styles.role}>{item.role}</p>

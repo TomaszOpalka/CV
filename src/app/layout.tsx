@@ -4,8 +4,10 @@ import type { ReactNode } from 'react';
 import { Cursor } from '@/components/layout/Cursor';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
+import { ScrollReveal } from '@/components/layout/ScrollReveal';
 import { SectionTracker } from '@/components/layout/SectionTracker';
 import { SmoothScroll } from '@/components/layout/SmoothScroll';
+import { TouchEffects } from '@/components/layout/TouchEffects';
 import { profile } from '@/content/profile';
 
 import '@/styles/main.scss';
@@ -32,7 +34,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <Footer />
         <SmoothScroll />
         <SectionTracker />
+        <ScrollReveal />
         <Cursor />
+        <TouchEffects />
       </body>
     </html>
   );
