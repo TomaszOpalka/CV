@@ -5,18 +5,20 @@ a przegląd faz w [`README.md`](README.md). Przed rozpoczęciem pracy przeczytaj
 
 ## Przepływ pracy (git i deploy)
 
-1. **Nigdy nie pracujemy bezpośrednio na `main`.** Każda zmiana powstaje na osobnym branchu
-   (`feat/...`, `fix/...`, `docs/...`, `chore/...`).
+Gałęzie: `main` (produkcja, stan zaakceptowany przez autora) ← `develop` (zintegrowana, przetestowana praca) ← gałęzie robocze.
+
+1. **Nigdy nie pracujemy bezpośrednio na `main` ani na `develop`.** Każda zmiana powstaje na osobnym branchu
+   (`feat/...`, `fix/...`, `docs/...`, `chore/...`), tworzonym z `develop`.
 2. **Przed commitem testujemy lokalnie:** `npm run lint`, `npm run typecheck`, `npm test` i `npm run build`.
    Commit powstaje dopiero, gdy wszystko przechodzi.
-3. **Do `main` trafia gotowa, przetestowana praca**, wyłącznie przez Pull Request. Commity robimy małe, w stylu Conventional Commits
-   (`feat(intro): ...`).
-4. **Po ukończeniu każdego etapu (fazy lub jej wyraźnej części) wypychamy branch i wystawiamy PR do `main`.**
-   Autor sam go przegląda i zatwierdza (merge). My nie mergujemy PR-ów i nie czekamy na prośbę o ich utworzenie.
+3. **Do `develop` trafia gotowa, przetestowana praca** (merge gałęzi roboczej, na prośbę autora robi to też Claude). Commity robimy małe,
+   w stylu Conventional Commits (`feat(intro): ...`).
+4. **Do `main` trafia wyłącznie `develop`, przez Pull Request.** Autor sam go przegląda i zatwierdza (merge). My nie mergujemy PR-ów do `main`.
    W opisie PR: co zrobiono, jak sprawdzić lokalnie, co świadomie odłożono.
-5. **Deploy robi autor po napisaniu aplikacji** (Netlify, produkcyjnie z `main`). Nie uruchamiamy deployów w trakcie
+5. **Po ukończeniu każdego etapu (fazy lub jej wyraźnej części) wypychamy branch** i wystawiamy PR do `develop` (albo scalamy go, jeśli autor tak zdecyduje).
+6. **Deploy robi autor po napisaniu aplikacji** (Netlify, produkcyjnie z `main`). Nie uruchamiamy deployów w trakcie
    pisania i nie wypychamy niedokończonych rzeczy na `main`. Limity kredytów Netlify nie są problemem, bo budujemy i testujemy lokalnie.
-6. Gdy sesja ma wyznaczony branch, pracujemy i pushujemy tylko na nim (PR idzie z tego brancha do `main`).
+7. Gdy sesja ma wyznaczony branch, pracujemy i pushujemy tylko na nim, chyba że autor poleci inaczej (np. utworzy `develop` albo nową gałąź fazy).
 
 ## Zasoby (zdjęcia, CV, grafiki)
 
@@ -28,6 +30,8 @@ a przegląd faz w [`README.md`](README.md). Przed rozpoczęciem pracy przeczytaj
 
 - Koszt całości = **tylko domena** (OVH). Nie dodajemy płatnych usług ani takich, które wymagają podpięcia karty,
   bez wyraźnej zgody autora.
+- **Bez bazy danych** (decyzja z 10.10.2026): wybuchy nie są zapisywane, nie ma licznika. Nie dodajemy magazynów ani funkcji tylko po to, żeby coś zapisywać.
+- Adresy podstron (trasy Next) po angielsku: `/experience`, `/stack`, `/portfolio`, `/education`.
 - Hosting: Netlify (plan Free). Funkcje API: Netlify Functions. Szczegóły i decyzje: `docs/plan/faza-1-stack-i-architektura.md`.
 
 ## Stack (skrót)
