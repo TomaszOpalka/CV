@@ -69,7 +69,7 @@ test('boot -> idle -> click -> the whole film act by act -> photo + text', async
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'skip intro' })).toHaveCount(0);
-  expect(await page.locator('section').getAttribute('data-act')).toBeNull();
+  expect(await page.locator('#about').getAttribute('data-act')).toBeNull();
   expect(problems).toEqual([]);
 });
 
@@ -210,12 +210,12 @@ test('if the scripts never load, the content is revealed by a CSS failsafe', asy
   await page.route('**/_next/static/chunks/**/*.js', (route) => route.abort());
   await page.route('**/_next/static/chunks/*.js', (route) => route.abort());
   await page.goto('/');
-  expect(await page.locator('section').getAttribute('data-armed')).toBeNull();
+  expect(await page.locator('#about').getAttribute('data-armed')).toBeNull();
   await expect(page.locator('h1')).toHaveCSS('opacity', '1', { timeout: 7_000 });
   await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   // and the dead "skip" button is not offered
   await expect(page.getByRole('button', { name: 'skip intro' })).toBeHidden();
-  expect(await page.locator('section').evaluate((el) => getComputedStyle(el).touchAction)).toBe(
+  expect(await page.locator('#about').evaluate((el) => getComputedStyle(el).touchAction)).toBe(
     'auto',
   );
 });

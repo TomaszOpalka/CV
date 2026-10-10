@@ -1,0 +1,31 @@
+@use '@/styles/abstracts' as *;
+
+.list {
+  display: grid;
+  gap: $space-6;
+  max-width: rem(1200);
+  margin: 0 auto;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  gap: $space-2;
+  padding-left: $space-6;
+  border-left: 2px solid var(--gray-600);
+}
+
+.period {
+  font-family: var(--font-mono);
+  font-size: rem(12);
+  letter-spacing: 0.12em;
+  color: var(--gray-400);
+}
+
+.school {
+  font-size: rem(22);
+}
+
+.note {
+  color: var(--gray-400);
+}

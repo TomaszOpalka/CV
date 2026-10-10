@@ -25,3 +25,46 @@ export interface Profile {
   about: string[];
   portrait: PortraitConfig;
 }
+
+/** One block of the home page, in order of appearance (also drives the header and the cursor emoji). */
+export interface ExperienceItem {
+  id: string;
+  company: string;
+  role: string;
+  /** Human readable period, e.g. "2023 - present". */
+  period: string;
+  summary: string;
+  achievements: string[];
+  /** Names of technologies, matching `SkillItem.name`. */
+  tech: string[];
+}
+
+export interface SkillItem {
+  id: string;
+  name: string;
+  /** Where it was used (company or project). */
+  usedAt: string;
+  /** Since when, e.g. "2021". */
+  since: string;
+}
+
+export interface SkillGroup {
+  id: string;
+  title: string;
+  items: SkillItem[];
+}
+
+export interface EducationItem {
+  id: string;
+  school: string;
+  degree: string;
+  period: string;
+  note?: string;
+}
+
+export interface PortfolioLink {
+  id: string;
+  name: string;
+  url: string;
+  description: string;
+}

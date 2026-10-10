@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
+import { Footer } from '@/components/layout/Footer';
+import { Header } from '@/components/layout/Header';
+import { SectionTracker } from '@/components/layout/SectionTracker';
+import { SmoothScroll } from '@/components/layout/SmoothScroll';
 import { profile } from '@/content/profile';
 
 import '@/styles/main.scss';
@@ -21,7 +25,13 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Header />
+        {children}
+        <Footer />
+        <SmoothScroll />
+        <SectionTracker />
+      </body>
     </html>
   );
 }

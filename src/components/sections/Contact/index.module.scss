@@ -1,0 +1,7 @@
+@use '@/styles/abstracts' as *;
+
+.text {
+  max-width: rem(1200);
+  margin: 0 auto;
+  color: var(--gray-400);
+}

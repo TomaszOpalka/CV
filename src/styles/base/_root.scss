@@ -14,3 +14,14 @@
 
   color-scheme: dark;
 }
+
+// Scroll is locked while the intro plays and while the mobile menu is open.
+html[data-intro-lock],
+html[data-menu-open],
+html[data-scroll-stopped] {
+  overflow: hidden;
+}
+
+html {
+  scroll-padding-top: 4rem;
+}
