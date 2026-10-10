@@ -15,15 +15,15 @@ jednorazowa opłata, **bez podpinania karty** i bez płacenia za API.
 
 ## 0. Decyzje autora
 
-| Temat                   | Decyzja                                                                                                                                                                         |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Domena                  | **OVH**                                                                                                                                                                         |
-| Hosting i API           | **Netlify** (plan Free) + Netlify Functions                                                                                                                                     |
-| Framework               | **Next.js 16** (nie Vite; wyjaśnienie w pkt 1.7)                                                                                                                                |
-| Pakiety                 | **npm**                                                                                                                                                                         |
-| Praca z gitem           | Każda zmiana na osobnym branchu, testy lokalne przed commitem, merge do `main` po napisaniu i przetestowaniu. **Deploy dopiero po napisaniu aplikacji.** Zapisane w `CLAUDE.md` |
-| Magazyn wybuchów (baza) | **do potwierdzenia**, rekomendacja: Netlify Blobs (sekcja 3)                                                                                                                    |
-| Formularz kontaktowy    | rekomendacja: Netlify Forms (faza 5)                                                                                                                                            |
+| Temat                   | Decyzja                                                                                                                                                                                             |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domena                  | **OVH**                                                                                                                                                                                             |
+| Hosting i API           | **Netlify** (plan Free) + Netlify Functions                                                                                                                                                         |
+| Framework               | **Next.js 16** (nie Vite; wyjaśnienie w pkt 1.7)                                                                                                                                                    |
+| Pakiety                 | **npm**                                                                                                                                                                                             |
+| Praca z gitem           | Każda zmiana na osobnym branchu, testy lokalne przed commitem, PR do `develop`, a `develop` trafia do `main` po akceptacji etapu. **Deploy dopiero po napisaniu aplikacji.** Zapisane w `CLAUDE.md` |
+| Magazyn wybuchów (baza) | **zrezygnowano 10.10.2026**: brak bazy i licznika wybuchów (sekcja 3 zostaje jako archiwum analizy)                                                                                                 |
+| Formularz kontaktowy    | rekomendacja: Netlify Forms (faza 5)                                                                                                                                                                |
 
 ---
 
@@ -127,16 +127,15 @@ routing plikowy i wspólny layout, który utrzymuje kursor między podstronami.
 
 ### 2.1 Zestawienie: „koszt = domena”
 
-| Element                     | Usługa                       | Koszt                                                                     | Karta?              |
-| --------------------------- | ---------------------------- | ------------------------------------------------------------------------- | ------------------- |
-| Domena `.pl`                | OVH                          | ok. **20,53 zł brutto** za 1. rok, odnowienie ok. **72,56 zł brutto/rok** | PayPal albo karta ¹ |
-| Frontend (pliki statyczne)  | Netlify Free                 | 0 zł (kredyty, pkt 1.6)                                                   | nie                 |
-| API (wybuchy)               | Netlify Functions            | 0 zł (kredyty, znikome zużycie)                                           | nie                 |
-| Magazyn wybuchów            | Netlify Blobs (rekomendacja) | 0 zł                                                                      | nie                 |
-| Formularz kontaktowy        | Netlify Forms                | 0 zł, bez limitu zgłoszeń                                                 | nie                 |
-| HTTPS, CDN                  | Netlify (Let's Encrypt)      | 0 zł                                                                      | nie                 |
-| Analityka wyszukiwarki      | Google Search Console        | 0 zł                                                                      | nie                 |
-| Analityka odwiedzin (opcja) | Umami Cloud Hobby            | 0 zł (1 strona, 100 tys. zdarzeń/mies.)                                   | nie                 |
+| Element                     | Usługa                    | Koszt                                                                     | Karta?              |
+| --------------------------- | ------------------------- | ------------------------------------------------------------------------- | ------------------- |
+| Domena `.pl`                | OVH                       | ok. **20,53 zł brutto** za 1. rok, odnowienie ok. **72,56 zł brutto/rok** | PayPal albo karta ¹ |
+| Frontend (pliki statyczne)  | Netlify Free              | 0 zł (kredyty, pkt 1.6)                                                   | nie                 |
+| API                         | Netlify Functions (opcja) | 0 zł (kredyty); na razie tylko `/api/health`                              | nie                 |
+| Formularz kontaktowy        | Netlify Forms             | 0 zł, bez limitu zgłoszeń                                                 | nie                 |
+| HTTPS, CDN                  | Netlify (Let's Encrypt)   | 0 zł                                                                      | nie                 |
+| Analityka wyszukiwarki      | Google Search Console     | 0 zł                                                                      | nie                 |
+| Analityka odwiedzin (opcja) | Umami Cloud Hobby         | 0 zł (1 strona, 100 tys. zdarzeń/mies.)                                   | nie                 |
 
 **Razem: koszt domeny.**
 
@@ -179,7 +178,10 @@ Frontend się nie zmienia, zmienia się tylko adres API.
 
 ---
 
-## 3. Magazyn wybuchów: DynamoDB, Supabase czy coś prostszego?
+## 3. Magazyn wybuchów: DynamoDB, Supabase czy coś prostszego? (archiwum)
+
+> **Zrezygnowano (10.10.2026).** Autor odstąpił od zapisu wybuchów i licznika, żeby dowieźć stronę jak najszybciej: strona nie ma bazy danych.
+> Ta sekcja zostaje jako zapis analizy, gdyby kiedyś wrócił pomysł licznika. Poniższe punkty 5.1 i 5.3 dotyczą tej wersji i **nie są wdrażane**.
 
 ### 3.1 Czy w ogóle potrzebujemy bazy?
 
@@ -217,7 +219,7 @@ Ograniczenie: to nie SQL, więc zapytania typu „wybuchy z ostatniego tygodnia 
   rachunek będzie zerowy, a w AWS Budgets ustaw alert na 1 USD). Zapis idzie przez `DynamoExplosionStore` (SDK `@aws-sdk/client-dynamodb`,
   tabela w trybie provisioned 1 RCU i 1 WCU, klucze `pk = day#2026-10-08`, `sk = ts#<uuid>`).
 
-> **Decyzja autora (do potwierdzenia przed fazą 3):** ☐ Netlify Blobs (rekomendowane) ☐ DynamoDB (akceptuję kartę w AWS) ☐ inna
+> **Decyzja autora (10.10.2026):** ☑ żadna baza, rezygnacja z licznika i zapisu wybuchów.
 
 ### 3.4 Analityka odwiedzin (opcjonalna, faza 4)
 
@@ -243,10 +245,9 @@ Wersje według npm z 8.10.2026. Plik `package-lock.json` przypina dokładne wers
 | Animacje UI             | **GSAP** (+ ScrollTrigger, SplitText, ScrambleText)                    | 3.15                   | sekwencje intro, scroll, „dekodowanie” tekstu                                                                                                |
 | Płynny scroll           | **Lenis**                                                              | 1.3                    | zsynchronizowany z ScrollTrigger                                                                                                             |
 | Efekty (cyfry, piksele) | **własny silnik TS na Canvas 2D**                                      | n/d                    | pełna kontrola, zero wagi. Plan B: **OGL**                                                                                                   |
-| Dane z API              | **TanStack Query**                                                     | 5.x                    | mutacja „wybuchu” z ponawianiem, licznik z cache                                                                                             |
+| Dane z API              | **TanStack Query**                                                     | 5.x                    | na razie nieużywane; wróci przy wysyłce formularza, jeśli będzie potrzebny                                                                   |
 | Walidacja               | **Zod**                                                                | 4.x                    | jeden schemat dla frontu i funkcji                                                                                                           |
 | Backend                 | **Netlify Functions** (TypeScript, format `export default`)            | `@netlify/functions` 6 | `/api/*`                                                                                                                                     |
-| Magazyn                 | **Netlify Blobs** (`@netlify/blobs`, dodamy w fazie 3)                 | 11.x                   | wpisy wybuchów                                                                                                                               |
 | Formularz               | **Netlify Forms** (faza 5)                                             | n/d                    | zgłoszenia na e-mail, antyspam Akismet                                                                                                       |
 | Środowisko              | **Node.js 24 LTS**, npm 11                                             |                        | patrz uwaga o Node 26 niżej                                                                                                                  |
 | Jakość                  | ESLint 10, Prettier, Stylelint, **Vitest 5**, **Playwright** (faza 2+) |                        | lint, testy silnika, testy e2e                                                                                                               |
@@ -280,15 +281,13 @@ trzech miejsc naraz: `.nvmrc`, `netlify.toml`, `engines` w `package.json`.
  ┌──────────────────────────── Netlify, plan Free ──────────────────────────────┐
  │  CDN: strona statyczna (out/)                              [kredyty: transfer] │
  │  Netlify Functions  /api/*                                                    │
- │   ├── POST /api/explosions   → walidacja Zod → ExplosionStore (Blobs)         │
- │   ├── GET  /api/explosions   → statystyki (licznik, ostatni wybuch)           │
- │   └── GET  /api/health       → test działania                                 │
+ │   └── GET  /api/health       → test działania (reszta wg potrzeb, faza 5)     │
  │  Netlify Forms   (formularz kontaktowy, faza 5)                               │
  └──────────────────────────────────────────────────────────────────────────────┘
  OVH: rejestracja domeny i strefa DNS (A → Netlify, CNAME www → Netlify)
 ```
 
-### 5.1 Przepływ „wybuchu”
+### 5.1 Przepływ „wybuchu” (nie wdrażany, patrz sekcja 3)
 
 1. Użytkownik klika albo dotyka pole kwadratów. Animacja startuje **od razu** i nie czeka na sieć.
 2. Hook `useExplodeMutation` (TanStack Query) wysyła `POST /api/explosions` z `{ origin: { x, y }, device }`.
@@ -297,7 +296,7 @@ trzech miejsc naraz: `.nvmrc`, `netlify.toml`, `engines` w `package.json`.
 4. UI pokazuje np. „Wybuch #1234 · 08.10.2026, 11:32” i karty z linkami do innych CV.
 5. Błąd sieci nie psuje UX: animacja i linki działają, zapis jest ponawiany do 2 razy.
 
-### 5.2 Kontrakt API: `src/shared/types.ts` (już w repo)
+### 5.2 Kontrakt API: `src/shared/types.ts` (wersja archiwalna, usunięta z repo 10.10.2026)
 
 ```ts
 export type DeviceKind = 'mobile' | 'desktop';
@@ -336,7 +335,7 @@ export interface ApiError {
 
 Schematy Zod odpowiadające tym typom leżą obok, w `src/shared/schemas.ts`. Typ kontaktu dochodzi w fazie 5.
 
-### 5.3 Magazyn za interfejsem
+### 5.3 Magazyn za interfejsem (nie wdrażany)
 
 ```ts
 // netlify/functions/lib/ExplosionStore.ts (faza 3)
@@ -351,13 +350,11 @@ Wybór przez zmienną środowiskową `EXPLOSION_STORE=blobs|dynamo`. Test jednos
 
 ### 5.4 Bezpieczeństwo i RODO
 
-- **Nie zapisujemy IP ani cookies.** Wpis zawiera tylko datę, urządzenie (mobile/desktop) i punkt kliknięcia.
-- Ograniczenie nadużyć: klient wysyła maksymalnie 1 wybuch na 3 s, funkcja odrzuca nietypowe dane (walidacja Zod, limit rozmiaru)
-  i krótkie wywołania w tej samej sekundzie. Zużycie kredytów przy nadużyciu jest znikome, a twardy limit chroni przed rachunkiem.
+- **Nie zapisujemy IP ani cookies.** Strona nie zapisuje też żadnych danych o wybuchach.
 - Ten sam origin dla frontu i API, więc CORS nie jest potrzebny.
 - Nagłówki bezpieczeństwa ustawia `netlify.toml`.
 - Brak śledzenia oznacza brak banera cookies. (Umami i GoatCounter nie używają cookies, GA4 używa i wymagałby zgody.)
-- Sekrety (np. klucze AWS, jeśli wybierzesz DynamoDB) wyłącznie jako zmienne środowiskowe Netlify, plik `.env` jest w `.gitignore`.
+- Sekrety (jeśli kiedyś się pojawią, np. klucz EmailJS) wyłącznie jako zmienne środowiskowe Netlify, plik `.env` jest w `.gitignore`.
 
 ---
 
@@ -370,7 +367,7 @@ CV/
 │   │   ├── layout.tsx              # fonty, main.scss, (później) Cursor i Providers
 │   │   ├── page.tsx                # /  (intro → o mnie → sekcje)
 │   │   ├── not-found.tsx
-│   │   └── (później) doswiadczenie/ stack/ portfolio/ page.tsx, sitemap.ts, robots.ts
+│   │   └── (później) experience/ stack/ portfolio/ page.tsx, sitemap.ts, robots.ts
 │   ├── components/
 │   │   ├── ui/                     # prymitywy: Button, Tag, Card, Field
 │   │   ├── layout/                 # Header, Footer, Cursor, PageTransition
@@ -383,12 +380,12 @@ CV/
 │   │   ├── glyph/                  # siatka cyfr, atlas glifów, portret ASCII
 │   │   └── pixels/                 # pole kwadratów, wybuch
 │   ├── hooks/                      # useTicker, useReducedMotion, useSectionEmoji…
-│   ├── api/                        # klient fetch + hooki TanStack Query
+│   ├── api/                        # (później) klient fetch formularza
 │   ├── content/                    # treści jako typowane pliki TS (PL)
-│   ├── shared/                     # kontrakt API: types.ts, schemas.ts (front + funkcje)
+│   ├── shared/                     # kontrakt API (front + funkcje); dziś tylko typ błędu, schemat formularza dojdzie w fazie 4
 │   ├── styles/                     # architektura Sass (sekcja 7.3)
 │   └── types/index.ts              # typy domenowe frontu
-├── netlify/functions/              # API: health.ts (jest), explosions.ts (faza 3)
+├── netlify/functions/              # API: health.ts (jest); ewentualnie funkcja formularza (faza 5)
 ├── public/                         # statyczne: zdjęcie portretowe, OG, (faza 5) __forms.html
 ├── tests/e2e/                      # Playwright (od fazy 2)
 ├── docs/                           # plan faz i SETUP.md
@@ -412,7 +409,7 @@ Aliasy importu: `@/…` → `src/…`, `@shared/…` → `src/shared/…`.
 | Pliki pomocnicze komponentu | obok, w tym samym folderze                            | `types.ts`, `usePixelField.ts`, `PixelField.test.tsx` |
 | Hooki                       | `useCamelCase.ts`                                     | `hooks/useReducedMotion.ts`                           |
 | Silnik (czysty TS)          | klasa PascalCase w pliku PascalCase                   | `engine/glyph/GlyphField.ts`                          |
-| Trasy Next                  | po polsku, bez znaków diakrytycznych                  | `app/doswiadczenie/page.tsx`                          |
+| Trasy Next                  | po angielsku (zmiana z 10.10.2026)                    | `app/experience/page.tsx`                             |
 | Klasy CSS w modułach        | camelCase, stany z prefiksem `is`                     | `.heroTitle`, `.isActive`, `.isExploded`              |
 | Tokeny                      | CSS: `--gray-900`, SCSS: `$space-4`                   |                                                       |
 | Stałe                       | `SCREAMING_SNAKE_CASE`                                | `MAX_DPR_MOBILE`                                      |
@@ -489,7 +486,7 @@ src/styles/
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | 1.1 | Research referencji i odpowiedzi na pytania z briefu (ten dokument)                                                                                                                          | ✅                      |
 | 1.2 | Akceptacja stacku i architektury przez autora                                                                                                                                                | ✅ (08.10.2026)         |
-| 1.3 | Decyzje hostingowe: Netlify + OVH ✅. Do zrobienia: nazwa i zakup domeny, wybór magazynu wybuchów                                                                                            | ⏳                      |
+| 1.3 | Decyzje hostingowe: Netlify + OVH ✅. Do zrobienia: nazwa i zakup domeny. Magazyn wybuchów: zrezygnowano                                                                                     | ⏳                      |
 | 1.4 | Szkielet aplikacji: Next 16, TypeScript, SCSS, testy, `/api/health`, `CLAUDE.md`, `docs/SETUP.md`. `npm run check` przechodzi                                                                | ✅ (lokalnie)           |
 | 1.5 | Pierwszy deploy na domenę z HTTPS (dowód, że koszt = domena). **Po napisaniu aplikacji**, zgodnie z Twoim przepływem pracy ([lista kontrolna](#12-lista-kontrolna-przed-pierwszym-deployem)) | ⏸ odłożone do końca faz |
 
@@ -498,15 +495,15 @@ src/styles/
 - [x] Autor zaakceptował stack
 - [x] Autor zaakceptował architekturę, strukturę i konwencje
 - [x] Autor wybrał hosting (Netlify) i rejestratora domeny (OVH)
-- [ ] Autor potwierdził magazyn wybuchów (sekcja 3.3)
+- [x] Magazyn wybuchów: zrezygnowano z bazy (10.10.2026)
 - [ ] Domena kupiona
 - [ ] Szkielet na `main` w GitHubie (czeka na uprawnienia zapisu dla Claude, patrz niżej)
-- [ ] Żadna usługa nie ma podpiętej karty (poza ewentualnym świadomym wyborem DynamoDB)
+- [ ] Żadna usługa nie ma podpiętej karty
 
 ## 11. Pytania do autora
 
 1. Jaka domena i końcówka (`.pl`, `.dev`, `.com`)?
-2. Magazyn wybuchów: Netlify Blobs (rekomendowane), DynamoDB czy inny?
+2. ~~Magazyn wybuchów~~ Rozstrzygnięte: brak bazy i licznika.
 3. Jakie „inne CV/portfolia” pokazujemy po wybuchu? Potrzebna lista adresów.
 4. ~~Tylko polski, czy polski i angielski?~~ Rozstrzygnięte: treści strony po angielsku.
 5. Czy masz zdjęcie w dobrej rozdzielczości, na jednolitym tle, z wyraźnym światłem? To ważne dla portretu z cyfr.

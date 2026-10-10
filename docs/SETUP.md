@@ -142,7 +142,7 @@ Nie instalujesz niczego ręcznie. Wszystko jest w `package.json` i `package-lock
 | `@netlify/functions`                                            | typy dla funkcji API          |
 
 Dodamy w kolejnych fazach: `@playwright/test` (testy e2e), `@emailjs/browser` albo obsługę Netlify Forms (formularz),
-klienta bazy danych (patrz decyzja w fazie 1) i `kaplay` (opcjonalna minigra).
+`kaplay` (opcjonalna minigra).
 
 ## 6. Opcjonalnie: lokalne API (Netlify Functions)
 

@@ -1,0 +1,24 @@
+@use '@/styles/abstracts' as *;
+
+.wrap {
+  display: grid;
+  gap: $space-4;
+  max-width: rem(1200);
+  margin: 0 auto;
+}
+
+.text {
+  color: var(--gray-400);
+}
+
+.links {
+  display: grid;
+  gap: $space-2;
+  list-style: none;
+
+  a {
+    font-family: var(--font-mono);
+    color: var(--gray-0);
+    text-underline-offset: 3px;
+  }
+}

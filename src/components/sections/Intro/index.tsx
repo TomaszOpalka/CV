@@ -44,7 +44,14 @@ export function Intro() {
   const playing = state !== 'done';
 
   return (
-    <section ref={rootRef} className={styles.root} data-state={state} aria-labelledby="hero-title">
+    <section
+      ref={rootRef}
+      id="about"
+      className={styles.root}
+      data-state={state}
+      data-section
+      aria-labelledby="hero-title"
+    >
       {playing && (
         <button
           ref={skipRef}

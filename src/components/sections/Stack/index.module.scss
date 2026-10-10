@@ -1,0 +1,51 @@
+@use '@/styles/abstracts' as *;
+
+.groups {
+  display: grid;
+  gap: $space-8;
+  max-width: rem(1200);
+  margin: 0 auto;
+}
+
+.groupTitle {
+  margin-bottom: $space-3;
+  font-size: rem(13);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(rem(180), 1fr));
+  gap: $space-3;
+  list-style: none;
+}
+
+.tile {
+  display: grid;
+  gap: $space-1;
+  padding: $space-4;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-800);
+  transition:
+    border-color $duration-base,
+    background $duration-base;
+
+  @include hover-only {
+    &:hover {
+      background: var(--gray-800);
+      border-color: var(--gray-400);
+    }
+  }
+}
+
+.name {
+  font-family: var(--font-mono);
+  color: var(--gray-0);
+}
+
+.usedAt {
+  font-size: rem(13);
+  color: var(--gray-400);
+}

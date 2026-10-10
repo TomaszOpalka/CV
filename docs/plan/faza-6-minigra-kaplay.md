@@ -24,20 +24,19 @@ npm install kaplay
 - Estetyka spójna ze stroną: skala szarości, kwadraty i cyfry z silnika z faz 2 i 3.
 - Sterowanie klawiaturą **i dotykiem**. Pauza po utracie fokusu karty.
 - Zero wpływu na wydajność reszty strony: kursor i canvasy strony są wyłączone, gdy gra działa.
-- Ewentualne wyniki zapisujemy w tej samej warstwie API i magazynie (funkcja Netlify `/api/scores`), więc koszt nadal = domena.
+- Bez bazy i API: ewentualny najlepszy wynik zapamiętujemy tylko lokalnie (`localStorage`), więc koszt nadal = domena. Globalna tabela wyników wymagałaby bazy, z której zrezygnowaliśmy (10.10.2026).
 
 ## Pomysły do wyboru przy planowaniu
 
 1. **Pixel Breaker:** arkanoid, w którym cegłami są kwadraty z pola pikseli. Wybuch to „power-up”.
 2. **ASCII Runner:** endless runner z awatarem z cyfr (portret z fazy 2 w małej skali).
-3. **Rozbrój bombę:** szybka gra zręcznościowa nawiązująca do „wybuchu”. Wynik zapisujemy obok wybuchów.
+3. **Rozbrój bombę:** szybka gra zręcznościowa nawiązująca do „wybuchu”. Najlepszy wynik zapamiętujemy lokalnie.
 
 ## Lista do zaplanowania (po fazie 5)
 
 - [ ] Wybór koncepcji i zasad gry
 - [ ] Sterowanie: desktop i telefon
 - [ ] Grafiki pikselowe (darmowe narzędzia: Piskel, LibreSprite)
-- [ ] Punktacja, ewentualna tabela wyników i podstawowa ochrona przed oszustwami
-- [ ] Endpoint API i model danych wyników
+- [ ] Punktacja i lokalny najlepszy wynik (bez globalnej tabeli, bo nie ma bazy)
 - [ ] Dostępność: możliwość pominięcia, opis zasad
 - [ ] Kryteria ukończenia i szacunek czasu

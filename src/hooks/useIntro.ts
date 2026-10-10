@@ -61,6 +61,12 @@ export function useIntro({
 
     const root = rootRef.current;
     root?.setAttribute('data-armed', '');
+    // The intro always starts at the top. Without this, a reload restores the old scroll position and the
+    // lock below would freeze the page scrolled down: the intro then ends with a black band at the bottom.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+    // The page below the hero must not scroll while the intro plays (see base/_root.scss).
+    document.documentElement.setAttribute('data-intro-lock', '');
 
     let cancelled = false;
     let controller: IntroController | null = null;
@@ -106,8 +112,14 @@ export function useIntro({
       controller?.destroy();
       controllerRef.current = null;
       root?.removeAttribute('data-armed');
+      document.documentElement.removeAttribute('data-intro-lock');
     };
   }, [rootRef, canvasRef, frameRef, counterRef, imageSrc, focalY]);
+
+  // The intro is over (finished, skipped, timed out or reduced motion): scrolling is allowed again.
+  useEffect(() => {
+    if (state === 'done') document.documentElement.removeAttribute('data-intro-lock');
+  }, [state]);
 
   // After the intro, free the canvas backing store (up to ~30 MB on a large high-DPI screen).
   useEffect(() => {

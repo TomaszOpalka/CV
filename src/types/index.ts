@@ -4,8 +4,6 @@ export interface NavItem {
   id: string;
   label: string;
   href: string;
-  /** Emoji shown by the custom cursor while this section is active. */
-  emoji: string;
 }
 
 export interface PortraitConfig {
@@ -24,4 +22,71 @@ export interface Profile {
   /** Short "about me" paragraphs shown next to the portrait. */
   about: string[];
   portrait: PortraitConfig;
+}
+
+/** One block of the home page, in order of appearance (also drives the header). */
+export interface ExternalLink {
+  label: string;
+  url: string;
+}
+
+/** One project inside a job, with what was done and the technologies used. */
+export interface ProjectItem {
+  id: string;
+  name: string;
+  summary: string;
+  achievements: string[];
+  tech: string[];
+  links?: ExternalLink[];
+}
+
+export interface ExperienceItem {
+  id: string;
+  company: string;
+  role: string;
+  /** Human readable period, e.g. "2025 - 2026". */
+  period?: string;
+  summary: string;
+  projects: ProjectItem[];
+}
+
+export interface SkillItem {
+  id: string;
+  name: string;
+  /** Where it was used, when the CV says so (company or project). */
+  usedAt?: string;
+}
+
+export interface SkillGroup {
+  id: string;
+  title: string;
+  items: SkillItem[];
+}
+
+export interface EducationItem {
+  id: string;
+  school: string;
+  degree: string;
+  period: string;
+  note?: string;
+}
+
+export interface CertificateItem {
+  id: string;
+  name: string;
+  issuer: string;
+  year: string;
+}
+
+export interface LanguageItem {
+  id: string;
+  name: string;
+  level: string;
+}
+
+export interface PortfolioLink {
+  id: string;
+  name: string;
+  url: string;
+  description: string;
 }
