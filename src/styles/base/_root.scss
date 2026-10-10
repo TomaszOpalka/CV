@@ -25,3 +25,9 @@ html[data-scroll-stopped] {
 html {
   scroll-padding-top: 4rem;
 }
+
+// The custom cursor replaces the system one only while it is running.
+html[data-cursor-ready],
+html[data-cursor-ready] * {
+  cursor: none !important;
+}

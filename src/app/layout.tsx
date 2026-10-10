@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
+import { Cursor } from '@/components/layout/Cursor';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { SectionTracker } from '@/components/layout/SectionTracker';
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <Footer />
         <SmoothScroll />
         <SectionTracker />
+        <Cursor />
       </body>
     </html>
   );
