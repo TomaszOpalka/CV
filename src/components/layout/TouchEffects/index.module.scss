@@ -21,10 +21,12 @@
 
 .pop {
   position: absolute;
-  top: rem(88);
+
+  // Just below the 64 px header, so the bar never covers it.
+  top: rem(76);
   left: 50%;
-  font-size: rem(44);
-  line-height: 1;
+  width: rem(78);
+  height: rem(90);
   opacity: 0;
   transform: translateX(-50%);
 

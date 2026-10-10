@@ -58,3 +58,19 @@ test('a reload starts the intro at the top, not at the restored scroll position'
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await context.close();
 });
+
+test('headings decode from digits as they scroll in and keep the real text for assistive technology', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ reducedMotion: 'no-preference' });
+  const page = await context.newPage();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
+  await page.locator('#stack').scrollIntoViewIfNeeded();
+
+  const visible = page.locator('#stack-title [aria-hidden="true"]');
+  await expect(visible).toHaveText('Stack', { timeout: 5_000 });
+  // The accessibility tree always has the real text, never the digits.
+  await expect(page.getByRole('heading', { level: 2, name: 'Stack' })).toBeVisible();
+  await context.close();
+});

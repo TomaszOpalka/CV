@@ -1,3 +1,4 @@
+import { Scramble } from '@/components/ui/Scramble';
 import { Section } from '@/components/layout/Section';
 import { education } from '@/content/education';
 
@@ -10,7 +11,9 @@ export function Education() {
         {education.map((item) => (
           <li key={item.id} className={styles.item} data-reveal>
             <p className={styles.period}>{item.period}</p>
-            <h3 className={styles.school}>{item.school}</h3>
+            <h3 className={styles.school}>
+              <Scramble text={item.school} />
+            </h3>
             <p>{item.degree}</p>
             {item.note && <p className={styles.note}>{item.note}</p>}
           </li>

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { sectionById } from '@/content/sections';
+import { Scramble } from '@/components/ui/Scramble';
 
 import styles from './index.module.scss';
 
@@ -17,21 +17,19 @@ interface SectionProps {
   children: ReactNode;
 }
 
-/** Shared frame of the home page sections: id, cursor emoji, heading and spacing. */
+/** Shared frame of the home page sections: id, heading and spacing. */
 export function Section({ id, index, title, className, bleed = false, children }: SectionProps) {
-  const { emoji } = sectionById(id);
   return (
     <section
       id={id}
       className={`${styles.section} ${bleed ? styles.isBleed : ''} ${className ?? ''}`.trim()}
       data-section
-      data-emoji={emoji}
       aria-labelledby={`${id}-title`}
     >
       <header className={styles.header} data-reveal>
         <p className={styles.index}>{index}</p>
         <h2 id={`${id}-title`} className={styles.title}>
-          {title}
+          <Scramble text={title} />
         </h2>
       </header>
       {children}

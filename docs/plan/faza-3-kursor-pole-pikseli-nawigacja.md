@@ -162,6 +162,9 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
 - **Kursor** jest z cyfr: pełnoekranowy, przezroczysty canvas z „kometą” z siatki ciepła, która stygnie i znika w pół sekundy. W spoczynku i nad linkami/kartami
   zamienia się w dużą ikonę z cyfr (siatka 13×9, jasny obrys i przygaszone wypełnienie, żeby treść pod spodem była czytelna) z etykietą.
   Nad polem pikseli komety nie ma (pole samo się rozgrzewa), jest mały krzyżyk z cyfr. Emoji zostały już tylko w efektach dotyku.
+- **Dotyk:** przy wejściu w nową sekcję na górze (pod nagłówkiem) pojawia się na 0,9 s ta sama ikona z cyfr co przy kursorze (zamiast emoji).
+- **Napisy dekodują się z cyfr** przy pierwszym wejściu w ekran (nagłówki sekcji i kart, nawigacja, „Hire me”), a potem rzadko (co kilka sekund,
+  jeden napis naraz, 0,17 s) jedna litera zamienia się w cyfrę, nigdy obok drugiej cyfry. Kopia dla czytników ekranu zawsze ma prawdziwy tekst.
 - **Przycisk „Hire me”** w nagłówku (schodkowe rogi), prowadzi do sekcji Contact.
 - **Intro zawsze startuje od góry** (`scrollRestoration = 'manual'`): bez tego przeładowanie przywracało pozycję scrolla, blokada scrolla zamrażała stronę
   przesuniętą w dół i na dole intro pojawiał się czarny pas. Lenis i GSAP ładują się dopiero po intro.

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 
+import { Scramble } from '@/components/ui/Scramble';
 import { SECTIONS } from '@/content/sections';
 import { profile } from '@/content/profile';
 import { iconForSection } from '@/engine/cursor/pixelIcons';
@@ -74,7 +75,7 @@ export function Header() {
       inert={!visible}
     >
       <a className={styles.brand} href="#about" onClick={(event) => go(event, 'about')}>
-        {profile.name}
+        <Scramble text={profile.name} />
       </a>
 
       <nav id="site-nav" className={styles.nav} aria-label="Main">
@@ -90,7 +91,7 @@ export function Header() {
                 onClick={(event) => go(event, id)}
               >
                 <span className={styles.number}>{String(index + 1).padStart(2, '0')}</span>
-                {label}
+                <Scramble text={label} delay={index * 70} />
               </a>
             </li>
           ))}
@@ -104,7 +105,7 @@ export function Header() {
         data-cursor-label="Say hi!"
         onClick={(event) => go(event, 'contact')}
       >
-        Hire me
+        <Scramble text="Hire me" delay={500} />
       </a>
 
       <button

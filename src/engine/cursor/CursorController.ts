@@ -5,6 +5,7 @@ import { FIRE, WHITE } from '../glyph/palette';
 import { CELL_ASPECT } from '../glyph/portrait';
 import { HEAT_RAMP } from '../pixels/heatPalette';
 import { resolveCursorTarget, sameTarget, type CursorTarget } from '../ui/cursorTarget';
+import { drawIconDigits, FLICKER_MS } from './drawIcon';
 import { HeatBrush } from './HeatBrush';
 import { ICONS, type PixelIcon } from './pixelIcons';
 
@@ -17,10 +18,6 @@ const FOLLOW_RATE = 34;
 /** After this long without moving the cursor turns into its icon. */
 const REST_MS = 280;
 const MOVING_PX_PER_SECOND = 30;
-const FLICKER_MS = 110;
-/** A dark veil under every lit cell of an icon (heavier under the outline), so it reads over text. */
-const VEIL_OUTLINE = 'rgb(11 11 11 / 80%)';
-const VEIL_FILL = 'rgb(11 11 11 / 55%)';
 const LABEL_FONT = '600 11px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 
 /** Offsets (in cells) of the small plus-shaped cluster used over the pixel field, where the field is the comet. */
@@ -244,54 +241,20 @@ export class CursorController {
     });
   }
 
-  /** An icon made of digits: a dark veil under the bright outline, then flickering digits. */
+  /** An icon made of digits, centred on the pointer and snapped to the digit grid. */
   private drawIcon(icon: PixelIcon): void {
     const atlas = this.atlas;
     if (!atlas) return;
-    const ctx = this.ctx;
-    const { rows, palette } = icon;
-    const cols = rows[0]!.length;
-    const left = Math.round((this.hx - (cols * CELL_W) / 2) / CELL_W) * CELL_W;
+    const { rows } = icon;
+    const left = Math.round((this.hx - (rows[0]!.length * CELL_W) / 2) / CELL_W) * CELL_W;
     const top = Math.round((this.hy - (rows.length * CELL_H) / 2) / CELL_H) * CELL_H;
-    const scale = this.dpr;
-    const tick = Math.floor(performance.now() / FLICKER_MS);
-
-    for (let r = 0; r < rows.length; r++) {
-      const row = rows[r]!;
-      for (let c = 0; c < cols; c++) {
-        const mark = row[c];
-        if (mark === '.') continue;
-        ctx.fillStyle = mark === '#' ? VEIL_OUTLINE : VEIL_FILL;
-        ctx.fillRect(
-          (left + c * CELL_W) * scale,
-          (top + r * CELL_H) * scale,
-          CELL_W * scale,
-          CELL_H * scale,
-        );
-      }
-    }
-    for (let r = 0; r < rows.length; r++) {
-      const row = rows[r]!;
-      for (let c = 0; c < cols; c++) {
-        const mark = row[c];
-        if (mark === '.') continue;
-        const glyph = (r * 7 + c * 13 + tick * (1 + ((r + c) % 3))) % 10;
-        const outline = mark === '#';
-        const flicker = (tick + r + c) % 2;
-        let tone: number;
-        if (this.pressed) tone = outline ? 7 : 4;
-        else tone = outline ? 6 + flicker : 1 + flicker;
-        drawGlyph(
-          ctx,
-          atlas,
-          glyph,
-          palette,
-          tone,
-          (left + c * CELL_W) * scale,
-          (top + r * CELL_H) * scale,
-        );
-      }
-    }
+    drawIconDigits(this.ctx, atlas, icon, left, top, {
+      cellW: CELL_W,
+      cellH: CELL_H,
+      scale: this.dpr,
+      tick: Math.floor(performance.now() / FLICKER_MS),
+      pressed: this.pressed,
+    });
   }
 
   private drawLabel(): void {

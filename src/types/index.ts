@@ -4,8 +4,6 @@ export interface NavItem {
   id: string;
   label: string;
   href: string;
-  /** Emoji shown by the custom cursor while this section is active. */
-  emoji: string;
 }
 
 export interface PortraitConfig {
@@ -26,7 +24,7 @@ export interface Profile {
   portrait: PortraitConfig;
 }
 
-/** One block of the home page, in order of appearance (also drives the header and the cursor emoji). */
+/** One block of the home page, in order of appearance (also drives the header). */
 export interface ExperienceItem {
   id: string;
   company: string;

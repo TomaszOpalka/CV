@@ -1,3 +1,4 @@
+import { Scramble } from '@/components/ui/Scramble';
 import { Section } from '@/components/layout/Section';
 import { skillGroups } from '@/content/skills';
 
@@ -10,7 +11,7 @@ export function Stack() {
         {skillGroups.map((group) => (
           <section key={group.id} aria-labelledby={`stack-${group.id}`} data-reveal>
             <h3 id={`stack-${group.id}`} className={styles.groupTitle}>
-              {group.title}
+              <Scramble text={group.title} />
             </h3>
             <ul className={styles.tiles}>
               {group.items.map((item) => (

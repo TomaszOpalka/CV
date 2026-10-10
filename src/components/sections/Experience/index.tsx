@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 
+import { Scramble } from '@/components/ui/Scramble';
 import { Section } from '@/components/layout/Section';
 import { experience } from '@/content/experience';
 
@@ -19,7 +20,9 @@ export function Experience() {
             data-cursor-label="Details"
           >
             <p className={styles.period}>{item.period}</p>
-            <h3 className={styles.company}>{item.company}</h3>
+            <h3 className={styles.company}>
+              <Scramble text={item.company} />
+            </h3>
             <p className={styles.role}>{item.role}</p>
             <p className={styles.summary}>{item.summary}</p>
             <ul className={styles.achievements}>

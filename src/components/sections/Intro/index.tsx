@@ -50,7 +50,6 @@ export function Intro() {
       className={styles.root}
       data-state={state}
       data-section
-      data-emoji="👋"
       aria-labelledby="hero-title"
     >
       {playing && (
