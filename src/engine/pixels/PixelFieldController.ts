@@ -1,10 +1,11 @@
 import { ticker } from '../core/Ticker';
-import { PointerTracker } from '../core/PointerTracker';
-import { PixelField } from './PixelField';
+import { HEAT_COLORS } from './heatPalette';
+import { CHARGE_SECONDS, PixelField, type HeatInput } from './PixelField';
 
-const TONES = 7;
-const MAX_PIXELS = 7000;
+const MAX_PIXELS = 16000;
 const MAX_SHAKE_PX = 10;
+/** Colour of cold cells: the faint grid you see before anything heats up. */
+const COLD_COLOR = '#151515';
 
 export interface PixelFieldControllerOptions {
   canvas: HTMLCanvasElement;
@@ -15,28 +16,29 @@ export interface PixelFieldControllerOptions {
 }
 
 function cellSizeFor(width: number): number {
-  return width < 600 ? 12 : 16;
+  return width < 600 ? 10 : 12;
 }
 
 /**
- * Drives a PixelField on a 2D canvas: sizing (DPR, ResizeObserver), pointer, one shared ticker
+ * Drives a PixelField on a 2D canvas that spans the full width of the page: sizing (DPR, ResizeObserver),
+ * pointer (hover heats, holding makes the heat grow and finally explodes the field), one shared ticker
  * subscription that runs only while the canvas is on screen and the tab is visible, batched drawing
- * (one path and one fill per brightness level), shake and vibration on the explosion.
+ * (one path and one fill per colour), shake and vibration on the explosion.
  */
 export class PixelFieldController {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly options: PixelFieldControllerOptions;
-  private readonly pointer: PointerTracker;
   private readonly resizeObserver: ResizeObserver;
   private readonly visibilityObserver: IntersectionObserver;
+  private readonly input: HeatInput = { x: -9999, y: -9999, active: false, hold: 0 };
   private field: PixelField | null = null;
   private width = 0;
   private height = 0;
   private unsubscribe: (() => void) | null = null;
   private onScreen = false;
+  private holding = false;
   private clearedNotified = false;
-  private readonly fills: string[] = [];
 
   constructor(options: PixelFieldControllerOptions) {
     this.options = options;
@@ -44,15 +46,6 @@ export class PixelFieldController {
     const ctx = this.canvas.getContext('2d');
     if (!ctx) throw new Error('2D canvas is not available');
     this.ctx = ctx;
-    for (let t = 0; t < TONES; t++) {
-      const v = Math.round(40 + (215 * t) / (TONES - 1));
-      this.fills.push(`rgb(${v} ${v} ${v})`);
-    }
-    this.pointer = new PointerTracker(this.canvas, {
-      mouseRadius: 120,
-      touchRadius: 90,
-      onPress: (x, y) => this.explode(x, y),
-    });
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.visibilityObserver = new IntersectionObserver((entries) => {
       this.onScreen = entries.some((entry) => entry.isIntersecting);
@@ -62,17 +55,23 @@ export class PixelFieldController {
 
   init(): void {
     this.resize();
-    this.pointer.attach();
-    this.resizeObserver.observe(this.canvas);
-    this.visibilityObserver.observe(this.canvas);
+    const el = this.canvas;
+    el.addEventListener('pointermove', this.onMove, { passive: true });
+    el.addEventListener('pointerdown', this.onDown, { passive: true });
+    el.addEventListener('pointerup', this.onUp, { passive: true });
+    el.addEventListener('pointercancel', this.onUp, { passive: true });
+    el.addEventListener('pointerleave', this.onLeave, { passive: true });
+    this.resizeObserver.observe(el);
+    this.visibilityObserver.observe(el);
     document.addEventListener('visibilitychange', this.syncLoop);
   }
 
-  /** Start the explosion at a point (CSS px inside the canvas); `undefined` means the centre. */
+  /** Start the explosion at a point (CSS px inside the canvas); no arguments means the centre. */
   explode(x?: number, y?: number): void {
     const field = this.field;
     if (!field || field.phase !== 'idle') return;
     field.explode(x ?? this.width / 2, y ?? this.height / 2);
+    this.holding = false;
     if (typeof navigator.vibrate === 'function') navigator.vibrate(40);
     this.options.onExplode();
     this.syncLoop();
@@ -82,6 +81,7 @@ export class PixelFieldController {
   reset(): void {
     if (!this.field) return;
     this.field.reset();
+    this.input.hold = 0;
     this.clearedNotified = false;
     this.applyShake(0);
     this.syncLoop();
@@ -90,12 +90,45 @@ export class PixelFieldController {
   destroy(): void {
     this.unsubscribe?.();
     this.unsubscribe = null;
-    this.pointer.detach();
+    const el = this.canvas;
+    el.removeEventListener('pointermove', this.onMove);
+    el.removeEventListener('pointerdown', this.onDown);
+    el.removeEventListener('pointerup', this.onUp);
+    el.removeEventListener('pointercancel', this.onUp);
+    el.removeEventListener('pointerleave', this.onLeave);
     this.resizeObserver.disconnect();
     this.visibilityObserver.disconnect();
     document.removeEventListener('visibilitychange', this.syncLoop);
     this.applyShake(0);
   }
+
+  private locate(event: PointerEvent): void {
+    const rect = this.canvas.getBoundingClientRect();
+    this.input.x = event.clientX - rect.left;
+    this.input.y = event.clientY - rect.top;
+  }
+
+  private readonly onMove = (event: PointerEvent): void => {
+    this.locate(event);
+    this.input.active = event.pointerType === 'mouse' || this.holding;
+  };
+
+  private readonly onDown = (event: PointerEvent): void => {
+    if (!event.isPrimary || event.button !== 0) return;
+    this.locate(event);
+    this.holding = true;
+    this.input.active = true;
+  };
+
+  private readonly onUp = (): void => {
+    this.holding = false;
+    if (this.input.hold < 0.05) this.input.active = false;
+  };
+
+  private readonly onLeave = (): void => {
+    this.holding = false;
+    this.input.active = false;
+  };
 
   private readonly syncLoop = (): void => {
     const shouldRun =
@@ -124,9 +157,8 @@ export class PixelFieldController {
 
     let cell = cellSizeFor(width);
     while ((width / cell) * (height / cell) > MAX_PIXELS) cell += 2;
-    const previous = this.field;
     // A resize in the middle of an explosion keeps what is flying; an idle field is rebuilt to the new size.
-    if (previous && previous.phase !== 'idle') return;
+    if (this.field && this.field.phase !== 'idle') return;
     this.field = new PixelField(Math.ceil(width / cell), Math.ceil(height / cell), cell);
     this.syncLoop();
   }
@@ -134,7 +166,16 @@ export class PixelFieldController {
   private frame(dt: number): void {
     const field = this.field;
     if (!field) return;
-    field.step(Math.min(dt, 0.05), this.pointer.state);
+    const step = Math.min(dt, 0.05);
+
+    // Holding charges the field; letting go drains the charge quickly so the spot shrinks smoothly.
+    const input = this.input;
+    input.hold = this.holding ? input.hold + step : Math.max(0, input.hold - step * 2.5);
+    if (this.holding && field.phase === 'idle' && input.hold >= CHARGE_SECONDS) {
+      this.explode(input.x, input.y);
+    }
+
+    field.step(step, input);
     this.draw(field);
     this.applyShake(field.shake());
     if (field.phase === 'cleared' && !this.clearedNotified) {
@@ -158,21 +199,31 @@ export class PixelFieldController {
   private draw(field: PixelField): void {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.width, this.height);
-    const size = field.cell - 2;
+    const size = field.cell - 1;
     const half = size / 2;
-    const top = TONES - 1;
+    const idle = field.phase === 'idle';
 
-    for (let t = 0; t < TONES; t++) {
+    // Cold cells first: the faint grid that is there before anything heats up.
+    if (idle) {
+      ctx.beginPath();
+      for (let i = 0; i < field.count; i++) {
+        if (field.bucket[i] !== -1) continue;
+        ctx.rect(field.homeX[i]! - half, field.homeY[i]! - half, size, size);
+      }
+      ctx.fillStyle = COLD_COLOR;
+      ctx.fill();
+    }
+
+    for (let colour = 0; colour < HEAT_COLORS.length; colour++) {
       ctx.beginPath();
       let any = false;
       for (let i = 0; i < field.count; i++) {
-        if (field.attached[i] === 0 && field.life[i]! <= 0) continue;
-        if (Math.min(top, Math.round(field.level[i]! * top)) !== t) continue;
+        if (field.bucket[i] !== colour) continue;
         ctx.rect(field.x[i]! - half, field.y[i]! - half, size, size);
         any = true;
       }
       if (!any) continue;
-      ctx.fillStyle = this.fills[t]!;
+      ctx.fillStyle = HEAT_COLORS[colour]!;
       ctx.fill();
     }
   }

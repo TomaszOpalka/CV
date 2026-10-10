@@ -10,6 +10,22 @@
   }
 }
 
+.isBleed {
+  padding-inline: 0;
+
+  @include mq(md) {
+    padding-inline: 0;
+  }
+
+  .header {
+    padding-inline: $space-6;
+
+    @include mq(md) {
+      padding-inline: $space-12;
+    }
+  }
+}
+
 .header {
   display: flex;
   align-items: baseline;

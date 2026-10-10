@@ -2,17 +2,12 @@
 
 .root {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   z-index: $z-cursor;
   display: none;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity $duration-fast;
-
-  &[data-visible='true'] {
-    opacity: 1;
-  }
 
   @media (hover: hover) and (pointer: fine) {
     display: block;
@@ -20,77 +15,5 @@
 
   @include reduced-motion {
     display: none;
-  }
-}
-
-.body {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-
-  // The pointer tip sits at the emoji's centre.
-  transform: translate(-50%, -50%) scale(1);
-  transition: transform $duration-base $ease-out;
-
-  .root[data-kind='link'] & {
-    transform: translate(-50%, -50%) scale(1.6);
-  }
-
-  .root[data-kind='text'] & {
-    transform: translate(-50%, -50%) scale(0.7);
-  }
-
-  .root[data-pressed='true'] & {
-    transform: translate(-50%, -50%) scale(0.85);
-  }
-}
-
-.emoji {
-  display: block;
-  font-size: rem(26);
-  line-height: 1;
-  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 60%));
-
-  &.isSwapping {
-    animation: swap 360ms $ease-out;
-  }
-}
-
-.label {
-  max-width: 0;
-  overflow: hidden;
-  padding: $space-1 0;
-  background: var(--gray-0);
-  border-radius: 999px;
-  color: var(--gray-1000);
-  font-family: var(--font-mono);
-  font-size: rem(12);
-  white-space: nowrap;
-  opacity: 0;
-  transition:
-    max-width $duration-base $ease-out,
-    padding $duration-base $ease-out,
-    opacity $duration-fast;
-
-  .root[data-labelled='true'] & {
-    max-width: rem(180);
-    padding: $space-1 $space-3;
-    opacity: 1;
-  }
-}
-
-@keyframes swap {
-  0% {
-    transform: scale(0.2) rotate(-40deg);
-    opacity: 0;
-  }
-
-  60% {
-    transform: scale(1.25) rotate(8deg);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scale(1) rotate(0);
   }
 }

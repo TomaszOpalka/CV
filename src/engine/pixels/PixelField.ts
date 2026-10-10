@@ -1,25 +1,38 @@
 import { dragFactor, falloff } from '../glyph/forces';
-import type { PointerState } from '../glyph/GlyphField';
+import { heatBucket } from './heatPalette';
 import { Shockwave } from './Shockwave';
 
 export type PixelPhase = 'idle' | 'exploding' | 'cleared';
 
-const SETTLE_RATE = 8;
-const WAVE_SPEED = 1.8;
-const WAVE_LENGTH = 0.32;
-const SHOCK_SPEED = 1400;
-const KICK_MIN = 280;
+/** What the field needs to know about the pointer each frame. */
+export interface HeatInput {
+  x: number;
+  y: number;
+  /** Mouse inside the field, or a finger / button down. */
+  active: boolean;
+  /** Seconds the pointer has been held down (eased back to 0 after release by the caller). */
+  hold: number;
+}
+
+/** Holding for this long fills the field with heat and sets off the explosion. */
+export const CHARGE_SECONDS = 1.8;
+
+const HOVER_RADIUS = 70;
+const MAX_RADIUS_FACTOR = 0.55; // of the field's diagonal
+const COOL_PER_SECOND = 0.7;
+const SHOCK_SPEED = 1500;
+const KICK_MIN = 260;
 const KICK_RANGE = 520;
 const GRAVITY = 900;
 const DEBRIS_DRAG = 1.1;
-const LIFE_DECAY = 0.75;
-const FLICKER_PER_SECOND = 0.35;
+const LIFE_DECAY = 0.8;
 
 /**
- * Structure-of-arrays field of square pixels (one per grid cell). Idle: a slow wave, random flicker
- * and a glow around the pointer. `explode` sends a shockwave from a point; every pixel the front
- * reaches is thrown out as debris, falls and fades, until the field is `cleared`.
- * No DOM access and no per-frame allocation. Units: CSS px and seconds; positions are pixel centres.
+ * Structure-of-arrays field of square pixels (one per grid cell) that heats up around the pointer:
+ * hovering lights a small spot, holding makes it grow, and the heat then cools off cell by cell with ragged
+ * edges. `explode` sends a shockwave from a point; every pixel the front reaches is thrown out as debris that
+ * cools while it falls, until the field is `cleared`. No DOM access and no per-frame allocation.
+ * Units: CSS px and seconds; positions are pixel centres.
  */
 export class PixelField {
   readonly cols: number;
@@ -33,12 +46,16 @@ export class PixelField {
   readonly vy: Float32Array;
   readonly homeX: Float32Array;
   readonly homeY: Float32Array;
-  /** Brightness 0..1 (already includes life while flying). */
-  readonly level: Float32Array;
-  readonly base: Float32Array;
+  readonly heat: Float32Array;
+  /** Fixed per-cell offset that makes the edges of the heat ragged. */
+  readonly noise: Float32Array;
   /** 1 while attached to the grid, 0 once thrown. */
   readonly attached: Uint8Array;
   readonly life: Float32Array;
+  /** Colour index to draw (-1: cold). Updated by `step`. */
+  readonly bucket: Int8Array;
+  /** Colour index a cell had when it was thrown. */
+  private readonly thrownColor: Int8Array;
 
   phase: PixelPhase = 'idle';
   /** Seconds since the explosion started (0 while idle). */
@@ -46,8 +63,6 @@ export class PixelField {
 
   private readonly rng: () => number;
   private readonly diagonal: number;
-  private clock = 0;
-  private flickerCarry = 0;
   private shock: Shockwave | null = null;
   private flying = 0;
 
@@ -66,14 +81,16 @@ export class PixelField {
     this.vy = new Float32Array(n);
     this.homeX = new Float32Array(n);
     this.homeY = new Float32Array(n);
-    this.level = new Float32Array(n);
-    this.base = new Float32Array(n);
+    this.heat = new Float32Array(n);
+    this.noise = new Float32Array(n);
     this.attached = new Uint8Array(n);
     this.life = new Float32Array(n);
+    this.bucket = new Int8Array(n);
+    this.thrownColor = new Int8Array(n);
     this.reset();
   }
 
-  /** Put every pixel back on its cell and start over. */
+  /** Put every pixel back on its cell, cold, and start over. */
   reset(): void {
     for (let row = 0; row < this.rows; row++) {
       for (let col = 0; col < this.cols; col++) {
@@ -82,10 +99,11 @@ export class PixelField {
         this.homeY[i] = this.y[i] = (row + 0.5) * this.cell;
         this.vx[i] = 0;
         this.vy[i] = 0;
-        this.base[i] = 0.1 + this.rng() * 0.14;
-        this.level[i] = this.base[i]!;
+        this.heat[i] = 0;
+        this.noise[i] = (this.rng() - 0.5) * 0.3;
         this.attached[i] = 1;
         this.life[i] = 1;
+        this.bucket[i] = -1;
       }
     }
     this.phase = 'idle';
@@ -94,9 +112,13 @@ export class PixelField {
     this.flying = 0;
   }
 
-  step(dt: number, pointer: PointerState): void {
-    this.clock += dt;
-    if (this.phase === 'idle') this.stepIdle(dt, pointer);
+  /** 0..1: how far the current hold has charged the field. */
+  static charge(hold: number): number {
+    return Math.min(1, Math.max(0, hold / CHARGE_SECONDS));
+  }
+
+  step(dt: number, input: HeatInput): void {
+    if (this.phase === 'idle') this.stepIdle(dt, input);
     else if (this.phase === 'exploding') this.stepExploding(dt);
   }
 
@@ -115,36 +137,32 @@ export class PixelField {
     return t > 0.7 ? 0 : (1 - t / 0.7) ** 2;
   }
 
-  private stepIdle(dt: number, pointer: PointerState): void {
-    const settle = Math.min(1, SETTLE_RATE * dt);
-    const radius = pointer.radius * 1.4;
-    const active = pointer.active;
-    const phase = this.clock * WAVE_SPEED;
+  private stepIdle(dt: number, input: HeatInput): void {
+    const charge = PixelField.charge(input.hold);
+    const eased = charge * charge * (3 - 2 * charge);
+    const radius = HOVER_RADIUS + (this.diagonal * MAX_RADIUS_FACTOR - HOVER_RADIUS) * eased;
+    const strength = 0.62 + 0.55 * eased;
+    const cool = COOL_PER_SECOND * dt;
+    const active = input.active;
 
     for (let i = 0; i < this.count; i++) {
-      const col = i % this.cols;
-      const row = (i - col) / this.cols;
-      const wave = Math.max(0, Math.sin((col + row) * WAVE_LENGTH - phase)) ** 8 * 0.35;
-      let target = this.base[i]! + wave;
+      let level = this.heat[i]! - cool * (0.6 + (0.8 * (this.noise[i]! + 0.15)) / 0.3);
       if (active) {
-        const dx = this.homeX[i]! - pointer.x;
-        const dy = this.homeY[i]! - pointer.y;
+        const dx = this.homeX[i]! - input.x;
+        const dy = this.homeY[i]! - input.y;
         if (dx < radius && dx > -radius && dy < radius && dy > -radius) {
-          target += 0.75 * falloff(Math.sqrt(dx * dx + dy * dy), radius);
+          const d = Math.sqrt(dx * dx + dy * dy);
+          const f = falloff(d, radius);
+          if (f > 0) {
+            // A hotter core inside the spot, so it shows the whole range from blue to red.
+            const target = strength * (0.35 + 0.8 * f) * f ** 0.35;
+            if (target > level) level = target;
+          }
         }
       }
-      const current = this.level[i]!;
-      // Brightening is quick, fading is slow, so the pointer leaves a short trail.
-      this.level[i] =
-        current + (target - current) * (target > current ? Math.min(1, settle * 3) : settle * 0.5);
-    }
-
-    this.flickerCarry += this.count * FLICKER_PER_SECOND * dt;
-    const n = Math.floor(this.flickerCarry);
-    this.flickerCarry -= n;
-    for (let k = 0; k < n; k++) {
-      const i = Math.floor(this.rng() * this.count);
-      this.level[i] = Math.min(1, this.level[i]! + 0.4);
+      if (level < 0) level = 0;
+      this.heat[i] = level;
+      this.bucket[i] = level > 0 ? heatBucket(level + this.noise[i]!) : -1;
     }
   }
 
@@ -161,6 +179,8 @@ export class PixelField {
         if (!shock.passed(d)) continue;
         this.attached[i] = 0;
         this.flying++;
+        // Debris keeps the colour it had, with a minimum so even cold cells flash up when hit.
+        this.thrownColor[i] = Math.max(this.bucket[i]!, 1 + Math.floor(this.rng() * 4));
         const nx = d > 1e-3 ? dx / d : Math.cos(this.rng() * Math.PI * 2);
         const ny = d > 1e-3 ? dy / d : Math.sin(this.rng() * Math.PI * 2);
         const falloffByDistance = 1 - 0.55 * Math.min(1, d / this.diagonal);
@@ -168,14 +188,19 @@ export class PixelField {
         const side = (this.rng() - 0.5) * 0.5;
         this.vx[i] = (nx - ny * side) * speed;
         this.vy[i] = (ny + nx * side) * speed - 120 * this.rng();
-        this.level[i] = 1;
       }
       if (shock.done(this.diagonal)) this.shock = null;
     }
 
     const drag = dragFactor(DEBRIS_DRAG, dt);
     for (let i = 0; i < this.count; i++) {
-      if (this.attached[i] === 1) continue;
+      if (this.attached[i] === 1) {
+        // Cells the front has not reached yet cool down as usual.
+        const level = Math.max(0, this.heat[i]! - COOL_PER_SECOND * dt);
+        this.heat[i] = level;
+        this.bucket[i] = level > 0 ? heatBucket(level + this.noise[i]!) : -1;
+        continue;
+      }
       const life = this.life[i]!;
       if (life <= 0) continue;
       const vy = (this.vy[i]! + GRAVITY * dt) * drag;
@@ -185,8 +210,13 @@ export class PixelField {
       this.y[i] = this.y[i]! + vy * dt;
       const next = life - LIFE_DECAY * dt;
       this.life[i] = next;
-      if (next <= 0) this.flying--;
-      this.level[i] = Math.max(0, next);
+      if (next <= 0) {
+        this.flying--;
+        this.bucket[i] = -1;
+      } else {
+        // Debris cools while it flies: red -> lime -> amber -> blue -> navy -> gone.
+        this.bucket[i] = Math.min(this.thrownColor[i]!, Math.floor(next * 5));
+      }
     }
 
     if (this.shock === null && this.flying <= 0) this.phase = 'cleared';

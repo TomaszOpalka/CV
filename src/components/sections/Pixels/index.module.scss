@@ -7,20 +7,35 @@
 .lead {
   max-width: rem(1200);
   margin: 0 auto $space-6;
+  padding-inline: $space-6;
   color: var(--gray-400);
+
+  @include mq(md) {
+    padding-inline: $space-12;
+  }
 }
 
 .stage {
   position: relative;
   display: grid;
   align-items: center;
-  max-width: rem(1200);
-  min-height: rem(420);
-  margin: 0 auto;
+
+  // Edge to edge of the screen: the pixels run from the left wall to the right wall.
+  min-height: clamp(rem(380), 62svh, rem(640));
   transform: translate(var(--shake-x, 0), var(--shake-y, 0));
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: rem(1200);
+  margin: 0 auto;
+  padding-inline: $space-6;
+  pointer-events: none;
 
   @include mq(md) {
-    min-height: rem(480);
+    padding-inline: $space-12;
   }
 }
 
@@ -54,7 +69,11 @@
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .stage[data-mode='armed'] & {
+  // The cards can be clicked once revealed; until then they sit under the pixels.
+  pointer-events: auto;
+
+  .stage[data-mode='armed'] &,
+  .stage[data-mode='exploding'] & {
     opacity: 0;
   }
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 
 import { SECTIONS } from '@/content/sections';
 import { profile } from '@/content/profile';
+import { iconForSection } from '@/engine/cursor/pixelIcons';
 import { useActiveSection } from '@/hooks/useActiveSection';
 import { useIntroState } from '@/hooks/useIntroState';
 import { scrollToSection } from '@/engine/ui/scroller';
@@ -90,14 +91,14 @@ export function Header() {
 
       <nav id="site-nav" className={styles.nav} aria-label="Main">
         <ul className={styles.list}>
-          {SECTIONS.map(({ id, label, href, emoji }, index) => (
+          {SECTIONS.map(({ id, label, href }, index) => (
             <li key={id}>
               <a
                 className={styles.link}
                 href={href}
                 aria-current={active === id ? 'true' : undefined}
                 data-cursor="link"
-                data-cursor-emoji={emoji}
+                data-cursor-icon={iconForSection(id)}
                 onClick={(event) => go(event, id)}
               >
                 <span className={styles.number}>{String(index + 1).padStart(2, '0')}</span>

@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PointerState } from '../glyph/GlyphField';
-import { PixelField } from './PixelField';
+import { CHARGE_SECONDS, PixelField, type HeatInput } from './PixelField';
 import { Shockwave } from './Shockwave';
 
-const away: PointerState = { x: -9999, y: -9999, active: false, radius: 100 };
+const away: HeatInput = { x: -9999, y: -9999, active: false, hold: 0 };
 
 function seeded(): () => number {
   let s = 7;
@@ -36,26 +35,42 @@ describe('Shockwave', () => {
 });
 
 describe('PixelField', () => {
-  it('has one pixel per cell, centred in the cell', () => {
+  it('has one pixel per cell, centred in the cell, and starts cold', () => {
     const field = new PixelField(4, 3, 10, seeded());
     expect(field.count).toBe(12);
     expect(field.homeX[0]).toBe(5);
     expect(field.homeY[11]).toBe(25);
+    expect(field.bucket.every((b) => b === -1)).toBe(true);
   });
 
-  it('keeps levels within 0..1 while idle', () => {
-    const field = new PixelField(20, 10, 12, seeded());
-    for (let k = 0; k < 120; k++) field.step(1 / 60, { x: 100, y: 60, active: true, radius: 80 });
-    for (const level of field.level) {
-      expect(level).toBeGreaterThanOrEqual(0);
-      expect(level).toBeLessThanOrEqual(1);
-    }
+  it('heats the cells around the pointer and leaves far ones cold', () => {
+    const field = new PixelField(40, 10, 12, seeded());
+    for (let k = 0; k < 20; k++) field.step(1 / 60, { x: 6, y: 6, active: true, hold: 0 });
+    expect(field.bucket[0]!).toBeGreaterThanOrEqual(1);
+    expect(field.bucket[39 + 9 * 40]!).toBe(-1);
   });
 
-  it('glows near the pointer', () => {
+  it('grows the hot area while the pointer is held', () => {
+    const lit = (hold: number): number => {
+      const field = new PixelField(60, 20, 12, seeded());
+      for (let k = 0; k < 30; k++) field.step(1 / 60, { x: 360, y: 120, active: true, hold });
+      return field.bucket.filter((b) => b >= 0).length;
+    };
+    expect(lit(CHARGE_SECONDS)).toBeGreaterThan(lit(0) * 3);
+  });
+
+  it('cools down after the pointer leaves', () => {
     const field = new PixelField(20, 10, 12, seeded());
-    for (let k = 0; k < 30; k++) field.step(1 / 60, { x: 6, y: 6, active: true, radius: 80 });
-    expect(field.level[0]!).toBeGreaterThan(field.level[19 + 9 * 20]!);
+    for (let k = 0; k < 20; k++) field.step(1 / 60, { x: 100, y: 60, active: true, hold: 1 });
+    expect(field.bucket.some((b) => b >= 0)).toBe(true);
+    for (let k = 0; k < 60 * 3; k++) field.step(1 / 60, away);
+    expect(field.bucket.every((b) => b === -1)).toBe(true);
+  });
+
+  it('charges from 0 to 1 over the charge time', () => {
+    expect(PixelField.charge(0)).toBe(0);
+    expect(PixelField.charge(CHARGE_SECONDS / 2)).toBeCloseTo(0.5);
+    expect(PixelField.charge(99)).toBe(1);
   });
 
   it('explodes: throws pixels outwards, then clears completely', () => {
@@ -72,17 +87,18 @@ describe('PixelField', () => {
     expect(field.phase).toBe('cleared');
     expect(frames).toBeLessThan(60 * 6);
     expect(field.shake()).toBe(0);
+    expect(field.bucket.every((b) => b === -1)).toBe(true);
   });
 
-  it('kicks pixels away from the origin', () => {
+  it('kicks pixels away from the origin and colours the debris', () => {
     const field = new PixelField(21, 11, 10, seeded());
     field.explode(105, 55);
     for (let k = 0; k < 6; k++) field.step(1 / 60, away);
-    // The pixel at the far right has not been reached yet; one next to the origin flies away.
-    const near = 5 * 21 + 12; // two cells right of the centre
+    const near = 5 * 21 + 12;
     const centre = 5 * 21 + 10;
     expect(field.attached[centre]).toBe(0);
     expect(field.vx[near]!).toBeGreaterThan(0);
+    expect(field.bucket[near]!).toBeGreaterThanOrEqual(0);
   });
 
   it('ignores a second explosion and can be reset', () => {

@@ -152,6 +152,15 @@ przycisk „Rebuild”), efekty dotyku, pojawianie się elementów przy scrollu,
 Świadomie odłożone na fazę 4 (razem z prawdziwą treścią CV): poziomy pin sekcji Experience (przy 3 kartach placeholderów dałby tylko ryzyko
 dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart i przyciski magnetyczne. Treści w `src/content/*` to **placeholdery**.
 
+### Zmiana po przeglądzie autora (10.10.2026)
+
+- **Pole pikseli** jest teraz od ściany do ściany ekranu. Najechanie rozgrzewa kwadraty (granat, niebieski, bursztyn, limonka, czerwień),
+  przytrzymanie powiększa plamę, a pełne naładowanie (~1,8 s) uruchamia wybuch i odsłania linki. Brzegi plamy rozpadają się nierówno i stygną.
+  Silnik pozostaje Canvas 2D (ok. 8 tys. kwadratów, jedno wypełnienie na kolor). PixiJS/WebGL: do decyzji dopiero po pomiarze fps na telefonie.
+- **Kursor** jest z kwadracików: pełnoekranowy, przezroczysty canvas, mały krzyżyk-blob z falą kolorów i śladem spadających kwadracików (znika po ułamku sekundy).
+  W spoczynku i nad linkami/kartami zamienia się w ikonę pixel-art (per sekcja). Nad polem pikseli ma kolory „ciepła”, wszędzie indziej kolory intro (negatyw).
+  Emoji są już tylko w efektach dotyku.
+
 ## Kryteria ukończenia
 
 - [x] Nawigacja działa przez scroll i karty: doświadczenie, stack, uczelnia, linki do portfoliów

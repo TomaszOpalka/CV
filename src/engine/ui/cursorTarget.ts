@@ -1,13 +1,17 @@
+import type { CursorTheme } from '../cursor/cursorPalette';
+import { iconForSection, isIconName, type IconName } from '../cursor/pixelIcons';
+
 export type CursorKind = 'default' | 'link' | 'card' | 'text';
 
 export interface CursorTarget {
   kind: CursorKind;
-  emoji: string;
-  /** Short text shown next to the emoji ("Details", "since 2021"); empty for none. */
+  /** Pixel icon the cursor shows when it rests or hovers something. */
+  icon: IconName;
+  /** Colour set: `heat` over the pixel field, `negative` (the intro colours) everywhere else. */
+  theme: CursorTheme;
+  /** Short text shown next to the cursor ("Details", "since 2021"); empty for none. */
   label: string;
 }
-
-export const DEFAULT_EMOJI = '✨';
 
 const KINDS: readonly CursorKind[] = ['default', 'link', 'card', 'text'];
 const INTERACTIVE = 'a[href], button, summary, [role="button"]';
@@ -19,30 +23,33 @@ function isKind(value: string | undefined): value is CursorKind {
 
 /**
  * Decides what the custom cursor shows over `element`. Explicit `data-cursor`, `data-cursor-label` and
- * `data-cursor-emoji` attributes win (nearest ancestor first); otherwise native links, buttons and
- * form fields get a sensible kind, and the emoji falls back to the one of the section (`data-emoji`).
+ * `data-cursor-icon` attributes win (nearest ancestor first); otherwise native links, buttons and form
+ * fields get a sensible kind, the icon follows the enclosing `[data-section]`, and `data-cursor-theme="heat"`
+ * switches the colours.
  */
 export function resolveCursorTarget(element: Element | null): CursorTarget {
-  if (!element) return { kind: 'default', emoji: DEFAULT_EMOJI, label: '' };
+  if (!element) return { kind: 'default', icon: 'heart', theme: 'negative', label: '' };
 
-  const marked = element.closest<HTMLElement>('[data-cursor]');
-  const labelled = element.closest<HTMLElement>('[data-cursor-label]');
-  const emojiHost = element.closest<HTMLElement>('[data-cursor-emoji]');
-  const section = element.closest<HTMLElement>('[data-emoji]');
+  const declared = element.closest<HTMLElement>('[data-cursor]')?.dataset.cursor;
+  const iconName = element.closest<HTMLElement>('[data-cursor-icon]')?.dataset.cursorIcon;
+  const label = element.closest<HTMLElement>('[data-cursor-label]')?.dataset.cursorLabel ?? '';
+  const theme = element.closest<HTMLElement>('[data-cursor-theme]')?.dataset.cursorTheme;
+  const sectionId = element.closest<HTMLElement>('[data-section]')?.id;
 
   let kind: CursorKind = 'default';
-  const declared = marked?.dataset.cursor;
   if (isKind(declared)) kind = declared;
   else if (element.closest(TEXT_FIELD)) kind = 'text';
   else if (element.closest(INTERACTIVE)) kind = 'link';
 
-  return {
-    kind,
-    emoji: emojiHost?.dataset.cursorEmoji ?? section?.dataset.emoji ?? DEFAULT_EMOJI,
-    label: labelled?.dataset.cursorLabel ?? '',
-  };
+  let icon: IconName = isIconName(iconName) ? iconName : iconForSection(sectionId);
+  if (!isIconName(iconName)) {
+    if (kind === 'link') icon = 'arrow';
+    else if (kind === 'text') icon = 'beam';
+  }
+
+  return { kind, icon, theme: theme === 'heat' ? 'heat' : 'negative', label };
 }
 
 export function sameTarget(a: CursorTarget, b: CursorTarget): boolean {
-  return a.kind === b.kind && a.emoji === b.emoji && a.label === b.label;
+  return a.kind === b.kind && a.icon === b.icon && a.theme === b.theme && a.label === b.label;
 }

@@ -59,41 +59,43 @@ export function Pixels() {
   };
 
   return (
-    <Section id="pixels" index="02" title="Other CVs" className={styles.root}>
+    <Section id="pixels" index="02" title="Other CVs" className={styles.root} bleed>
       <p className={styles.lead}>
         {mode === 'static'
           ? 'More versions of this CV and a longer portfolio.'
-          : 'Something is hiding behind these pixels. Click to find out.'}
+          : 'Press and hold on the pixels and watch them heat up. Something is hiding behind them.'}
       </p>
 
       <div
         ref={stageRef}
         className={styles.stage}
         data-mode={mode}
-        data-cursor={mode === 'armed' ? 'card' : undefined}
-        data-cursor-label={mode === 'armed' ? 'Click!' : undefined}
+        data-cursor-theme={mode === 'armed' || mode === 'exploding' ? 'heat' : undefined}
+        data-cursor-label={mode === 'armed' ? 'Hold!' : undefined}
       >
         <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
 
-        <ul className={styles.cards} inert={hidden}>
-          {portfolioLinks.map((link) => (
-            <li key={link.id}>
-              <a
-                className={styles.card}
-                href={link.url}
-                target="_blank"
-                rel="noreferrer"
-                data-cursor="link"
-              >
-                <span className={styles.name}>{link.name}</span>
-                <span className={styles.description}>{link.description}</span>
-                <span className={styles.arrow} aria-hidden="true">
-                  ↗
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <div className={styles.content}>
+          <ul className={styles.cards} inert={hidden}>
+            {portfolioLinks.map((link) => (
+              <li key={link.id}>
+                <a
+                  className={styles.card}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor="link"
+                >
+                  <span className={styles.name}>{link.name}</span>
+                  <span className={styles.description}>{link.description}</span>
+                  <span className={styles.arrow} aria-hidden="true">
+                    ↗
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {mode === 'armed' && (
           <button

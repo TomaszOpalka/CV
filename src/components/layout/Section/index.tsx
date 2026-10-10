@@ -10,18 +10,20 @@ interface SectionProps {
   /** Position in the page, shown as "02". */
   index: string;
   title: string;
+  /** Let the content run edge to edge (the heading keeps its padding). */
+  bleed?: boolean;
   /** Extra class for the section element. */
   className?: string;
   children: ReactNode;
 }
 
 /** Shared frame of the home page sections: id, cursor emoji, heading and spacing. */
-export function Section({ id, index, title, className, children }: SectionProps) {
+export function Section({ id, index, title, className, bleed = false, children }: SectionProps) {
   const { emoji } = sectionById(id);
   return (
     <section
       id={id}
-      className={`${styles.section} ${className ?? ''}`.trim()}
+      className={`${styles.section} ${bleed ? styles.isBleed : ''} ${className ?? ''}`.trim()}
       data-section
       data-emoji={emoji}
       aria-labelledby={`${id}-title`}
