@@ -43,3 +43,18 @@ test('the page cannot scroll while the intro plays', async ({ browser }) => {
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await context.close();
 });
+
+test('a reload starts the intro at the top, not at the restored scroll position', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ reducedMotion: 'no-preference' });
+  const page = await context.newPage();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
+  await page.evaluate(() => window.scrollTo(0, 145));
+  await page.waitForTimeout(300);
+  await page.reload();
+  await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await context.close();
+});

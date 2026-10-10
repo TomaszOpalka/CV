@@ -1,14 +1,15 @@
 import { PALETTES } from '../glyph/palette';
 import { HEAT_COLORS } from '../pixels/heatPalette';
 
+/** `heat`: over the pixel field (where the field itself lights up). `negative`: the rest of the page. */
 export type CursorTheme = 'negative' | 'heat';
 
 const NEGATIVE_COLORS = PALETTES.map(([r, g, b]) => `rgb(${r} ${g} ${b})`);
 
 const THEMES: Readonly<Record<CursorTheme, readonly string[]>> = {
-  // The colours of the intro: white, green, cyan, fire. Used on the dark page.
+  // The colours of the intro (white, green, cyan, fire) for the icon on the dark page.
   negative: NEGATIVE_COLORS,
-  // The colours of the pixel field (without the near-black navy), so the cursor belongs to it there.
+  // The pixel field's colours (without the near-black navy), so the icon belongs to it there.
   heat: ['#ffffff', ...HEAT_COLORS.slice(1)],
 };
 

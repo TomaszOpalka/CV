@@ -59,6 +59,7 @@
   @include mq(md) {
     position: static;
     display: block;
+    margin-left: auto;
     background: none;
     visibility: visible;
     opacity: 1;
@@ -110,6 +111,53 @@
 
   @include mq(md) {
     display: none;
+  }
+}
+
+.hire {
+  // Stepped, pixel-style corners (4 px notches).
+  --notch: 4px;
+
+  margin-left: auto;
+  margin-right: $space-2;
+  padding: $space-2 $space-4;
+  background: var(--gray-0);
+  clip-path: polygon(
+    0 var(--notch),
+    var(--notch) var(--notch),
+    var(--notch) 0,
+    calc(100% - var(--notch)) 0,
+    calc(100% - var(--notch)) var(--notch),
+    100% var(--notch),
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    var(--notch) 100%,
+    var(--notch) calc(100% - var(--notch)),
+    0 calc(100% - var(--notch))
+  );
+  color: var(--gray-1000);
+  font-family: var(--font-mono);
+  font-size: rem(12);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background $duration-fast;
+
+  &:focus-visible {
+    background: #d9ff00;
+  }
+
+  @include hover-only {
+    &:hover {
+      background: #d9ff00;
+    }
+  }
+
+  @include mq(md) {
+    margin-left: $space-6;
+    margin-right: 0;
   }
 }
 

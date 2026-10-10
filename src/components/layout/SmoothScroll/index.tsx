@@ -2,18 +2,21 @@
 
 import { useEffect } from 'react';
 
-import { introStore } from '@/engine/intro/introStore';
+import { useIntroState } from '@/hooks/useIntroState';
 import { loadGsap } from '@/engine/ui/gsapLoader';
 import { prefersReducedMotion, registerScroller } from '@/engine/ui/scroller';
 
 /**
  * Lenis smooth scrolling driven by GSAP's ticker (one loop), kept in sync with ScrollTrigger.
- * Off for `prefers-reduced-motion`. Scrolling is held back until the intro is over.
+ * Off for `prefers-reduced-motion`. Nothing is loaded or started until the intro is over, so the intro
+ * (the heaviest animation on the page) does not compete with GSAP and Lenis for the main thread.
  * Renders nothing.
  */
 export function SmoothScroll() {
+  const ready = useIntroState() === 'done';
+
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (!ready || prefersReducedMotion()) return;
     let disposed = false;
     let cleanup: (() => void) | null = null;
 
@@ -26,13 +29,6 @@ export function SmoothScroll() {
         gsap.ticker.add(tick);
         gsap.ticker.lagSmoothing(0);
 
-        const syncWithIntro = (): void => {
-          if (introStore.get() === 'done') lenis.start();
-          else lenis.stop();
-        };
-        syncWithIntro();
-        const unsubscribeIntro = introStore.subscribe(syncWithIntro);
-
         registerScroller({
           scrollTo: (target) => lenis.scrollTo(target, { duration: 1.1 }),
           stop: () => lenis.stop(),
@@ -40,7 +36,6 @@ export function SmoothScroll() {
         });
 
         cleanup = () => {
-          unsubscribeIntro();
           unsubscribeScroll();
           registerScroller(null);
           gsap.ticker.remove(tick);
@@ -55,7 +50,7 @@ export function SmoothScroll() {
       disposed = true;
       cleanup?.();
     };
-  }, []);
+  }, [ready]);
 
   return null;
 }

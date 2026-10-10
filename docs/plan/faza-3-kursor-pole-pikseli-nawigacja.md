@@ -157,9 +157,12 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
 - **Pole pikseli** jest teraz od ściany do ściany ekranu. Najechanie rozgrzewa kwadraty (granat, niebieski, bursztyn, limonka, czerwień),
   przytrzymanie powiększa plamę, a pełne naładowanie (~1,8 s) uruchamia wybuch i odsłania linki. Brzegi plamy rozpadają się nierówno i stygną.
   Silnik pozostaje Canvas 2D (ok. 8 tys. kwadratów, jedno wypełnienie na kolor). PixiJS/WebGL: do decyzji dopiero po pomiarze fps na telefonie.
-- **Kursor** jest z kwadracików: pełnoekranowy, przezroczysty canvas, mały krzyżyk-blob z falą kolorów i śladem spadających kwadracików (znika po ułamku sekundy).
-  W spoczynku i nad linkami/kartami zamienia się w ikonę pixel-art (per sekcja). Nad polem pikseli ma kolory „ciepła”, wszędzie indziej kolory intro (negatyw).
-  Emoji są już tylko w efektach dotyku.
+- **Kursor** jest z kwadracików: pełnoekranowy, przezroczysty canvas z „kometą” z siatki ciepła (czerwony rdzeń, limonka, bursztyn, niebieski, granatowa krawędź),
+  która stygnie i znika w pół sekundy. W spoczynku i nad linkami/kartami zamienia się w ikonę pixel-art (per sekcja, z etykietą). Nad polem pikseli
+  kometa się nie rysuje (pole samo się rozgrzewa), a kursor to mały krzyżyk lub ikona. Emoji są już tylko w efektach dotyku.
+- **Przycisk „Hire me”** w nagłówku (schodkowe rogi), prowadzi do sekcji Contact.
+- **Intro zawsze startuje od góry** (`scrollRestoration = 'manual'`): bez tego przeładowanie przywracało pozycję scrolla, blokada scrolla zamrażała stronę
+  przesuniętą w dół i na dole intro pojawiał się czarny pas. Lenis i GSAP ładują się dopiero po intro.
 
 ## Kryteria ukończenia
 

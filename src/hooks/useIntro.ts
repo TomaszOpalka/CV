@@ -61,6 +61,10 @@ export function useIntro({
 
     const root = rootRef.current;
     root?.setAttribute('data-armed', '');
+    // The intro always starts at the top. Without this, a reload restores the old scroll position and the
+    // lock below would freeze the page scrolled down: the intro then ends with a black band at the bottom.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
     // The page below the hero must not scroll while the intro plays (see base/_root.scss).
     document.documentElement.setAttribute('data-intro-lock', '');
 

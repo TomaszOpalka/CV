@@ -77,18 +77,6 @@ export function Header() {
         {profile.name}
       </a>
 
-      <button
-        ref={toggleRef}
-        type="button"
-        className={styles.toggle}
-        aria-expanded={menuOpen}
-        aria-controls="site-nav"
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        <span className={styles.srOnly}>{menuOpen ? 'Close menu' : 'Open menu'}</span>
-        <span className={styles.bars} aria-hidden="true" />
-      </button>
-
       <nav id="site-nav" className={styles.nav} aria-label="Main">
         <ul className={styles.list}>
           {SECTIONS.map(({ id, label, href }, index) => (
@@ -108,6 +96,28 @@ export function Header() {
           ))}
         </ul>
       </nav>
+
+      <a
+        className={styles.hire}
+        href="#contact"
+        data-cursor="link"
+        data-cursor-label="Say hi!"
+        onClick={(event) => go(event, 'contact')}
+      >
+        Hire me
+      </a>
+
+      <button
+        ref={toggleRef}
+        type="button"
+        className={styles.toggle}
+        aria-expanded={menuOpen}
+        aria-controls="site-nav"
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <span className={styles.srOnly}>{menuOpen ? 'Close menu' : 'Open menu'}</span>
+        <span className={styles.bars} aria-hidden="true" />
+      </button>
 
       <span className={styles.progress} aria-hidden="true" />
     </header>

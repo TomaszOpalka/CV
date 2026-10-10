@@ -1,18 +1,21 @@
 import { ticker } from '../core/Ticker';
+import { HEAT_COLORS } from '../pixels/heatPalette';
 import { resolveCursorTarget, sameTarget, type CursorTarget } from '../ui/cursorTarget';
 import { waveColor, type CursorTheme } from './cursorPalette';
+import { HeatBrush } from './HeatBrush';
 import { ICONS } from './pixelIcons';
-import { PixelTrail } from './PixelTrail';
 
-/** Size of one cursor square in CSS px. */
-const CELL = 6;
+/** Size of one square of the comet in CSS px. */
+const CELL = 10;
+/** Radius of the brush (outer navy edge) in CSS px. */
+const BRUSH_RADIUS = 46;
 const ICON_CELL = 4;
-const FOLLOW_RATE = 28;
-/** Colour-wave speed: a new colour every ~30 px of travel, plus a slow drift in time. */
-const PHASE_PER_PX = 0.034;
-const PHASE_PER_SECOND = 1.4;
-/** After this long without moving the head turns into its icon. */
-const REST_MS = 320;
+const FOLLOW_RATE = 34;
+/** Colour wave of the icon: a new colour every ~40 px of travel, plus a slow drift in time. */
+const PHASE_PER_PX = 0.025;
+const PHASE_PER_SECOND = 1.2;
+/** After this long without moving the cursor turns into its icon. */
+const REST_MS = 280;
 const MOVING_PX_PER_SECOND = 30;
 const OUTLINE = '#0b0b0b';
 const OUTLINE_OFFSETS: ReadonlyArray<readonly [number, number]> = [
@@ -23,7 +26,7 @@ const OUTLINE_OFFSETS: ReadonlyArray<readonly [number, number]> = [
 ];
 const LABEL_FONT = '600 11px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 
-/** Offsets (in cells) of the small plus-shaped blob that leads the trail. */
+/** Offsets (in cells) of the small plus-shaped blob used over the pixel field, where the field is the comet. */
 const BLOB: ReadonlyArray<readonly [number, number, number]> = [
   [0, 0, 0],
   [-1, 0, 1],
@@ -33,15 +36,16 @@ const BLOB: ReadonlyArray<readonly [number, number, number]> = [
 ];
 
 /**
- * The pixel cursor: a full-screen, click-through canvas with a small blob of coloured squares that follows
- * the pointer and leaves a short, fast-fading trail of falling squares. The colours travel through a wave
- * as you move. At rest, or over links and cards, the blob turns into a pixel-art icon. One shared ticker
- * subscription; it sleeps when the pointer has left and the trail is gone.
+ * The pixel cursor: a full-screen, click-through canvas. Moving the pointer paints a comet of heat-coloured
+ * squares (red-hot core, lime, amber, blue, navy edge) that cools and vanishes within about half a second.
+ * At rest, or over links and cards, the cursor turns into a pixel-art icon. Over the pixel field only a small
+ * blob follows the pointer, because the field itself lights up there. One shared ticker subscription;
+ * it sleeps when the pointer has left and the comet is gone.
  */
 export class CursorController {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
-  private readonly trail = new PixelTrail();
+  private brush: HeatBrush | null = null;
   private unsubscribe: (() => void) | null = null;
   private width = 0;
   private height = 0;
@@ -50,8 +54,8 @@ export class CursorController {
   private py = -100;
   private hx = -100;
   private hy = -100;
-  private lastEmitX = -100;
-  private lastEmitY = -100;
+  private lastX = -100;
+  private lastY = -100;
   private inside = false;
   private pressed = false;
   private phase = 0;
@@ -60,8 +64,6 @@ export class CursorController {
   private target: CursorTarget = { kind: 'default', icon: 'heart', theme: 'negative', label: '' };
   private labelWidth = 0;
   private labelFor = '';
-  private dirty: [number, number, number, number] | null = null;
-  private bounds: [number, number, number, number] = [0, 0, 0, 0];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -99,7 +101,7 @@ export class CursorController {
     this.canvas.width = Math.round(this.width * dpr);
     this.canvas.height = Math.round(this.height * dpr);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    this.dirty = null;
+    this.brush = new HeatBrush(Math.ceil(this.width / CELL), Math.ceil(this.height / CELL), CELL);
   };
 
   private wake(): void {
@@ -113,8 +115,8 @@ export class CursorController {
     this.py = event.clientY;
     if (!this.inside) {
       this.inside = true;
-      this.hx = this.lastEmitX = this.px;
-      this.hy = this.lastEmitY = this.py;
+      this.hx = this.lastX = this.px;
+      this.hy = this.lastY = this.py;
     }
     const next = resolveCursorTarget(event.target instanceof Element ? event.target : null);
     if (!sameTarget(this.target, next)) this.target = next;
@@ -124,15 +126,8 @@ export class CursorController {
   private readonly onDown = (event: PointerEvent): void => {
     if (event.pointerType !== 'mouse') return;
     this.pressed = true;
-    // A small burst of squares around the pointer.
-    for (let i = 0; i < 10; i++) {
-      const angle = (i / 10) * Math.PI * 2;
-      this.trail.emit(
-        this.hx + Math.cos(angle) * CELL * 1.5,
-        this.hy + Math.sin(angle) * CELL * 1.5,
-        this.phase + i * 0.4,
-      );
-    }
+    // A bigger puff of heat under the pointer.
+    this.brush?.stamp(this.hx, this.hy, BRUSH_RADIUS * 1.5, 1.4);
     this.wake();
   };
 
@@ -154,9 +149,8 @@ export class CursorController {
       this.hy += (this.py - this.hy) * k;
     }
     const moved = Math.hypot(this.hx - prevX, this.hy - prevY);
-    const speed = moved / step;
 
-    if (speed > MOVING_PX_PER_SECOND) {
+    if (moved / step > MOVING_PX_PER_SECOND) {
       this.restMs = 0;
       this.phase += moved * PHASE_PER_PX + step * PHASE_PER_SECOND;
     } else {
@@ -171,123 +165,82 @@ export class CursorController {
       if (!sameTarget(this.target, next)) this.target = next;
     }
 
-    this.emitAlong();
-    const alive = this.trail.step(step);
+    const brush = this.brush;
+    const paints = this.target.theme !== 'heat';
+    if (brush && this.inside && paints && moved > 0.1) {
+      brush.stampSegment(this.lastX, this.lastY, this.hx, this.hy, BRUSH_RADIUS);
+    }
+    this.lastX = this.hx;
+    this.lastY = this.hy;
+    const lit = brush ? brush.step(step) : 0;
+
     this.draw();
 
-    if (!this.inside && alive === 0) {
-      this.clearDirty();
+    if (!this.inside && lit === 0) {
+      this.ctx.clearRect(0, 0, this.width, this.height);
       this.unsubscribe?.();
       this.unsubscribe = null;
     }
   }
 
-  /** Drop squares along the way the head travelled since the last one. */
-  private emitAlong(): void {
-    if (!this.inside) return;
-    const dx = this.hx - this.lastEmitX;
-    const dy = this.hy - this.lastEmitY;
-    const distance = Math.hypot(dx, dy);
-    if (distance < CELL) return;
-    const count = Math.min(6, Math.floor(distance / CELL));
-    for (let i = 1; i <= count; i++) {
-      const t = i / count;
-      const jitter = (Math.random() - 0.5) * CELL * 1.2;
-      this.trail.emit(
-        this.lastEmitX + dx * t + jitter,
-        this.lastEmitY + dy * t + jitter * 0.6,
-        this.phase - (1 - t) * distance * PHASE_PER_PX,
-      );
-    }
-    this.lastEmitX = this.hx;
-    this.lastEmitY = this.hy;
-  }
-
-  private clearDirty(): void {
-    const d = this.dirty;
-    if (!d) return;
-    this.ctx.clearRect(d[0], d[1], d[2] - d[0], d[3] - d[1]);
-    this.dirty = null;
-  }
-
-  private cover(x0: number, y0: number, x1: number, y1: number): void {
-    const b = this.bounds;
-    if (x0 < b[0]) b[0] = x0;
-    if (y0 < b[1]) b[1] = y0;
-    if (x1 > b[2]) b[2] = x1;
-    if (y1 > b[3]) b[3] = y1;
-  }
-
   private draw(): void {
-    this.clearDirty();
     const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.width, this.height);
+    this.drawBrush();
+    if (!this.inside) return;
+
     const theme: CursorTheme = this.target.theme;
-    this.bounds = [this.width, this.height, 0, 0];
-
-    // Trail: falling squares that shrink and cool off.
-    const trail = this.trail;
-    for (let i = 0; i < trail.capacity; i++) {
-      if (!trail.isAlive(i)) continue;
-      const t = trail.progress(i);
-      const size = Math.max(2, Math.round(CELL * (1 - 0.65 * t)));
-      const x = Math.round(trail.x[i]! / CELL) * CELL + (CELL - size) / 2;
-      const y = Math.round(trail.y[i]! / 2) * 2;
-      ctx.globalAlpha = 1 - t * t;
-      ctx.fillStyle = waveColor(theme, trail.phase[i]!);
-      ctx.fillRect(x, y, size, size);
-      this.cover(x, y, x + size, y + size);
-    }
-    ctx.globalAlpha = 1;
-
-    if (!this.inside) {
-      this.finishDirty();
-      return;
-    }
-
-    const showIcon = this.restMs > REST_MS || this.target.kind !== 'default';
-    if (showIcon && this.target.kind !== 'text') this.drawIcon(theme);
-    else if (this.target.kind === 'text') this.drawBeam(theme);
-    else this.drawBlob(theme);
+    const resting = this.restMs > REST_MS;
+    const icon = resting || this.target.kind !== 'default';
+    if (this.target.kind === 'text') this.drawBitmap(ICONS.beam, theme);
+    else if (icon) this.drawBitmap(ICONS[this.target.icon], theme);
+    else if (this.target.theme === 'heat') this.drawBlob(theme);
     if (this.target.label) this.drawLabel();
-    this.finishDirty();
   }
 
-  private finishDirty(): void {
-    const b = this.bounds;
-    if (b[2] > b[0] && b[3] > b[1]) this.dirty = [b[0] - 2, b[1] - 2, b[2] + 4, b[3] + 4];
+  /** The comet: one path and one fill per colour. */
+  private drawBrush(): void {
+    const brush = this.brush;
+    const bounds = brush?.bounds();
+    if (!brush || !bounds) return;
+    const ctx = this.ctx;
+    const size = CELL - 1;
+    for (let colour = 0; colour < HEAT_COLORS.length; colour++) {
+      ctx.beginPath();
+      let any = false;
+      for (let r = bounds.minRow; r <= bounds.maxRow; r++) {
+        for (let c = bounds.minCol; c <= bounds.maxCol; c++) {
+          if (brush.bucket(r * brush.cols + c) !== colour) continue;
+          ctx.rect(c * CELL, r * CELL, size, size);
+          any = true;
+        }
+      }
+      if (!any) continue;
+      ctx.fillStyle = HEAT_COLORS[colour]!;
+      ctx.fill();
+    }
   }
 
   private drawBlob(theme: CursorTheme): void {
     const ctx = this.ctx;
-    const size = this.pressed ? CELL - 2 : CELL + 1;
-    const cx = Math.round(this.hx / CELL) * CELL;
-    const cy = Math.round(this.hy / CELL) * CELL;
-    // A dark outline first, so the blob reads on top of bright squares as well.
+    const cell = 6;
+    const size = this.pressed ? cell - 2 : cell + 1;
+    const cx = Math.round(this.hx / cell) * cell;
+    const cy = Math.round(this.hy / cell) * cell;
+    // A dark outline first, so the blob reads on top of bright squares.
     ctx.fillStyle = OUTLINE;
     for (const [ox, oy] of BLOB) {
       ctx.fillRect(
-        cx + ox * CELL - size / 2 - 2,
-        cy + oy * CELL - size / 2 - 2,
+        cx + ox * cell - size / 2 - 2,
+        cy + oy * cell - size / 2 - 2,
         size + 4,
         size + 4,
       );
     }
     for (const [ox, oy, shift] of BLOB) {
-      const x = cx + ox * CELL - size / 2;
-      const y = cy + oy * CELL - size / 2;
       ctx.fillStyle = waveColor(theme, this.phase + shift);
-      ctx.fillRect(x, y, size, size);
-      this.cover(x - 2, y - 2, x + size + 2, y + size + 2);
+      ctx.fillRect(cx + ox * cell - size / 2, cy + oy * cell - size / 2, size, size);
     }
-  }
-
-  private drawIcon(theme: CursorTheme): void {
-    const rows = ICONS[this.target.icon];
-    this.drawBitmap(rows, theme);
-  }
-
-  private drawBeam(theme: CursorTheme): void {
-    this.drawBitmap(ICONS.beam, theme);
   }
 
   private drawBitmap(rows: readonly string[], theme: CursorTheme): void {
@@ -317,7 +270,6 @@ export class CursorController {
         ctx.fillRect(left + c * cell, top + r * cell, cell, cell);
       }
     }
-    this.cover(left - 2, top - 2, left + width + 2, top + height + 2);
   }
 
   private drawLabel(): void {
@@ -338,6 +290,5 @@ export class CursorController {
     ctx.fillStyle = '#0b0b0b';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, x + 7, y + 12);
-    this.cover(x, y, x + w + 2, y + 24);
   }
 }

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { waveColor } from './cursorPalette';
 import { ICONS, iconForSection, isIconName } from './pixelIcons';
-import { PixelTrail } from './PixelTrail';
 
 describe('pixel icons', () => {
   it('draws every icon with squares only, at least one lit', () => {
@@ -27,23 +26,5 @@ describe('waveColor', () => {
     expect(waveColor('negative', 0)).toBe(waveColor('negative', 4));
     expect(waveColor('negative', 0)).not.toBe(waveColor('negative', 1));
     expect(waveColor('heat', -1)).toBe(waveColor('heat', 4));
-  });
-});
-
-describe('PixelTrail', () => {
-  it('lets squares live briefly and then die', () => {
-    const trail = new PixelTrail(10, () => 0.5);
-    trail.emit(10, 10, 0);
-    expect(trail.step(0.1)).toBe(1);
-    expect(trail.y[0]!).toBeGreaterThan(10);
-    expect(trail.step(2)).toBe(0);
-  });
-
-  it('overwrites the oldest square when full', () => {
-    const trail = new PixelTrail(3, () => 0.5);
-    for (let i = 0; i < 5; i++) trail.emit(i, 0, i);
-    expect(trail.phase[0]).toBe(3);
-    expect(trail.phase[1]).toBe(4);
-    expect(trail.phase[2]).toBe(2);
   });
 });
