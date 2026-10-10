@@ -154,12 +154,14 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
 
 ### Zmiana po przeglądzie autora (10.10.2026)
 
-- **Pole pikseli** jest teraz od ściany do ściany ekranu. Najechanie rozgrzewa kwadraty (granat, niebieski, bursztyn, limonka, czerwień),
-  przytrzymanie powiększa plamę, a pełne naładowanie (~1,8 s) uruchamia wybuch i odsłania linki. Brzegi plamy rozpadają się nierówno i stygną.
-  Silnik pozostaje Canvas 2D (ok. 8 tys. kwadratów, jedno wypełnienie na kolor). PixiJS/WebGL: do decyzji dopiero po pomiarze fps na telefonie.
-- **Kursor** jest z kwadracików: pełnoekranowy, przezroczysty canvas z „kometą” z siatki ciepła (czerwony rdzeń, limonka, bursztyn, niebieski, granatowa krawędź),
-  która stygnie i znika w pół sekundy. W spoczynku i nad linkami/kartami zamienia się w ikonę pixel-art (per sekcja, z etykietą). Nad polem pikseli
-  kometa się nie rysuje (pole samo się rozgrzewa), a kursor to mały krzyżyk lub ikona. Emoji są już tylko w efektach dotyku.
+- **Motyw kolorystyczny (decyzja autora):** szarości i biel jako baza plus jeden akcent, pomarańcz z palety FIRE intro. Rampa ciepła (`HEAT_RAMP`):
+  ciemnoszary, szary, biały, pomarańcz, gorący pomarańcz. Ikony kursora mogą mieć własne kolory (biały, zielony, cyjan, pomarańcz).
+- **Pole pikseli** jest od ściany do ściany ekranu i składa się z cyfr jak intro (zimne cyfry to ledwo widoczna ściana liczb, rysowana raz do offscreen canvas).
+  Najechanie rozgrzewa cyfry, przytrzymanie powiększa plamę, a pełne naładowanie (~1,8 s) uruchamia wybuch i odsłania linki. Brzegi plamy stygną nierówno.
+  Silnik pozostaje Canvas 2D z atlasem cyfr z intro. PixiJS/WebGL: do decyzji dopiero po pomiarze fps na telefonie.
+- **Kursor** jest z cyfr: pełnoekranowy, przezroczysty canvas z „kometą” z siatki ciepła, która stygnie i znika w pół sekundy. W spoczynku i nad linkami/kartami
+  zamienia się w dużą ikonę z cyfr (siatka 13×9, jasny obrys i przygaszone wypełnienie, żeby treść pod spodem była czytelna) z etykietą.
+  Nad polem pikseli komety nie ma (pole samo się rozgrzewa), jest mały krzyżyk z cyfr. Emoji zostały już tylko w efektach dotyku.
 - **Przycisk „Hire me”** w nagłówku (schodkowe rogi), prowadzi do sekcji Contact.
 - **Intro zawsze startuje od góry** (`scrollRestoration = 'manual'`): bez tego przeładowanie przywracało pozycję scrolla, blokada scrolla zamrażała stronę
   przesuniętą w dół i na dole intro pojawiał się czarny pas. Lenis i GSAP ładują się dopiero po intro.

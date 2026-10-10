@@ -1,5 +1,7 @@
-import type { CursorTheme } from '../cursor/cursorPalette';
 import { iconForSection, isIconName, type IconName } from '../cursor/pixelIcons';
+
+/** `heat`: over the pixel field (which lights up by itself, so no comet). `negative`: everywhere else. */
+export type CursorTheme = 'negative' | 'heat';
 
 export type CursorKind = 'default' | 'link' | 'card' | 'text';
 

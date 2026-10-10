@@ -26,9 +26,11 @@ const KICK_RANGE = 520;
 const GRAVITY = 900;
 const DEBRIS_DRAG = 1.1;
 const LIFE_DECAY = 0.8;
+/** Chance per frame that a lit digit changes. */
+const FLICKER = 0.12;
 
 /**
- * Structure-of-arrays field of square pixels (one per grid cell) that heats up around the pointer:
+ * Structure-of-arrays field of digits (one per grid cell, the cells are taller than wide like the intro's) that heats up around the pointer:
  * hovering lights a small spot, holding makes it grow, and the heat then cools off cell by cell with ragged
  * edges. `explode` sends a shockwave from a point; every pixel the front reaches is thrown out as debris that
  * cools while it falls, until the field is `cleared`. No DOM access and no per-frame allocation.
@@ -37,7 +39,8 @@ const LIFE_DECAY = 0.8;
 export class PixelField {
   readonly cols: number;
   readonly rows: number;
-  readonly cell: number;
+  readonly cellW: number;
+  readonly cellH: number;
   readonly count: number;
 
   readonly x: Float32Array;
@@ -49,6 +52,8 @@ export class PixelField {
   readonly heat: Float32Array;
   /** Fixed per-cell offset that makes the edges of the heat ragged. */
   readonly noise: Float32Array;
+  /** The digit (0-9) shown in each cell; lit cells keep changing it. */
+  readonly glyph: Uint8Array;
   /** 1 while attached to the grid, 0 once thrown. */
   readonly attached: Uint8Array;
   readonly life: Float32Array;
@@ -66,13 +71,20 @@ export class PixelField {
   private shock: Shockwave | null = null;
   private flying = 0;
 
-  constructor(cols: number, rows: number, cell: number, rng: () => number = Math.random) {
+  constructor(
+    cols: number,
+    rows: number,
+    cellW: number,
+    cellH: number,
+    rng: () => number = Math.random,
+  ) {
     this.cols = cols;
     this.rows = rows;
-    this.cell = cell;
+    this.cellW = cellW;
+    this.cellH = cellH;
     this.count = cols * rows;
     this.rng = rng;
-    this.diagonal = Math.hypot(cols * cell, rows * cell);
+    this.diagonal = Math.hypot(cols * cellW, rows * cellH);
 
     const n = this.count;
     this.x = new Float32Array(n);
@@ -83,6 +95,7 @@ export class PixelField {
     this.homeY = new Float32Array(n);
     this.heat = new Float32Array(n);
     this.noise = new Float32Array(n);
+    this.glyph = new Uint8Array(n);
     this.attached = new Uint8Array(n);
     this.life = new Float32Array(n);
     this.bucket = new Int8Array(n);
@@ -95,12 +108,13 @@ export class PixelField {
     for (let row = 0; row < this.rows; row++) {
       for (let col = 0; col < this.cols; col++) {
         const i = row * this.cols + col;
-        this.homeX[i] = this.x[i] = (col + 0.5) * this.cell;
-        this.homeY[i] = this.y[i] = (row + 0.5) * this.cell;
+        this.homeX[i] = this.x[i] = (col + 0.5) * this.cellW;
+        this.homeY[i] = this.y[i] = (row + 0.5) * this.cellH;
         this.vx[i] = 0;
         this.vy[i] = 0;
         this.heat[i] = 0;
         this.noise[i] = (this.rng() - 0.5) * 0.3;
+        this.glyph[i] = Math.floor(this.rng() * 10);
         this.attached[i] = 1;
         this.life[i] = 1;
         this.bucket[i] = -1;
@@ -162,6 +176,7 @@ export class PixelField {
       }
       if (level < 0) level = 0;
       this.heat[i] = level;
+      if (level > 0 && this.rng() < FLICKER) this.glyph[i] = Math.floor(this.rng() * 10);
       this.bucket[i] = level > 0 ? heatBucket(level + this.noise[i]!) : -1;
     }
   }

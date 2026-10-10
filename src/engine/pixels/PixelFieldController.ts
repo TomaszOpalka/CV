@@ -1,11 +1,14 @@
 import { ticker } from '../core/Ticker';
-import { HEAT_COLORS } from './heatPalette';
+import { drawGlyph, makeAtlas } from '../glyph/drawGlyph';
+import type { GlyphAtlas } from '../glyph/GlyphAtlas';
+import { CELL_ASPECT } from '../glyph/portrait';
+import { HEAT_RAMP } from './heatPalette';
 import { CHARGE_SECONDS, PixelField, type HeatInput } from './PixelField';
 
 const MAX_PIXELS = 16000;
 const MAX_SHAKE_PX = 10;
-/** Colour of cold cells: the faint grid you see before anything heats up. */
-const COLD_COLOR = '#151515';
+/** Brightness of the cold digits: the faint wall of numbers you see before anything heats up. */
+const COLD_TONE = 1;
 
 export interface PixelFieldControllerOptions {
   canvas: HTMLCanvasElement;
@@ -15,15 +18,16 @@ export interface PixelFieldControllerOptions {
   onCleared: () => void;
 }
 
-function cellSizeFor(width: number): number {
-  return width < 600 ? 10 : 12;
+function cellHeightFor(width: number): number {
+  return width < 600 ? 11 : 12;
 }
 
 /**
  * Drives a PixelField on a 2D canvas that spans the full width of the page: sizing (DPR, ResizeObserver),
+ * digits from the shared glyph atlas (the cold wall of digits is pre-rendered once into an offscreen layer),
  * pointer (hover heats, holding makes the heat grow and finally explodes the field), one shared ticker
  * subscription that runs only while the canvas is on screen and the tab is visible, batched drawing
- * (one path and one fill per colour), shake and vibration on the explosion.
+ * shake and vibration on the explosion.
  */
 export class PixelFieldController {
   private readonly canvas: HTMLCanvasElement;
@@ -33,6 +37,9 @@ export class PixelFieldController {
   private readonly visibilityObserver: IntersectionObserver;
   private readonly input: HeatInput = { x: -9999, y: -9999, active: false, hold: 0 };
   private field: PixelField | null = null;
+  private atlas: GlyphAtlas | null = null;
+  private coldLayer: HTMLCanvasElement | null = null;
+  private dpr = 1;
   private width = 0;
   private height = 0;
   private unsubscribe: (() => void) | null = null;
@@ -151,16 +158,42 @@ export class PixelFieldController {
     this.height = height;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.dpr = dpr;
     this.canvas.width = Math.round(width * dpr);
     this.canvas.height = Math.round(height * dpr);
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    let cell = cellSizeFor(width);
-    while ((width / cell) * (height / cell) > MAX_PIXELS) cell += 2;
+    let cellH = cellHeightFor(width);
+    while ((width / (cellH * CELL_ASPECT)) * (height / cellH) > MAX_PIXELS) cellH += 2;
+    const cellW = cellH * CELL_ASPECT;
     // A resize in the middle of an explosion keeps what is flying; an idle field is rebuilt to the new size.
     if (this.field && this.field.phase !== 'idle') return;
-    this.field = new PixelField(Math.ceil(width / cell), Math.ceil(height / cell), cell);
+    this.field = new PixelField(Math.ceil(width / cellW), Math.ceil(height / cellH), cellW, cellH);
+    this.atlas = makeAtlas(cellW, cellH, dpr);
+    this.coldLayer = this.renderColdLayer(this.field, this.atlas);
     this.syncLoop();
+  }
+
+  /** The whole wall of faint digits, drawn once; every frame it is a single drawImage. */
+  private renderColdLayer(field: PixelField, atlas: GlyphAtlas): HTMLCanvasElement {
+    const layer = document.createElement('canvas');
+    layer.width = this.canvas.width;
+    layer.height = this.canvas.height;
+    const ctx = layer.getContext('2d');
+    if (!ctx) return layer;
+    const gw = atlas.glyphW;
+    const gh = atlas.glyphH;
+    for (let i = 0; i < field.count; i++) {
+      drawGlyph(
+        ctx,
+        atlas,
+        field.glyph[i]!,
+        0,
+        COLD_TONE,
+        field.homeX[i]! * this.dpr - gw / 2,
+        field.homeY[i]! * this.dpr - gh / 2,
+      );
+    }
+    return layer;
   }
 
   private frame(dt: number): void {
@@ -198,33 +231,39 @@ export class PixelFieldController {
 
   private draw(field: PixelField): void {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.width, this.height);
-    const size = field.cell - 1;
-    const half = size / 2;
-    const idle = field.phase === 'idle';
+    const atlas = this.atlas;
+    if (!atlas) return;
+    const scale = this.dpr;
+    const gw = atlas.glyphW;
+    const gh = atlas.glyphH;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (field.phase === 'cleared') return;
 
-    // Cold cells first: the faint grid that is there before anything heats up.
-    if (idle) {
-      ctx.beginPath();
-      for (let i = 0; i < field.count; i++) {
-        if (field.bucket[i] !== -1) continue;
-        ctx.rect(field.homeX[i]! - half, field.homeY[i]! - half, size, size);
-      }
-      ctx.fillStyle = COLD_COLOR;
-      ctx.fill();
+    // The cold wall first; then cut out the cells that are lit or have been thrown, and draw those digits.
+    if (this.coldLayer) ctx.drawImage(this.coldLayer, 0, 0);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    for (let i = 0; i < field.count; i++) {
+      if (field.attached[i] === 1 && field.bucket[i]! < 0) continue;
+      ctx.rect(field.homeX[i]! * scale - gw / 2, field.homeY[i]! * scale - gh / 2, gw, gh);
     }
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
 
-    for (let colour = 0; colour < HEAT_COLORS.length; colour++) {
-      ctx.beginPath();
-      let any = false;
-      for (let i = 0; i < field.count; i++) {
-        if (field.bucket[i] !== colour) continue;
-        ctx.rect(field.x[i]! - half, field.y[i]! - half, size, size);
-        any = true;
-      }
-      if (!any) continue;
-      ctx.fillStyle = HEAT_COLORS[colour]!;
-      ctx.fill();
+    for (let i = 0; i < field.count; i++) {
+      const bucket = field.bucket[i]!;
+      if (bucket < 0) continue;
+      const shade = HEAT_RAMP[bucket]!;
+      drawGlyph(
+        ctx,
+        atlas,
+        field.glyph[i]!,
+        shade.palette,
+        shade.tone,
+        field.x[i]! * scale - gw / 2,
+        field.y[i]! * scale - gh / 2,
+      );
     }
   }
 }

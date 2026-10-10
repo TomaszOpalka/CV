@@ -36,7 +36,7 @@ describe('Shockwave', () => {
 
 describe('PixelField', () => {
   it('has one pixel per cell, centred in the cell, and starts cold', () => {
-    const field = new PixelField(4, 3, 10, seeded());
+    const field = new PixelField(4, 3, 10, 10, seeded());
     expect(field.count).toBe(12);
     expect(field.homeX[0]).toBe(5);
     expect(field.homeY[11]).toBe(25);
@@ -44,7 +44,7 @@ describe('PixelField', () => {
   });
 
   it('heats the cells around the pointer and leaves far ones cold', () => {
-    const field = new PixelField(40, 10, 12, seeded());
+    const field = new PixelField(40, 10, 12, 12, seeded());
     for (let k = 0; k < 20; k++) field.step(1 / 60, { x: 6, y: 6, active: true, hold: 0 });
     expect(field.bucket[0]!).toBeGreaterThanOrEqual(1);
     expect(field.bucket[39 + 9 * 40]!).toBe(-1);
@@ -52,7 +52,7 @@ describe('PixelField', () => {
 
   it('grows the hot area while the pointer is held', () => {
     const lit = (hold: number): number => {
-      const field = new PixelField(60, 20, 12, seeded());
+      const field = new PixelField(60, 20, 12, 12, seeded());
       for (let k = 0; k < 30; k++) field.step(1 / 60, { x: 360, y: 120, active: true, hold });
       return field.bucket.filter((b) => b >= 0).length;
     };
@@ -60,7 +60,7 @@ describe('PixelField', () => {
   });
 
   it('cools down after the pointer leaves', () => {
-    const field = new PixelField(20, 10, 12, seeded());
+    const field = new PixelField(20, 10, 12, 12, seeded());
     for (let k = 0; k < 20; k++) field.step(1 / 60, { x: 100, y: 60, active: true, hold: 1 });
     expect(field.bucket.some((b) => b >= 0)).toBe(true);
     for (let k = 0; k < 60 * 3; k++) field.step(1 / 60, away);
@@ -74,7 +74,7 @@ describe('PixelField', () => {
   });
 
   it('explodes: throws pixels outwards, then clears completely', () => {
-    const field = new PixelField(20, 10, 12, seeded());
+    const field = new PixelField(20, 10, 12, 12, seeded());
     field.explode(120, 60);
     expect(field.phase).toBe('exploding');
     expect(field.shake()).toBe(1);
@@ -91,7 +91,7 @@ describe('PixelField', () => {
   });
 
   it('kicks pixels away from the origin and colours the debris', () => {
-    const field = new PixelField(21, 11, 10, seeded());
+    const field = new PixelField(21, 11, 10, 10, seeded());
     field.explode(105, 55);
     for (let k = 0; k < 6; k++) field.step(1 / 60, away);
     const near = 5 * 21 + 12;
@@ -102,7 +102,7 @@ describe('PixelField', () => {
   });
 
   it('ignores a second explosion and can be reset', () => {
-    const field = new PixelField(5, 5, 10, seeded());
+    const field = new PixelField(5, 5, 10, 10, seeded());
     field.explode(25, 25);
     field.explode(0, 0);
     field.reset();

@@ -146,12 +146,12 @@
   transition: background $duration-fast;
 
   &:focus-visible {
-    background: #d9ff00;
+    background: #ff9632;
   }
 
   @include hover-only {
     &:hover {
-      background: #d9ff00;
+      background: #ff9632;
     }
   }
 

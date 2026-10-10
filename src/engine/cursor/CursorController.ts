@@ -1,52 +1,51 @@
 import { ticker } from '../core/Ticker';
-import { HEAT_COLORS } from '../pixels/heatPalette';
+import { drawGlyph, makeAtlas } from '../glyph/drawGlyph';
+import type { GlyphAtlas } from '../glyph/GlyphAtlas';
+import { FIRE, WHITE } from '../glyph/palette';
+import { CELL_ASPECT } from '../glyph/portrait';
+import { HEAT_RAMP } from '../pixels/heatPalette';
 import { resolveCursorTarget, sameTarget, type CursorTarget } from '../ui/cursorTarget';
-import { waveColor, type CursorTheme } from './cursorPalette';
 import { HeatBrush } from './HeatBrush';
-import { ICONS } from './pixelIcons';
+import { ICONS, type PixelIcon } from './pixelIcons';
 
-/** Size of one square of the comet in CSS px. */
-const CELL = 10;
-/** Radius of the brush (outer navy edge) in CSS px. */
-const BRUSH_RADIUS = 46;
-const ICON_CELL = 4;
+/** One digit cell of the cursor, in CSS px (the same proportions as the intro's digits). */
+const CELL_H = 14;
+const CELL_W = CELL_H * CELL_ASPECT;
+/** Radius of the comet (outer edge) in CSS px: about 12 digits across. */
+const BRUSH_RADIUS = 52;
 const FOLLOW_RATE = 34;
-/** Colour wave of the icon: a new colour every ~40 px of travel, plus a slow drift in time. */
-const PHASE_PER_PX = 0.025;
-const PHASE_PER_SECOND = 1.2;
 /** After this long without moving the cursor turns into its icon. */
 const REST_MS = 280;
 const MOVING_PX_PER_SECOND = 30;
-const OUTLINE = '#0b0b0b';
-const OUTLINE_OFFSETS: ReadonlyArray<readonly [number, number]> = [
-  [-2, 0],
-  [2, 0],
-  [0, -2],
-  [0, 2],
-];
+const FLICKER_MS = 110;
+/** A dark veil under every lit cell of an icon (heavier under the outline), so it reads over text. */
+const VEIL_OUTLINE = 'rgb(11 11 11 / 80%)';
+const VEIL_FILL = 'rgb(11 11 11 / 55%)';
 const LABEL_FONT = '600 11px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 
-/** Offsets (in cells) of the small plus-shaped blob used over the pixel field, where the field is the comet. */
-const BLOB: ReadonlyArray<readonly [number, number, number]> = [
-  [0, 0, 0],
-  [-1, 0, 1],
-  [1, 0, 1],
-  [0, -1, 2],
-  [0, 1, 2],
+/** Offsets (in cells) of the small plus-shaped cluster used over the pixel field, where the field is the comet. */
+const CLUSTER: ReadonlyArray<readonly [number, number]> = [
+  [0, 0],
+  [-1, 0],
+  [1, 0],
+  [0, -1],
+  [0, 1],
 ];
 
 /**
- * The pixel cursor: a full-screen, click-through canvas. Moving the pointer paints a comet of heat-coloured
- * squares (red-hot core, lime, amber, blue, navy edge) that cools and vanishes within about half a second.
- * At rest, or over links and cards, the cursor turns into a pixel-art icon. Over the pixel field only a small
- * blob follows the pointer, because the field itself lights up there. One shared ticker subscription;
- * it sleeps when the pointer has left and the comet is gone.
+ * The cursor, drawn in the digits of the intro. A full-screen, click-through canvas: moving the pointer paints
+ * a comet of digits (orange-hot core, white, greys at the edge) that cools and vanishes within about half a
+ * second. At rest, or over links and cards, the cursor turns into a large icon made of digits (each icon has
+ * its own colour). Over the pixel field only a small cluster follows the pointer, because the field itself
+ * lights up there. One shared ticker subscription; it sleeps when the pointer has left and the comet is gone.
  */
 export class CursorController {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private brush: HeatBrush | null = null;
+  private atlas: GlyphAtlas | null = null;
   private unsubscribe: (() => void) | null = null;
+  private dpr = 1;
   private width = 0;
   private height = 0;
 
@@ -58,7 +57,6 @@ export class CursorController {
   private lastY = -100;
   private inside = false;
   private pressed = false;
-  private phase = 0;
   private restMs = 0;
   private resolveMs = 0;
   private target: CursorTarget = { kind: 'default', icon: 'heart', theme: 'negative', label: '' };
@@ -91,17 +89,23 @@ export class CursorController {
     window.removeEventListener('pointerup', this.onUp);
     document.documentElement.removeEventListener('pointerleave', this.onLeave);
     document.documentElement.removeAttribute('data-cursor-ready');
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   private readonly resize = (): void => {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.canvas.width = Math.round(this.width * dpr);
-    this.canvas.height = Math.round(this.height * dpr);
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    this.brush = new HeatBrush(Math.ceil(this.width / CELL), Math.ceil(this.height / CELL), CELL);
+    this.canvas.width = Math.round(this.width * this.dpr);
+    this.canvas.height = Math.round(this.height * this.dpr);
+    this.brush = new HeatBrush(
+      Math.ceil(this.width / CELL_W),
+      Math.ceil(this.height / CELL_H),
+      CELL_W,
+      CELL_H,
+    );
+    this.atlas = makeAtlas(CELL_W, CELL_H, this.dpr);
   };
 
   private wake(): void {
@@ -150,12 +154,8 @@ export class CursorController {
     }
     const moved = Math.hypot(this.hx - prevX, this.hy - prevY);
 
-    if (moved / step > MOVING_PX_PER_SECOND) {
-      this.restMs = 0;
-      this.phase += moved * PHASE_PER_PX + step * PHASE_PER_SECOND;
-    } else {
-      this.restMs += step * 1000;
-    }
+    if (moved / step > MOVING_PX_PER_SECOND) this.restMs = 0;
+    else this.restMs += step * 1000;
 
     // Scrolling or a section changing under a still pointer changes the target without a pointer event.
     this.resolveMs += step * 1000;
@@ -166,8 +166,7 @@ export class CursorController {
     }
 
     const brush = this.brush;
-    const paints = this.target.theme !== 'heat';
-    if (brush && this.inside && paints && moved > 0.1) {
+    if (brush && this.inside && this.target.theme !== 'heat' && moved > 0.1) {
       brush.stampSegment(this.lastX, this.lastY, this.hx, this.hy, BRUSH_RADIUS);
     }
     this.lastX = this.hx;
@@ -177,7 +176,8 @@ export class CursorController {
     this.draw();
 
     if (!this.inside && lit === 0) {
-      this.ctx.clearRect(0, 0, this.width, this.height);
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.unsubscribe?.();
       this.unsubscribe = null;
     }
@@ -185,89 +185,111 @@ export class CursorController {
 
   private draw(): void {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.width, this.height);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.drawBrush();
     if (!this.inside) return;
 
-    const theme: CursorTheme = this.target.theme;
-    const resting = this.restMs > REST_MS;
-    const icon = resting || this.target.kind !== 'default';
-    if (this.target.kind === 'text') this.drawBitmap(ICONS.beam, theme);
-    else if (icon) this.drawBitmap(ICONS[this.target.icon], theme);
-    else if (this.target.theme === 'heat') this.drawBlob(theme);
-    if (this.target.label) this.drawLabel();
+    const { kind, icon, theme, label } = this.target;
+    const showIcon = this.restMs > REST_MS || kind !== 'default';
+    if (kind === 'text') this.drawIcon(ICONS.beam);
+    else if (showIcon) this.drawIcon(ICONS[icon]);
+    else if (theme === 'heat') this.drawCluster();
+    if (label) this.drawLabel();
   }
 
-  /** The comet: one path and one fill per colour. */
+  /** The comet: one digit per lit cell, coloured by the heat ramp. */
   private drawBrush(): void {
     const brush = this.brush;
+    const atlas = this.atlas;
     const bounds = brush?.bounds();
-    if (!brush || !bounds) return;
-    const ctx = this.ctx;
-    const size = CELL - 1;
-    for (let colour = 0; colour < HEAT_COLORS.length; colour++) {
-      ctx.beginPath();
-      let any = false;
-      for (let r = bounds.minRow; r <= bounds.maxRow; r++) {
-        for (let c = bounds.minCol; c <= bounds.maxCol; c++) {
-          if (brush.bucket(r * brush.cols + c) !== colour) continue;
-          ctx.rect(c * CELL, r * CELL, size, size);
-          any = true;
-        }
+    if (!brush || !atlas || !bounds) return;
+    const scale = this.dpr;
+    for (let r = bounds.minRow; r <= bounds.maxRow; r++) {
+      for (let c = bounds.minCol; c <= bounds.maxCol; c++) {
+        const i = r * brush.cols + c;
+        const bucket = brush.bucket(i);
+        if (bucket < 0) continue;
+        const shade = HEAT_RAMP[bucket]!;
+        drawGlyph(
+          this.ctx,
+          atlas,
+          brush.glyph[i]!,
+          shade.palette,
+          shade.tone,
+          c * CELL_W * scale,
+          r * CELL_H * scale,
+        );
       }
-      if (!any) continue;
-      ctx.fillStyle = HEAT_COLORS[colour]!;
-      ctx.fill();
     }
   }
 
-  private drawBlob(theme: CursorTheme): void {
-    const ctx = this.ctx;
-    const cell = 6;
-    const size = this.pressed ? cell - 2 : cell + 1;
-    const cx = Math.round(this.hx / cell) * cell;
-    const cy = Math.round(this.hy / cell) * cell;
-    // A dark outline first, so the blob reads on top of bright squares.
-    ctx.fillStyle = OUTLINE;
-    for (const [ox, oy] of BLOB) {
-      ctx.fillRect(
-        cx + ox * cell - size / 2 - 2,
-        cy + oy * cell - size / 2 - 2,
-        size + 4,
-        size + 4,
+  private drawCluster(): void {
+    const atlas = this.atlas;
+    if (!atlas) return;
+    const tick = Math.floor(performance.now() / FLICKER_MS);
+    const cx = Math.round(this.hx / CELL_W) * CELL_W;
+    const cy = Math.round(this.hy / CELL_H) * CELL_H;
+    CLUSTER.forEach(([ox, oy], n) => {
+      const palette = n === 0 ? FIRE : WHITE;
+      drawGlyph(
+        this.ctx,
+        atlas,
+        (tick + n * 3) % 10,
+        palette,
+        7,
+        (cx + ox * CELL_W - CELL_W / 2) * this.dpr,
+        (cy + oy * CELL_H - CELL_H / 2) * this.dpr,
       );
-    }
-    for (const [ox, oy, shift] of BLOB) {
-      ctx.fillStyle = waveColor(theme, this.phase + shift);
-      ctx.fillRect(cx + ox * cell - size / 2, cy + oy * cell - size / 2, size, size);
-    }
+    });
   }
 
-  private drawBitmap(rows: readonly string[], theme: CursorTheme): void {
+  /** An icon made of digits: a dark veil under the bright outline, then flickering digits. */
+  private drawIcon(icon: PixelIcon): void {
+    const atlas = this.atlas;
+    if (!atlas) return;
     const ctx = this.ctx;
-    const cell = this.pressed ? ICON_CELL - 1 : ICON_CELL;
-    const width = rows[0]!.length * cell;
-    const height = rows.length * cell;
-    const left = Math.round(this.hx - width / 2);
-    const top = Math.round(this.hy - height / 2);
-    const slow = this.phase * 0.5;
-    // Pass 0: a dark outline (the bitmap shifted in four directions) so the icon reads on any background.
-    // Pass 1: the colours.
-    ctx.fillStyle = OUTLINE;
-    for (const [dx, dy] of OUTLINE_OFFSETS) {
-      for (let r = 0; r < rows.length; r++) {
-        const row = rows[r]!;
-        for (let c = 0; c < row.length; c++) {
-          if (row[c] === '#') ctx.fillRect(left + c * cell + dx, top + r * cell + dy, cell, cell);
-        }
+    const { rows, palette } = icon;
+    const cols = rows[0]!.length;
+    const left = Math.round((this.hx - (cols * CELL_W) / 2) / CELL_W) * CELL_W;
+    const top = Math.round((this.hy - (rows.length * CELL_H) / 2) / CELL_H) * CELL_H;
+    const scale = this.dpr;
+    const tick = Math.floor(performance.now() / FLICKER_MS);
+
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r]!;
+      for (let c = 0; c < cols; c++) {
+        const mark = row[c];
+        if (mark === '.') continue;
+        ctx.fillStyle = mark === '#' ? VEIL_OUTLINE : VEIL_FILL;
+        ctx.fillRect(
+          (left + c * CELL_W) * scale,
+          (top + r * CELL_H) * scale,
+          CELL_W * scale,
+          CELL_H * scale,
+        );
       }
     }
     for (let r = 0; r < rows.length; r++) {
       const row = rows[r]!;
-      for (let c = 0; c < row.length; c++) {
-        if (row[c] !== '#') continue;
-        ctx.fillStyle = waveColor(theme, slow + (r + c) * 0.18);
-        ctx.fillRect(left + c * cell, top + r * cell, cell, cell);
+      for (let c = 0; c < cols; c++) {
+        const mark = row[c];
+        if (mark === '.') continue;
+        const glyph = (r * 7 + c * 13 + tick * (1 + ((r + c) % 3))) % 10;
+        const outline = mark === '#';
+        const flicker = (tick + r + c) % 2;
+        let tone: number;
+        if (this.pressed) tone = outline ? 7 : 4;
+        else tone = outline ? 6 + flicker : 1 + flicker;
+        drawGlyph(
+          ctx,
+          atlas,
+          glyph,
+          palette,
+          tone,
+          (left + c * CELL_W) * scale,
+          (top + r * CELL_H) * scale,
+        );
       }
     }
   }
@@ -275,12 +297,14 @@ export class CursorController {
   private drawLabel(): void {
     const ctx = this.ctx;
     const label = this.target.label;
+    const s = this.dpr;
+    ctx.setTransform(s, 0, 0, s, 0, 0);
     ctx.font = LABEL_FONT;
     if (this.labelFor !== label) {
       this.labelFor = label;
       this.labelWidth = Math.ceil(ctx.measureText(label).width);
     }
-    const x = Math.round(this.hx + 26);
+    const x = Math.round(this.hx + 62);
     const y = Math.round(this.hy - 11);
     const w = this.labelWidth + 14;
     ctx.fillStyle = '#000';
@@ -290,5 +314,6 @@ export class CursorController {
     ctx.fillStyle = '#0b0b0b';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, x + 7, y + 12);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 }
