@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-async function openPixels(page: import('@playwright/test').Page): Promise<void> {
+async function openPixels(page: Page): Promise<void> {
   await page.goto('/');
   await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
   await expect(page.locator('section[data-state="done"]')).toBeVisible();
