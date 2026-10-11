@@ -140,3 +140,37 @@ test('the page tells search engines and AI assistants the same thing it tells pe
   const llms = await request.get('/llms.txt');
   expect(llms.ok()).toBe(true);
 });
+
+test('stack: the groups are tabs, the core technologies come first in the accent colour', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/');
+  const stack = page.locator('#stack');
+
+  // The first group is open from the start.
+  const frontend = stack.getByRole('button', { name: /Languages & Frontend/i });
+  await expect(frontend).toHaveAttribute('aria-expanded', 'true');
+  const typescript = stack.getByRole('listitem').filter({ hasText: 'TypeScript' }).first();
+  await expect(typescript).toHaveCSS('color', 'rgb(255, 150, 50)');
+  // A non-core technology is white, and listed after the core ones.
+  const tanstack = stack.getByRole('listitem').filter({ hasText: 'TanStack Query' }).first();
+  await expect(tanstack).toHaveCSS('color', 'rgb(255, 255, 255)');
+
+  // Opening another group shows its technologies and closes the first one.
+  const ui = stack.getByRole('button', { name: /UI & Styling/i });
+  await ui.click();
+  await expect(ui).toHaveAttribute('aria-expanded', 'true');
+  await expect(frontend).toHaveAttribute('aria-expanded', 'false');
+  await expect(stack.getByRole('listitem').filter({ hasText: 'Figma' }).first()).toBeVisible();
+
+  if (isMobile) {
+    // On a phone the open header closes again when tapped (accordion).
+    await ui.click();
+    await expect(ui).toHaveAttribute('aria-expanded', 'false');
+  } else {
+    // With the list on the side one group always stays open.
+    await ui.click();
+    await expect(ui).toHaveAttribute('aria-expanded', 'true');
+  }
+});

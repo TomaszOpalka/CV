@@ -55,6 +55,8 @@ export interface SkillItem {
   name: string;
   /** Where it was used, when the CV says so (company or project). */
   usedAt?: string;
+  /** Part of the core of the profile: shown first and in the accent colour. */
+  core?: boolean;
 }
 
 export interface SkillGroup {

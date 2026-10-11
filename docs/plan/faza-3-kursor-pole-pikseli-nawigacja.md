@@ -179,6 +179,8 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
   przycisk „Hire me”, hover kart i linków, kafle AI w stacku, zaznaczenie tekstu i focus. Za tytułami sekcji wielkie obrysowane numery (cyfry jako materiał strony).
   Po przekątnej ekranu (lewy-góra → prawy-dół) dryfuje przyciemniona ikona z cyfr aktualnej sekcji (tylko przy scrollu, tylko szerokie ekrany).
   Experience: nazwa, jedno zdanie, technologie, 3 punkty, reszta w „Show more”. Contact: duży e-mail jako jedyny główny element.
+- **Stack jako zakładki (szkic autora):** na desktopie lista technologii otwartej grupy po lewej, lista grup (zakładek) po prawej; na telefonie ten sam kod to
+  akordeon (klik w cały nagłówek otwiera i zwija). Technologie „core” grupy są na górze i na pomarańczowo. Jedna grupa otwarta naraz.
 - **SEO bez sztuczek:** tytuł, opis, Open Graph, JSON-LD `Person` i `llms.txt` mówią to samo co strona. Żadnego ukrytego tekstu, słów kluczowych dla botów ani
   poleceń dla AI (to prowadzi do filtrów, nie do wyższej pozycji). Odrzucone: „najlepszy junior” (twierdzenie nie do sprawdzenia).
 - **Sekcja „Portfolio”** (dawniej „Other CVs”, id `portfolio`): po wybuchu karuzela projektów (sannagiulio.ch, broniu.com, dwa wczesne portfolia, GitHub).
