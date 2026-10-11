@@ -74,3 +74,31 @@ test('headings decode from digits as they scroll in and keep the real text for a
   await expect(page.getByRole('heading', { level: 2, name: 'Stack' })).toBeVisible();
   await context.close();
 });
+
+test('on a phone a tap outside the open menu closes it', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'the menu panel exists on small screens only');
+  await page.goto('/');
+  const toggle = page.getByRole('button', { name: 'Open menu' });
+  await toggle.click();
+  await expect(page.locator('#site-nav')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Close menu' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+  // The backdrop covers the page below the header.
+  const viewport = page.viewportSize()!;
+  await page.mouse.click(viewport.width / 2, viewport.height - 40);
+  await expect(page.locator('#site-nav')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Open menu' })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  );
+});
+
+test('a nav link is a tile as tall as the header', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'tiles are as tall as the header on desktop');
+  await page.goto('/');
+  const link = page.getByRole('link', { name: /^Stack$/ });
+  const box = (await link.boundingBox())!;
+  expect(box.height).toBeGreaterThanOrEqual(62);
+});

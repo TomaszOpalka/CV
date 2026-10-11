@@ -89,4 +89,5 @@ export interface PortfolioLink {
   name: string;
   url: string;
   description: string;
+  tech?: string[];
 }

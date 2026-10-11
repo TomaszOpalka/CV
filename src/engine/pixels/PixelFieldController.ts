@@ -9,10 +9,14 @@ const MAX_PIXELS = 16000;
 const MAX_SHAKE_PX = 10;
 /** Brightness of the cold digits: the faint wall of numbers you see before anything heats up. */
 const COLD_TONE = 1;
+/** The page colour (--gray-1000): lit digits are drawn on a patch of it, so the cold digit under them is hidden. */
+const PAGE_COLOR = '#0b0b0b';
+/** The field is mostly dim digits; a device pixel ratio above this adds fill cost and no visible sharpness. */
+const MAX_DPR = 1.5;
 
 export interface PixelFieldControllerOptions {
   canvas: HTMLCanvasElement;
-  /** Element that shakes on the explosion (receives `--shake-x` / `--shake-y`). */
+  /** Element that shakes on the explosion (gets a `transform`). */
   shakeTarget: HTMLElement;
   onExplode: () => void;
   onCleared: () => void;
@@ -39,6 +43,7 @@ export class PixelFieldController {
   private field: PixelField | null = null;
   private atlas: GlyphAtlas | null = null;
   private coldLayer: HTMLCanvasElement | null = null;
+  private coldCtx: CanvasRenderingContext2D | null = null;
   private dpr = 1;
   private width = 0;
   private height = 0;
@@ -157,7 +162,7 @@ export class PixelFieldController {
     this.width = width;
     this.height = height;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     this.dpr = dpr;
     this.canvas.width = Math.round(width * dpr);
     this.canvas.height = Math.round(height * dpr);
@@ -170,6 +175,7 @@ export class PixelFieldController {
     this.field = new PixelField(Math.ceil(width / cellW), Math.ceil(height / cellH), cellW, cellH);
     this.atlas = makeAtlas(cellW, cellH, dpr);
     this.coldLayer = this.renderColdLayer(this.field, this.atlas);
+    this.coldCtx = this.coldLayer.getContext('2d');
     this.syncLoop();
   }
 
@@ -209,6 +215,7 @@ export class PixelFieldController {
     }
 
     field.step(step, input);
+    this.eraseLeftCells(field);
     this.draw(field);
     this.applyShake(field.shake());
     if (field.phase === 'cleared' && !this.clearedNotified) {
@@ -217,16 +224,35 @@ export class PixelFieldController {
     }
   }
 
+  /** A plain `transform` on the stage (compositor only); a CSS variable here would re-style the whole subtree every frame. */
   private applyShake(amount: number): void {
     const target = this.options.shakeTarget;
     if (amount <= 0) {
-      target.style.removeProperty('--shake-x');
-      target.style.removeProperty('--shake-y');
+      target.style.removeProperty('transform');
       return;
     }
     const a = amount * MAX_SHAKE_PX;
-    target.style.setProperty('--shake-x', `${((Math.random() - 0.5) * 2 * a).toFixed(1)}px`);
-    target.style.setProperty('--shake-y', `${((Math.random() - 0.5) * 2 * a).toFixed(1)}px`);
+    const x = (Math.random() - 0.5) * 2 * a;
+    const y = (Math.random() - 0.5) * 2 * a;
+    target.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+  }
+
+  /** Cells the shockwave just passed lose their cold digit for good: one clearRect each, once. */
+  private eraseLeftCells(field: PixelField): void {
+    const ctx = this.coldCtx;
+    const atlas = this.atlas;
+    if (!ctx || !atlas || field.leftCount === 0) return;
+    const gw = atlas.glyphW;
+    const gh = atlas.glyphH;
+    for (let k = 0; k < field.leftCount; k++) {
+      const i = field.leftGrid[k]!;
+      ctx.clearRect(
+        field.homeX[i]! * this.dpr - gw / 2 - 1,
+        field.homeY[i]! * this.dpr - gh / 2 - 1,
+        gw + 2,
+        gh + 2,
+      );
+    }
   }
 
   private draw(field: PixelField): void {
@@ -240,30 +266,21 @@ export class PixelFieldController {
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     if (field.phase === 'cleared') return;
 
-    // The cold wall first; then cut out the cells that are lit or have been thrown, and draw those digits.
+    // The cold wall is one image. Lit digits that are still on the grid sit on a patch of page colour (no
+    // composite-mode change, no big path); thrown digits fly over whatever is left of the wall.
     if (this.coldLayer) ctx.drawImage(this.coldLayer, 0, 0);
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    for (let i = 0; i < field.count; i++) {
-      if (field.attached[i] === 1 && field.bucket[i]! < 0) continue;
-      ctx.rect(field.homeX[i]! * scale - gw / 2, field.homeY[i]! * scale - gh / 2, gw, gh);
-    }
-    ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-
     for (let i = 0; i < field.count; i++) {
       const bucket = field.bucket[i]!;
-      if (bucket < 0) continue;
+      // The faintest step looks the same as the cold digit: skip it (a third fewer sprites at the edge of the heat).
+      if (bucket < 1) continue;
       const shade = HEAT_RAMP[bucket]!;
-      drawGlyph(
-        ctx,
-        atlas,
-        field.glyph[i]!,
-        shade.palette,
-        shade.tone,
-        field.x[i]! * scale - gw / 2,
-        field.y[i]! * scale - gh / 2,
-      );
+      const x = field.x[i]! * scale - gw / 2;
+      const y = field.y[i]! * scale - gh / 2;
+      if (field.attached[i] === 1) {
+        ctx.fillStyle = PAGE_COLOR;
+        ctx.fillRect(x - 1, y - 1, gw + 2, gh + 2);
+      }
+      drawGlyph(ctx, atlas, field.glyph[i]!, shade.palette, shade.tone, x, y);
     }
   }
 }

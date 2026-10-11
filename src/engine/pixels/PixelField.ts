@@ -28,6 +28,8 @@ const DEBRIS_DRAG = 1.1;
 const LIFE_DECAY = 0.8;
 /** Chance per frame that a lit digit changes. */
 const FLICKER = 0.12;
+/** Share of the cold (unlit) digits that fly off as debris; the rest just vanish as the shockwave passes. */
+const COLD_DEBRIS_SHARE = 0.3;
 
 /**
  * Structure-of-arrays field of digits (one per grid cell, the cells are taller than wide like the intro's) that heats up around the pointer:
@@ -59,6 +61,9 @@ export class PixelField {
   readonly life: Float32Array;
   /** Colour index to draw (-1: cold). Updated by `step`. */
   readonly bucket: Int8Array;
+  /** Cells the shockwave passed during the last `step` (their cold digit is no longer on the grid). */
+  readonly leftGrid: Int32Array;
+  leftCount = 0;
   /** Colour index a cell had when it was thrown. */
   private readonly thrownColor: Int8Array;
 
@@ -99,6 +104,7 @@ export class PixelField {
     this.attached = new Uint8Array(n);
     this.life = new Float32Array(n);
     this.bucket = new Int8Array(n);
+    this.leftGrid = new Int32Array(n);
     this.thrownColor = new Int8Array(n);
     this.reset();
   }
@@ -132,6 +138,7 @@ export class PixelField {
   }
 
   step(dt: number, input: HeatInput): void {
+    this.leftCount = 0;
     if (this.phase === 'idle') this.stepIdle(dt, input);
     else if (this.phase === 'exploding') this.stepExploding(dt);
   }
@@ -193,6 +200,13 @@ export class PixelField {
         const d = Math.sqrt(dx * dx + dy * dy);
         if (!shock.passed(d)) continue;
         this.attached[i] = 0;
+        this.leftGrid[this.leftCount++] = i;
+        // Lit digits always fly; of the cold ones only a share does (fewer sprites to draw, the look is the same
+        // because cold digits are dim). The others vanish with the front.
+        if (this.bucket[i]! < 0 && this.rng() > COLD_DEBRIS_SHARE) {
+          this.life[i] = 0;
+          continue;
+        }
         this.flying++;
         // Debris keeps the colour it had, with a minimum so even cold cells flash up when hit.
         this.thrownColor[i] = Math.max(this.bucket[i]!, 1 + Math.floor(this.rng() * 4));

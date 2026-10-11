@@ -133,7 +133,7 @@ export const ICONS: Readonly<Record<IconName, PixelIcon>> = {
 
 const BY_SECTION: Readonly<Record<string, IconName>> = {
   about: 'smile',
-  pixels: 'heart',
+  portfolio: 'heart',
   experience: 'case',
   stack: 'layers',
   education: 'cap',

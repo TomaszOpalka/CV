@@ -14,8 +14,9 @@ import styles from './index.module.scss';
 
 /**
  * Fixed navigation. Hidden until the intro is over. Highlights the section that crosses the middle
- * of the screen, shows scroll progress (CSS variable, no React state) and turns into a full-screen
- * menu on small screens.
+ * of the screen, shows scroll progress (CSS variable, no React state). Every link is a tile as tall as the
+ * header (easy to hit with the big cursor icon); on small screens the links open as a panel with a backdrop
+ * that closes the menu when tapped.
  */
 export function Header() {
   const introState = useIntroState();
@@ -77,6 +78,9 @@ export function Header() {
       <a className={styles.brand} href="#about" onClick={(event) => go(event, 'about')}>
         <Scramble text={profile.name} />
       </a>
+
+      {/* On small screens a tap anywhere outside the menu closes it. */}
+      <div className={styles.backdrop} aria-hidden="true" onClick={() => setMenuOpen(false)} />
 
       <nav id="site-nav" className={styles.nav} aria-label="Main">
         <ul className={styles.list}>

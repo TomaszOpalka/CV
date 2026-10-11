@@ -167,6 +167,13 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
   jeden napis naraz, 0,17 s) jedna litera zamienia się w cyfrę, nigdy obok drugiej cyfry. Kopia dla czytników ekranu zawsze ma prawdziwy tekst.
 - **Treści z CV (PDF autora):** `src/content/*` zawiera już prawdziwe dane: BCF z czterema projektami, SG Consulting, wczesne projekty, szkoły, certyfikaty, języki,
   umiejętności i linki do portfolio. Numer telefonu z CV celowo nie jest publikowany. Serce (czerwone) to ikona sekcji „Other CVs”.
+- **Sekcja „Portfolio”** (dawniej „Other CVs”, id `portfolio`): po wybuchu karuzela projektów (sannagiulio.ch, broniu.com, dwa wczesne portfolia, GitHub).
+  **Nawigacja** to kafelki na pełną wysokość nagłówka; na telefonie panel z tłem, a dotknięcie poza nim zamyka menu.
+- **Wydajność wybuchu (pomiar, profil CPU przez CDP, headless bez GPU):** koszt był w liczbie operacji rysowania, nie w logice. Przed: średnio 107 ms/klatkę
+  podczas wybuchu (4,2 tys. `drawImage` na klatkę + ścieżka z 12 tys. prostokątów w trybie `destination-out`). Po: 20 ms/klatkę. Zmiany: zimna ściana cyfr
+  maluje się raz i jest wymazywana pojedynczo (jedno `clearRect` na komórkę), tylko 30% zimnych cyfr leci jako odłamki, rozświetlone cyfry leżą na łatce koloru
+  strony zamiast przez zmianę trybu kompozycji, DPR pola ograniczony do 1,5, wstrząs przez `transform` zamiast zmiennej CSS. WebGL niepotrzebny, dopóki
+  pomiar na prawdziwym urządzeniu nie pokaże inaczej.
 - **Przycisk „Hire me”** w nagłówku (schodkowe rogi), prowadzi do sekcji Contact.
 - **Intro zawsze startuje od góry** (`scrollRestoration = 'manual'`): bez tego przeładowanie przywracało pozycję scrolla, blokada scrolla zamrażała stronę
   przesuniętą w dół i na dole intro pojawiał się czarny pas. Lenis i GSAP ładują się dopiero po intro.

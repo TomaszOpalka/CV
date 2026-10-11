@@ -4,8 +4,8 @@ async function openPixels(page: Page): Promise<void> {
   await page.goto('/');
   await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
   await expect(page.locator('section[data-state="done"]')).toBeVisible();
-  await page.locator('#pixels').scrollIntoViewIfNeeded();
-  await expect(page.locator('#pixels [data-mode="armed"]')).toBeVisible({ timeout: 10_000 });
+  await page.locator('#portfolio').scrollIntoViewIfNeeded();
+  await expect(page.locator('#portfolio [data-mode="armed"]')).toBeVisible({ timeout: 10_000 });
 }
 
 test('before the explosion the links are hidden, holding the pointer reveals them', async ({
@@ -15,24 +15,24 @@ test('before the explosion the links are hidden, holding the pointer reveals the
   page.on('pageerror', (error) => errors.push(error.message));
   await openPixels(page);
 
-  const links = page.locator('#pixels a[href^="https://"]');
-  const cards = page.locator('#pixels ul');
+  const links = page.locator('#portfolio a[href^="https://"]');
+  const cards = page.locator('#portfolio [data-carousel]');
   await expect(cards).toHaveCSS('opacity', '0');
   await expect(cards).toHaveAttribute('inert', '');
-  const canvas = page.locator('#pixels canvas');
+  const canvas = page.locator('#portfolio canvas');
   const box = (await canvas.boundingBox())!;
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.3);
   // Holding heats the pixels up and, once fully charged, explodes them.
   await page.mouse.down();
 
-  await expect(page.locator('#pixels [data-mode="cleared"]')).toBeVisible({ timeout: 12_000 });
+  await expect(page.locator('#portfolio [data-mode="cleared"]')).toBeVisible({ timeout: 12_000 });
   await page.mouse.up();
   await expect(cards).toHaveCSS('opacity', '1');
   await expect(cards).not.toHaveAttribute('inert', '');
-  await expect(links).toHaveCount(3);
+  await expect(links).toHaveCount(5);
 
   await page.getByRole('button', { name: 'Rebuild the pixels' }).click();
-  await expect(page.locator('#pixels [data-mode="armed"]')).toBeVisible();
+  await expect(page.locator('#portfolio [data-mode="armed"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -41,16 +41,16 @@ test('the reveal button works from the keyboard', async ({ page }) => {
   const reveal = page.getByRole('button', { name: 'Reveal links' });
   await reveal.focus();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#pixels [data-mode="cleared"]')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('#portfolio [data-mode="cleared"]')).toBeVisible({ timeout: 10_000 });
 });
 
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
   test('the links are simply there', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#pixels').scrollIntoViewIfNeeded();
-    await expect(page.locator('#pixels [data-mode="static"]')).toBeVisible();
-    await expect(page.locator('#pixels a[href^="https://"]').first()).toBeVisible();
+    await page.locator('#portfolio').scrollIntoViewIfNeeded();
+    await expect(page.locator('#portfolio [data-mode="static"]')).toBeVisible();
+    await expect(page.locator('#portfolio a[href^="https://"]').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Reveal links' })).toHaveCount(0);
   });
 });

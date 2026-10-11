@@ -109,53 +109,27 @@ export const experience: readonly ExperienceItem[] = [
         id: 'sannagiulio',
         name: 'One-page website for a Swiss financial consulting firm',
         summary:
-          'A responsive one-page website available in 5 languages (PL, EN, DE, IT, FR), with a client reviews carousel.',
+          'A responsive one-page website available in 5 languages (PL, EN, DE, IT, FR), with a client reviews carousel and a contact form that sends email.',
         achievements: [],
-        tech: ['React 18', 'Vite', 'react-i18next'],
+        tech: ['React 18', 'Vite', 'react-i18next', 'EmailJS'],
         links: [{ label: 'sannagiulio.ch', url: 'https://sannagiulio.ch' }],
       },
     ],
   },
   {
-    id: 'early-projects',
-    company: 'Early frontend projects',
-    role: 'Written by hand, before AI coding tools',
-    summary: 'My first frontend projects, built before I started using AI coding tools.',
-    projects: [
-      {
-        id: 'portfolio-1',
-        name: 'Portfolio 1',
-        summary: '',
-        achievements: [],
-        tech: [],
-        links: [
-          {
-            label: 'portfolio1tomaszopalka.netlify.app',
-            url: 'https://portfolio1tomaszopalka.netlify.app',
-          },
-        ],
-      },
-      {
-        id: 'portfolio-2',
-        name: 'Portfolio 2',
-        summary: '',
-        achievements: [],
-        tech: [],
-        links: [
-          {
-            label: 'portfolio2tomaszopalka.netlify.app',
-            url: 'https://portfolio2tomaszopalka.netlify.app',
-          },
-        ],
-      },
-    ],
+    id: 'dental',
+    company: 'Dental technician',
+    role: 'Medical background',
+    summary:
+      'Alongside my studies I worked as a dental technician: precise manual work to tight tolerances, strict quality and hygiene standards, and a constant focus on the person who will use the final product. That medical background gives me a feel for healthcare workflows and for building software that clinicians and patients can trust.',
+    projects: [],
   },
   {
     id: 'part-time',
     company: 'Part-time jobs',
     role: 'Alongside studies and work',
     period: '2020 - 2026',
-    summary: 'Courier, event and hostel staff, dental technician, manual labor.',
+    summary: 'Courier, event and hostel staff, manual labor.',
     projects: [],
   },
 ];

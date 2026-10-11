@@ -90,15 +90,42 @@ describe('PixelField', () => {
     expect(field.bucket.every((b) => b === -1)).toBe(true);
   });
 
-  it('kicks pixels away from the origin and colours the debris', () => {
+  it('kicks debris away from the origin and colours it', () => {
     const field = new PixelField(21, 11, 10, 10, seeded());
     field.explode(105, 55);
     for (let k = 0; k < 6; k++) field.step(1 / 60, away);
-    const near = 5 * 21 + 12;
     const centre = 5 * 21 + 10;
     expect(field.attached[centre]).toBe(0);
-    expect(field.vx[near]!).toBeGreaterThan(0);
-    expect(field.bucket[near]!).toBeGreaterThanOrEqual(0);
+    let checked = 0;
+    for (let col = 12; col < 21; col++) {
+      const i = 5 * 21 + col;
+      if (field.attached[i] === 1 || field.life[i]! <= 0) continue;
+      expect(field.vx[i]!).toBeGreaterThan(0);
+      expect(field.bucket[i]!).toBeGreaterThanOrEqual(0);
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it('reports every cell the shockwave passes exactly once and sends only part of the cold ones flying', () => {
+    const field = new PixelField(30, 12, 8, 14, seeded());
+    field.explode(120, 80);
+    const seen = new Set<number>();
+    let debris = 0;
+    let frames = 0;
+    while (field.phase === 'exploding' && frames < 600) {
+      field.step(1 / 60, away);
+      for (let k = 0; k < field.leftCount; k++) {
+        const i = field.leftGrid[k]!;
+        expect(seen.has(i)).toBe(false);
+        seen.add(i);
+        if (field.life[i]! > 0) debris++;
+      }
+      frames++;
+    }
+    expect(seen.size).toBe(field.count);
+    expect(debris).toBeGreaterThan(field.count * 0.15);
+    expect(debris).toBeLessThan(field.count * 0.5);
   });
 
   it('ignores a second explosion and can be reset', () => {

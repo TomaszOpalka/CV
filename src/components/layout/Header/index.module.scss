@@ -10,7 +10,6 @@
   height: rem(64);
   padding: 0 $space-6;
   background: rgb(11 11 11 / 78%);
-  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--gray-800);
   transform: translateY(-100%);
   transition: transform $duration-base $ease-out;
@@ -28,6 +27,16 @@
   }
 }
 
+.root::before {
+  // The blur lives on a pseudo-element: `backdrop-filter` on the header itself would make it the containing
+  // block of the menu panel and its backdrop (both `position: fixed`) and shrink them to the header's height.
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  backdrop-filter: blur(10px);
+}
+
 .brand {
   font-family: var(--font-mono);
   font-size: rem(14);
@@ -37,13 +46,11 @@
   text-decoration: none;
 }
 
-.nav {
-  // Mobile: full-screen menu below the bar.
+.backdrop {
+  // Mobile: dims the page behind the open menu; a tap on it closes the menu.
   position: fixed;
   inset: rem(64) 0 0;
-  display: grid;
-  place-items: center;
-  background: var(--gray-1000);
+  background: rgb(0 0 0 / 65%);
   visibility: hidden;
   opacity: 0;
   transition:
@@ -57,51 +64,111 @@
   }
 
   @include mq(md) {
-    position: static;
-    display: block;
-    margin-left: auto;
-    background: none;
+    display: none;
+  }
+}
+
+.nav {
+  // Mobile: a panel under the bar, with its own background.
+  position: fixed;
+  inset: rem(72) $space-4 auto;
+  padding: $space-2;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-800);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity $duration-base $ease-out,
+    transform $duration-base $ease-out,
+    visibility 0s linear $duration-base;
+
+  .root[data-open='true'] & {
     visibility: visible;
     opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  @include mq(md) {
+    position: static;
+    height: 100%;
+    margin-left: auto;
+    padding: 0;
+    background: none;
+    border: 0;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
   }
 }
 
 .list {
   display: grid;
-  gap: $space-4;
+  gap: $space-1;
   list-style: none;
 
   @include mq(md) {
     display: flex;
-    gap: $space-6;
+    height: 100%;
+    gap: 0;
+  }
+
+  li {
+    display: flex;
+
+    @include mq(md) {
+      height: 100%;
+    }
   }
 }
 
 .link {
+  // A tile: the whole box is the target, not just the text. On desktop it is as tall as the header.
   display: flex;
-  align-items: baseline;
+  flex: 1;
+  align-items: center;
   gap: $space-3;
+  min-height: rem(56);
+  padding: 0 $space-4;
   font-family: var(--font-mono);
-  font-size: rem(28);
+  font-size: rem(18);
   text-transform: uppercase;
   color: var(--gray-400);
   text-decoration: none;
-  transition: color $duration-fast;
+  background: rgb(255 255 255 / 4%);
+  transition:
+    color $duration-fast,
+    background $duration-fast;
 
-  &[aria-current='true'],
+  &[aria-current='true'] {
+    color: var(--gray-0);
+    background: rgb(255 255 255 / 10%);
+  }
+
   &:focus-visible {
     color: var(--gray-0);
+    outline-offset: -2px;
   }
 
   @include hover-only {
     &:hover {
       color: var(--gray-0);
+      background: rgb(255 255 255 / 10%);
     }
   }
 
   @include mq(md) {
+    min-height: 0;
+    padding: 0 $space-4;
     font-size: rem(13);
     letter-spacing: 0.1em;
+    background: transparent;
+
+    &[aria-current='true'] {
+      background: transparent;
+      box-shadow: inset 0 -2px 0 var(--gray-0);
+    }
   }
 }
 

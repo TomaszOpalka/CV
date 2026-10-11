@@ -13,9 +13,9 @@ function seeded(): () => number {
 describe('scrambleFrame', () => {
   it('starts as digits, ends as the text, and keeps spaces and length', () => {
     const rng = seeded();
-    const start = scrambleFrame('Other CVs', 0, rng);
-    expect(start).toMatch(/^\d{5} \d{3}$/);
-    expect(scrambleFrame('Other CVs', 1, rng)).toBe('Other CVs');
+    const start = scrambleFrame('Portfolio', 0, rng);
+    expect(start).toMatch(/^\d{9}$/);
+    expect(scrambleFrame('Portfolio', 1, rng)).toBe('Portfolio');
   });
 
   it('reveals from the left', () => {
