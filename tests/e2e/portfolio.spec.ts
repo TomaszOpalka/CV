@@ -36,6 +36,38 @@ test('before the explosion the links are hidden, holding the pointer reveals the
   expect(errors).toEqual([]);
 });
 
+test('"Rebuild the pixels" brings the wall of dim digits back', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
+  await page.locator('#portfolio').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1000);
+  const painted = () =>
+    page.evaluate(() => {
+      const canvas = document.querySelector<HTMLCanvasElement>('#portfolio canvas')!;
+      const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
+      let count = 0;
+      for (let i = 3; i < data.length; i += 4) if (data[i]! > 0) count++;
+      return count;
+    });
+  const before = await painted();
+  expect(before).toBeGreaterThan(100_000);
+
+  const box = (await page.locator('#portfolio canvas').boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await page.mouse.down();
+  await expect(page.locator('#portfolio [data-mode="cleared"]')).toBeVisible({ timeout: 15_000 });
+  await page.mouse.up();
+  // The explosion erased the wall for good...
+  expect(await painted()).toBe(0);
+
+  // ...and rebuilding paints it again.
+  await page.getByRole('button', { name: 'Rebuild the pixels' }).click();
+  // Look right away: later the quality governor may rebuild the field by itself and hide the bug.
+  await page.waitForTimeout(150);
+  expect(await painted()).toBeGreaterThan(100_000);
+});
+
 test('the reveal button works from the keyboard', async ({ page }) => {
   await openPixels(page);
   const reveal = page.getByRole('button', { name: 'Reveal links' });

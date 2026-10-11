@@ -107,8 +107,11 @@ export class PixelFieldController {
 
   /** Put the pixels back (used by the "rebuild" button). */
   reset(): void {
-    if (!this.field) return;
+    if (!this.field || !this.atlas) return;
     this.field.reset();
+    // The shockwave erased the cold wall for good, and `reset` deals new digits: paint the wall again.
+    this.coldLayer = this.renderColdLayer(this.field, this.atlas);
+    this.coldCtx = this.coldLayer.getContext('2d');
     this.input.hold = 0;
     this.clearedNotified = false;
     setCursorPaused(false);
