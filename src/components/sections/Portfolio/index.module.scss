@@ -94,7 +94,7 @@
 
   @include hover-only {
     &:hover {
-      border-color: var(--gray-0);
+      border-color: var(--accent);
       transform: translateY(-4px);
     }
   }
@@ -130,7 +130,7 @@
   position: absolute;
   top: $space-4;
   right: $space-4;
-  color: var(--gray-400);
+  color: var(--accent);
 }
 
 .reveal,

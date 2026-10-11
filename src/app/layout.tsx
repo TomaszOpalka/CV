@@ -2,19 +2,32 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { Cursor } from '@/components/layout/Cursor';
+import { DriftIcon } from '@/components/layout/DriftIcon';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { ScrollReveal } from '@/components/layout/ScrollReveal';
 import { SectionTracker } from '@/components/layout/SectionTracker';
 import { SmoothScroll } from '@/components/layout/SmoothScroll';
 import { TouchEffects } from '@/components/layout/TouchEffects';
-import { profile } from '@/content/profile';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { seo } from '@/content/seo';
 
 import '@/styles/main.scss';
 
 export const metadata: Metadata = {
-  title: `${profile.name} | ${profile.role}`,
-  description: profile.about[0],
+  title: seo.title,
+  description: seo.description,
+  authors: [{ name: 'Tomasz Opałka' }],
+  creator: 'Tomasz Opałka',
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: 'profile',
+    title: seo.title,
+    description: seo.description,
+    locale: 'en_US',
+    firstName: 'Tomasz',
+    lastName: 'Opałka',
+  },
 };
 
 export const viewport: Viewport = {
@@ -29,7 +42,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
+        <JsonLd />
         <Header />
+        <DriftIcon />
         {children}
         <Footer />
         <SmoothScroll />

@@ -103,3 +103,40 @@ test('a nav link is a tile as tall as the header', async ({ page, isMobile }) =>
   const box = (await link.boundingBox())!;
   expect(box.height).toBeGreaterThanOrEqual(62);
 });
+
+test('experience stays simple: three points per project, the rest behind "Show more"', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const first = page
+    .locator('#experience li')
+    .filter({ has: page.locator('h4') })
+    .first();
+  await expect(first.locator('> ul').last()).toBeVisible();
+  const more = first.locator('details');
+  await expect(more).toHaveCount(1);
+  await expect(more).not.toHaveAttribute('open', '');
+  await more.locator('summary').click();
+  await expect(more).toHaveAttribute('open', '');
+});
+
+test('the page tells search engines and AI assistants the same thing it tells people', async ({
+  request,
+}) => {
+  const html = await (await request.get('/')).text();
+  expect(html).toContain('<title>Tomasz Opałka | Junior Fullstack Developer in Wrocław</title>');
+  const match = /<script type="application\/ld\+json">(.*?)<\/script>/s.exec(html);
+  expect(match).not.toBeNull();
+  const data = JSON.parse(match![1]!) as {
+    '@type': string;
+    name: string;
+    address: { addressLocality: string };
+  };
+  expect(data['@type']).toBe('Person');
+  expect(data.name).toBe('Tomasz Opałka');
+  expect(data.address.addressLocality).toBe('Wrocław');
+  // The offer in the structured data is on the page for people, too.
+  expect(html).toContain('a fast, affordable website');
+  const llms = await request.get('/llms.txt');
+  expect(llms.ok()).toBe(true);
+});

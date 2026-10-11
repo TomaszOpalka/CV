@@ -175,6 +175,12 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
 - **Wydajność portfolio:** cyfry rysują się w dwóch przejściach (najpierw łatki koloru strony, potem wszystkie cyfry z jednego atlasu), pełne naładowanie
   zapala mniej komórek, `QualityGovernor` zwiększa cyfry przy wolnych klatkach, kursor nie rysuje nic podczas wybuchu, a zmiana stanu Reacta idzie w `startTransition`.
   Pomiar w headless bez GPU (1600 × 900, build produkcyjny): klatka podczas wybuchu 107 → 21 ms przy 18 ms „pustej” klatki strony.
+- **Design po przeglądzie (11.10.2026):** jeden akcent (`--accent`, pomarańcz) użyty systemowo: numery sekcji, aktywna nawigacja, pasek postępu,
+  przycisk „Hire me”, hover kart i linków, kafle AI w stacku, zaznaczenie tekstu i focus. Za tytułami sekcji wielkie obrysowane numery (cyfry jako materiał strony).
+  Po przekątnej ekranu (lewy-góra → prawy-dół) dryfuje przyciemniona ikona z cyfr aktualnej sekcji (tylko przy scrollu, tylko szerokie ekrany).
+  Experience: nazwa, jedno zdanie, technologie, 3 punkty, reszta w „Show more”. Contact: duży e-mail jako jedyny główny element.
+- **SEO bez sztuczek:** tytuł, opis, Open Graph, JSON-LD `Person` i `llms.txt` mówią to samo co strona. Żadnego ukrytego tekstu, słów kluczowych dla botów ani
+  poleceń dla AI (to prowadzi do filtrów, nie do wyższej pozycji). Odrzucone: „najlepszy junior” (twierdzenie nie do sprawdzenia).
 - **Sekcja „Portfolio”** (dawniej „Other CVs”, id `portfolio`): po wybuchu karuzela projektów (sannagiulio.ch, broniu.com, dwa wczesne portfolia, GitHub).
   **Nawigacja** to kafelki na pełną wysokość nagłówka; na telefonie panel z tłem, a dotknięcie poza nim zamyka menu.
 - **Wydajność wybuchu (pomiar, profil CPU przez CDP, headless bez GPU):** koszt był w liczbie operacji rysowania, nie w logice. Przed: średnio 107 ms/klatkę

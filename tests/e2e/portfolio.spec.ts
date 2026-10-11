@@ -115,7 +115,7 @@ test('the arrow cursor puts its tip exactly on the pointer', async ({ page, isMo
   await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(800);
-  const box = (await page.locator('#contact a[href^="mailto"]').boundingBox())!;
+  const box = (await page.locator('#contact a[href^="https://github"]').boundingBox())!;
   const px = Math.round(box.x + 40);
   const py = Math.round(box.y + 8);
   await page.mouse.move(px - 100, py + 60);
@@ -143,4 +143,55 @@ test('the arrow cursor puts its tip exactly on the pointer', async ({ page, isMo
   });
   expect(Math.abs(tip.x - px)).toBeLessThanOrEqual(2);
   expect(Math.abs(tip.y - py)).toBeLessThanOrEqual(2);
+});
+
+test('scrolling with a still mouse changes the cursor icon to the one of the section', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'no custom cursor on touch devices');
+  test.setTimeout(60_000);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
+  await page.mouse.move(720, 480);
+
+  const averageColour = () =>
+    page.evaluate(() => {
+      const canvas = [...document.querySelectorAll('canvas')].find(
+        (c) => getComputedStyle(c).position === 'fixed' && c.width > 500,
+      )!;
+      const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
+      let r = 0;
+      let b = 0;
+      let n = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3]! > 200) {
+          r += data[i]!;
+          b += data[i + 2]!;
+          n++;
+        }
+      }
+      return { r: r / Math.max(1, n), b: b / Math.max(1, n), n };
+    });
+  const goTo = (id: string) =>
+    page.evaluate(
+      (target) =>
+        window.scrollTo(
+          0,
+          document.getElementById(target)!.getBoundingClientRect().top + window.scrollY - 64,
+        ),
+      id,
+    );
+
+  // Experience: the briefcase is cyan (blue-ish). Contact: the envelope is orange (red-ish).
+  await goTo('experience');
+  await page.waitForTimeout(1800);
+  const experience = await averageColour();
+  await goTo('contact');
+  await page.waitForTimeout(1800);
+  const contact = await averageColour();
+  expect(experience.n).toBeGreaterThan(50);
+  expect(contact.n).toBeGreaterThan(50);
+  expect(experience.b).toBeGreaterThan(contact.b + 20);
+  expect(contact.r).toBeGreaterThan(experience.r - 1);
 });

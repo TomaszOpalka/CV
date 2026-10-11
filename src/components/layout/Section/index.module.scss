@@ -29,6 +29,7 @@
 }
 
 .header {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: $space-4;
@@ -36,11 +37,31 @@
   margin: 0 auto $space-8;
 }
 
+.ghost {
+  // A huge outlined section number in the empty right half of the heading row: digits as the page's material,
+  // quiet enough that it never competes with the content (decoration only: no pointer events, hidden from AT).
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: -1;
+  font-family: var(--font-mono);
+  font-size: clamp(6rem, 17vw, 15rem);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(255 255 255 / 12%);
+  transform: translateY(-46%);
+  user-select: none;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+}
+
 .index {
   font-family: var(--font-mono);
   font-size: rem(13);
   letter-spacing: 0.22em;
-  color: var(--gray-400);
+  color: var(--accent);
 }
 
 .title {

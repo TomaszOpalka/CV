@@ -1,23 +1,33 @@
 import { Section } from '@/components/layout/Section';
-import { contactLinks } from '@/content/contact';
+import { contactLead, contactLinks } from '@/content/contact';
 
 import styles from './index.module.scss';
 
-/** The contact form arrives in phase 4 (UI) and phase 5 (sending); until then the direct links. */
+const [email, ...others] = contactLinks;
+
+/**
+ * The contact form arrives in phase 4 (UI) and phase 5 (sending). Until then the e-mail address is the whole
+ * section: big, one click, nothing else competing with it.
+ */
 export function Contact() {
   return (
     <Section id="contact" index="06" title="Contact">
       <div className={styles.wrap}>
-        <p className={styles.text}>
-          The contact form is coming soon. Until then, write to me directly:
-        </p>
-        <ul className={styles.links}>
-          {contactLinks.map((link) => (
+        <p className={styles.lead}>{contactLead}</p>
+        {email && (
+          <a
+            className={styles.email}
+            href={email.url}
+            data-cursor="link"
+            data-cursor-label="Write!"
+          >
+            {email.label}
+          </a>
+        )}
+        <ul className={styles.others}>
+          {others.map((link) => (
             <li key={link.url}>
-              <a
-                href={link.url}
-                {...(link.url.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}
-              >
+              <a href={link.url} target="_blank" rel="noreferrer">
                 {link.label}
               </a>
             </li>

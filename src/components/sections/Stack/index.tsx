@@ -15,7 +15,11 @@ export function Stack() {
             </h3>
             <ul className={styles.tiles}>
               {group.items.map((item) => (
-                <li key={item.id} className={styles.tile} data-cursor="card">
+                <li
+                  key={item.id}
+                  className={`${styles.tile} ${group.id === 'ai' ? styles.isAi : ''}`.trim()}
+                  data-cursor="card"
+                >
                   <span className={styles.name}>{item.name}</span>
                   {item.usedAt && <span className={styles.usedAt}>{item.usedAt}</span>}
                 </li>

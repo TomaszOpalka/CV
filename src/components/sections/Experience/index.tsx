@@ -3,8 +3,35 @@ import type { CSSProperties } from 'react';
 import { Section } from '@/components/layout/Section';
 import { Scramble } from '@/components/ui/Scramble';
 import { experience } from '@/content/experience';
+import { afterFirstSentence, firstSentence } from '@/content/text';
 
 import styles from './index.module.scss';
+
+/** How many points of a project are shown right away; the rest sits behind "Show more". */
+const VISIBLE_POINTS = 3;
+
+interface MoreDetailsProps {
+  summary: string;
+  points: string[];
+}
+
+/** The rest of a project, folded away: a plain `<details>` (no JavaScript, keyboard and screen reader friendly). */
+function MoreDetails({ summary, points }: MoreDetailsProps) {
+  if (!summary && points.length === 0) return null;
+  return (
+    <details className={styles.more}>
+      <summary data-cursor="link">Show more</summary>
+      {summary && <p className={styles.summary}>{summary}</p>}
+      {points.length > 0 && (
+        <ul className={styles.achievements}>
+          {points.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+      )}
+    </details>
+  );
+}
 
 export function Experience() {
   return (
@@ -37,13 +64,8 @@ export function Experience() {
                     data-cursor="card"
                   >
                     <h4 className={styles.projectName}>{project.name}</h4>
-                    {project.summary && <p className={styles.summary}>{project.summary}</p>}
-                    {project.achievements.length > 0 && (
-                      <ul className={styles.achievements}>
-                        {project.achievements.map((achievement) => (
-                          <li key={achievement}>{achievement}</li>
-                        ))}
-                      </ul>
+                    {project.summary && (
+                      <p className={styles.summary}>{firstSentence(project.summary)}</p>
                     )}
                     {project.tech.length > 0 && (
                       <ul className={styles.tags} aria-label="Technologies">
@@ -52,6 +74,17 @@ export function Experience() {
                         ))}
                       </ul>
                     )}
+                    {project.achievements.length > 0 && (
+                      <ul className={styles.achievements}>
+                        {project.achievements.slice(0, VISIBLE_POINTS).map((achievement) => (
+                          <li key={achievement}>{achievement}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <MoreDetails
+                      summary={afterFirstSentence(project.summary)}
+                      points={project.achievements.slice(VISIBLE_POINTS)}
+                    />
                     {project.links && (
                       <ul className={styles.links}>
                         {project.links.map((link) => (

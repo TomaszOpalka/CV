@@ -28,6 +28,9 @@ export function Section({ id, index, title, className, bleed = false, children }
     >
       <header className={styles.header} data-reveal>
         <p className={styles.index}>{index}</p>
+        <span className={styles.ghost} aria-hidden="true">
+          {index}
+        </span>
         <h2 id={`${id}-title`} className={styles.title}>
           <Scramble text={title} />
         </h2>

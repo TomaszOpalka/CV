@@ -70,7 +70,7 @@
 
   @include hover-only {
     &:hover {
-      border-color: var(--gray-400);
+      border-color: var(--accent);
     }
   }
 }
@@ -93,8 +93,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: $space-2;
-  margin-top: auto;
-  padding: $space-3 0 0;
   list-style: none;
 
   li {
@@ -116,6 +114,22 @@
     font-family: var(--font-mono);
     font-size: rem(13);
     color: var(--gray-0);
+    text-decoration-color: var(--accent);
     text-underline-offset: 3px;
+  }
+}
+
+.more {
+  display: grid;
+  gap: $space-3;
+
+  > summary {
+    width: fit-content;
+    font-family: var(--font-mono);
+    font-size: rem(12);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
   }
 }

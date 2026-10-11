@@ -41,6 +41,13 @@
   gap: $space-2;
   padding-left: $space-6;
   border-left: 2px solid var(--gray-600);
+  transition: border-color $duration-base;
+
+  @include hover-only {
+    &:hover {
+      border-left-color: var(--accent);
+    }
+  }
 }
 
 .period {

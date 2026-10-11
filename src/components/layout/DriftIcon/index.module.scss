@@ -1,0 +1,21 @@
+@use '@/styles/abstracts' as *;
+
+.root {
+  // Behind the content (sections are later in the document and positioned), never in the way of the pointer.
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: rem(78);
+  height: rem(90);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms ease;
+
+  &[data-ready='true'] {
+    opacity: 0.45;
+  }
+
+  @include reduced-motion {
+    display: none;
+  }
+}

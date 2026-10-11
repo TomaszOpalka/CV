@@ -18,6 +18,8 @@ export interface IconDrawOptions {
   tick: number;
   /** Brighter outline and a stronger fill, used while the mouse button is down. */
   pressed?: boolean;
+  /** Dims the icon: this many brightness levels are taken off every digit (0 = full brightness). */
+  toneShift?: number;
 }
 
 /**
@@ -30,7 +32,7 @@ export function drawIconDigits(
   icon: PixelIcon,
   left: number,
   top: number,
-  { cellW, cellH, scale, tick, pressed = false }: IconDrawOptions,
+  { cellW, cellH, scale, tick, pressed = false, toneShift = 0 }: IconDrawOptions,
 ): void {
   const { rows, palette, fillTone = 1 } = icon;
 
@@ -65,7 +67,7 @@ export function drawIconDigits(
         atlas,
         glyph,
         palette,
-        tone,
+        Math.max(0, tone - toneShift),
         (left + c * cellW) * scale,
         (top + r * cellH) * scale,
       );

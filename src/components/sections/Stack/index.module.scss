@@ -35,7 +35,7 @@
   @include hover-only {
     &:hover {
       background: var(--gray-800);
-      border-color: var(--gray-400);
+      border-color: var(--accent);
     }
   }
 }
@@ -48,4 +48,10 @@
 .usedAt {
   font-size: rem(13);
   color: var(--gray-400);
+}
+
+// The AI tiles are what sets this profile apart: a quiet accent edge even before hover.
+.isAi {
+  border-color: var(--accent-soft);
+  border-left: 2px solid var(--accent);
 }
