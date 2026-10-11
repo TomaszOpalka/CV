@@ -6,6 +6,9 @@ import { useIntroState } from '@/hooks/useIntroState';
 import { loadGsap } from '@/engine/ui/gsapLoader';
 import { prefersReducedMotion, registerScroller } from '@/engine/ui/scroller';
 
+/** The fixed header covers this much of the top of the screen (see Header/index.module.scss). */
+const HEADER_HEIGHT = 64;
+
 /**
  * Lenis smooth scrolling driven by GSAP's ticker (one loop), kept in sync with ScrollTrigger.
  * Off for `prefers-reduced-motion`. Nothing is loaded or started until the intro is over, so the intro
@@ -30,7 +33,7 @@ export function SmoothScroll() {
         gsap.ticker.lagSmoothing(0);
 
         registerScroller({
-          scrollTo: (target) => lenis.scrollTo(target, { duration: 1.1 }),
+          scrollTo: (target) => lenis.scrollTo(target, { duration: 1.1, offset: -HEADER_HEIGHT }),
           stop: () => lenis.stop(),
           start: () => lenis.start(),
         });

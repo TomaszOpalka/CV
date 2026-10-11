@@ -55,13 +55,18 @@
   }
 }
 
-.carousel {
+.cards {
   position: relative;
   z-index: 1;
   display: grid;
   gap: $space-4;
   padding: $space-4 0;
+  list-style: none;
   transition: opacity $duration-base $ease-out;
+
+  @include mq(md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
   // The cards can be clicked once revealed; until then they sit under the pixels.
   pointer-events: auto;
@@ -69,49 +74,6 @@
   .stage[data-mode='armed'] &,
   .stage[data-mode='exploding'] & {
     opacity: 0;
-  }
-}
-
-.track {
-  display: flex;
-  gap: $space-4;
-  padding: $space-2 0;
-  overflow-x: auto;
-  list-style: none;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
-  scrollbar-color: var(--gray-600) transparent;
-}
-
-.slide {
-  flex: 0 0 min(rem(340), 82%);
-  scroll-snap-align: start;
-}
-
-.controls {
-  display: none;
-  gap: $space-2;
-  justify-content: flex-end;
-
-  @include mq(md) {
-    display: flex;
-  }
-
-  button {
-    width: rem(44);
-    height: rem(44);
-    background: var(--gray-900);
-    border: 1px solid var(--gray-600);
-    color: var(--gray-0);
-    font-family: var(--font-mono);
-    font-size: rem(18);
-    cursor: pointer;
-
-    @include hover-only {
-      &:hover {
-        border-color: var(--gray-0);
-      }
-    }
   }
 }
 

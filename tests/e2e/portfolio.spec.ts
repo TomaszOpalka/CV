@@ -16,7 +16,7 @@ test('before the explosion the links are hidden, holding the pointer reveals the
   await openPixels(page);
 
   const links = page.locator('#portfolio a[href^="https://"]');
-  const cards = page.locator('#portfolio [data-carousel]');
+  const cards = page.locator('#portfolio ul');
   await expect(cards).toHaveCSS('opacity', '0');
   await expect(cards).toHaveAttribute('inert', '');
   const canvas = page.locator('#portfolio canvas');
@@ -29,7 +29,7 @@ test('before the explosion the links are hidden, holding the pointer reveals the
   await page.mouse.up();
   await expect(cards).toHaveCSS('opacity', '1');
   await expect(cards).not.toHaveAttribute('inert', '');
-  await expect(links).toHaveCount(5);
+  await expect(links).toHaveCount(3);
 
   await page.getByRole('button', { name: 'Rebuild the pixels' }).click();
   await expect(page.locator('#portfolio [data-mode="armed"]')).toBeVisible();
@@ -75,4 +75,40 @@ test('the pixel cursor leaves a coloured trail and the system cursor is hidden',
     return count;
   });
   expect(painted).toBeGreaterThan(100);
+});
+
+test('the arrow cursor puts its tip exactly on the pointer', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'no custom cursor on touch devices');
+  await page.goto('/');
+  await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(800);
+  const box = (await page.locator('#contact a[href^="mailto"]').boundingBox())!;
+  const px = Math.round(box.x + 40);
+  const py = Math.round(box.y + 8);
+  await page.mouse.move(px - 100, py + 60);
+  await page.mouse.move(px, py, { steps: 4 });
+  await page.waitForTimeout(1500); // the comet is gone, only the arrow is left
+  const tip = await page.evaluate(() => {
+    const canvas = [...document.querySelectorAll('canvas')].find(
+      (c) => getComputedStyle(c).position === 'fixed' && c.width > 500,
+    )!;
+    const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
+    let minX = Infinity;
+    let minY = Infinity;
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        if (data[(y * canvas.width + x) * 4 + 3]! > 40) {
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+        }
+      }
+    }
+    return {
+      x: minX / (canvas.width / window.innerWidth),
+      y: minY / (canvas.height / window.innerHeight),
+    };
+  });
+  expect(Math.abs(tip.x - px)).toBeLessThanOrEqual(2);
+  expect(Math.abs(tip.y - py)).toBeLessThanOrEqual(2);
 });

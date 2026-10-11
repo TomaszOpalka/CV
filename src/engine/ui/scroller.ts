@@ -20,7 +20,7 @@ export function prefersReducedMotion(): boolean {
   );
 }
 
-/** Scroll to a section id (without the #). Updates the hash without adding a history entry. */
+/** Scroll to a section id (without the #). The address bar is left alone: this is one page, nothing to bookmark. */
 export function scrollToSection(id: string): void {
   const element = document.getElementById(id);
   if (!element) return;
@@ -30,7 +30,6 @@ export function scrollToSection(id: string): void {
       behavior: prefersReducedMotion() ? 'auto' : 'smooth',
       block: 'start',
     });
-  history.replaceState(null, '', `#${id}`);
 }
 
 export function stopScroll(): void {

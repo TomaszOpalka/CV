@@ -11,8 +11,19 @@
   display: grid;
   align-items: center;
   min-height: 100svh;
+
+  // When the intro is over the hero shrinks to its content, so there is no half-empty screen below it.
+  transition: min-height 700ms $ease-out;
   overflow: hidden;
   background: var(--gray-1000);
+
+  &[data-state='done'] {
+    min-height: 0;
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
 
   // While the intro runs, swipes push digits around instead of scrolling the page.
   &[data-armed]:not([data-state='done']) {
@@ -55,6 +66,12 @@
     grid-template-columns: 1.15fr 0.85fr;
     gap: $space-6;
     padding-block: $space-4;
+  }
+
+  // Finished: clear the 64 px header at the top, little room below (the next section has its own padding).
+  .root[data-state='done'] & {
+    padding-top: rem(96);
+    padding-bottom: $space-8;
   }
 }
 

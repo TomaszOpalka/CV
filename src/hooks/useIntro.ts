@@ -46,6 +46,10 @@ export function useIntro({
   const controllerRef = useRef<IntroController | null>(null);
 
   useEffect(() => {
+    // Old links may carry a #section: the page is a single scroll, so drop it (the intro always starts at the top).
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
     // Already played during this page session (client-side navigation back to the home page).
     if (introStore.get() === 'done') return;
     // A remount in the middle of an intro (Fast Refresh, navigation) starts the intro over.

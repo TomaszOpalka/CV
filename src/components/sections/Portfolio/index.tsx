@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 
 import { Section } from '@/components/layout/Section';
 import { portfolioLinks } from '@/content/portfolioLinks';
@@ -12,16 +12,15 @@ import styles from './index.module.scss';
 type Mode = 'static' | 'armed' | 'exploding' | 'cleared';
 
 /**
- * A field of pixels that reacts to the pointer and explodes on click, revealing a carousel of the
+ * A field of digits that heats up under the pointer and explodes when held long enough, revealing the
  * author's projects. Without JavaScript, with reduced motion or when canvas is missing the field is never
- * armed and the links are simply there. While armed, a real button ("Reveal links") starts the explosion
+ * armed and the cards are simply there. While armed, a real button ("Reveal links") starts the explosion
  * from the keyboard, and the hidden cards are `inert` so nobody tabs into something invisible.
  */
 export function Portfolio() {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<PixelFieldController | null>(null);
-  const trackRef = useRef<HTMLUListElement>(null);
   const [mode, setMode] = useState<Mode>('static');
 
   useEffect(() => {
@@ -37,8 +36,9 @@ export function Portfolio() {
         const controller = new Controller({
           canvas,
           shakeTarget: stage,
-          onExplode: () => setMode('exploding'),
-          onCleared: () => setMode('cleared'),
+          // Not urgent: React may do this between frames instead of inside the first frame of the explosion.
+          onExplode: () => startTransition(() => setMode('exploding')),
+          onCleared: () => startTransition(() => setMode('cleared')),
         });
         controller.init();
         controllerRef.current = controller;
@@ -54,17 +54,6 @@ export function Portfolio() {
   }, []);
 
   const hidden = mode === 'armed' || mode === 'exploding';
-  /** Scroll the carousel by one card (the first card's width plus the gap). */
-  const slide = (direction: 1 | -1): void => {
-    const track = trackRef.current;
-    const first = track?.firstElementChild as HTMLElement | null | undefined;
-    if (!track || !first) return;
-    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-    track.scrollBy({
-      left: direction * (first.offsetWidth + gap),
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    });
-  };
   const rebuild = (): void => {
     controllerRef.current?.reset();
     setMode('armed');
@@ -88,42 +77,32 @@ export function Portfolio() {
         <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
 
         <div className={styles.content}>
-          <div className={styles.carousel} data-carousel inert={hidden}>
-            <ul ref={trackRef} className={styles.track} aria-label="Projects">
-              {portfolioLinks.map((link) => (
-                <li key={link.id} className={styles.slide}>
-                  <a
-                    className={styles.card}
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    data-cursor="link"
-                  >
-                    <span className={styles.name}>{link.name}</span>
-                    <span className={styles.description}>{link.description}</span>
-                    {link.tech && (
-                      <span className={styles.tags}>
-                        {link.tech.map((name) => (
-                          <span key={name}>{name}</span>
-                        ))}
-                      </span>
-                    )}
-                    <span className={styles.arrow} aria-hidden="true">
-                      ↗
+          <ul className={styles.cards} inert={hidden}>
+            {portfolioLinks.map((link) => (
+              <li key={link.id}>
+                <a
+                  className={styles.card}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor="link"
+                >
+                  <span className={styles.name}>{link.name}</span>
+                  <span className={styles.description}>{link.description}</span>
+                  {link.tech && (
+                    <span className={styles.tags}>
+                      {link.tech.map((name) => (
+                        <span key={name}>{name}</span>
+                      ))}
                     </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <div className={styles.controls}>
-              <button type="button" onClick={() => slide(-1)} aria-label="Previous projects">
-                ←
-              </button>
-              <button type="button" onClick={() => slide(1)} aria-label="Next projects">
-                →
-              </button>
-            </div>
-          </div>
+                  )}
+                  <span className={styles.arrow} aria-hidden="true">
+                    ↗
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {mode === 'armed' && (

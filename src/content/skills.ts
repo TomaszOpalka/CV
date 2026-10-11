@@ -1,6 +1,9 @@
 import type { SkillGroup } from '@/types';
 
-/** Source: the SKILLS block of the author's CV plus the author's notes. `usedAt` only where it is known. */
+/**
+ * Source: the SKILLS block of the author's CV plus the author's notes. `usedAt` only where it is known.
+ * Order is the order of importance for a recruiter: groups and tiles run from the core of the profile outwards.
+ */
 export const skillGroups: readonly SkillGroup[] = [
   {
     id: 'frontend',
@@ -10,11 +13,12 @@ export const skillGroups: readonly SkillGroup[] = [
       { id: 'javascript', name: 'JavaScript (ES6+)' },
       { id: 'react', name: 'React 19' },
       { id: 'nextjs', name: 'Next.js 15' },
-      { id: 'remix', name: 'Remix', usedAt: 'BCF, Husariabygg' },
+      { id: 'tanstack-query', name: 'TanStack Query', usedAt: 'BCF, live video monitoring' },
       { id: 'zustand', name: 'Zustand' },
       { id: 'recoil', name: 'Recoil', usedAt: 'BCF, live video monitoring' },
-      { id: 'tanstack-query', name: 'TanStack Query', usedAt: 'BCF, live video monitoring' },
+      { id: 'remix', name: 'Remix', usedAt: 'BCF, Husariabygg' },
       { id: 'threejs', name: 'three.js', usedAt: 'broniu.com' },
+      { id: 'capacitor', name: 'Capacitor (iOS / Android)', usedAt: 'BCF, live video monitoring' },
     ],
   },
   {
@@ -26,18 +30,6 @@ export const skillGroups: readonly SkillGroup[] = [
       { id: 'mantine', name: 'Mantine', usedAt: 'BCF, live video monitoring' },
       { id: 'mui', name: 'MUI', usedAt: 'BCF, Timesheet' },
       { id: 'fullcalendar', name: 'FullCalendar', usedAt: 'BCF, Timesheet' },
-    ],
-  },
-  {
-    id: 'ai',
-    title: 'AI & Agents',
-    items: [
-      { id: 'agents', name: 'LLM agent architecture' },
-      { id: 'sdks', name: 'Anthropic / OpenAI SDKs' },
-      { id: 'mcp', name: 'MCP' },
-      { id: 'tool-dispatch', name: 'Tool dispatch' },
-      { id: 'prompt-caching', name: 'Prompt caching' },
-      { id: 'pgvector', name: 'Semantic memory (pgvector)' },
     ],
   },
   {
@@ -53,6 +45,18 @@ export const skillGroups: readonly SkillGroup[] = [
       { id: 'graph', name: 'Microsoft Graph API', usedAt: 'BCF, Diocese of Bridgeport' },
       { id: 'stripe', name: 'Stripe' },
       { id: 'emailjs', name: 'EmailJS', usedAt: 'sannagiulio.ch' },
+    ],
+  },
+  {
+    id: 'ai',
+    title: 'AI & Agents',
+    items: [
+      { id: 'agents', name: 'LLM agent architecture' },
+      { id: 'sdks', name: 'Anthropic / OpenAI SDKs' },
+      { id: 'mcp', name: 'MCP' },
+      { id: 'tool-dispatch', name: 'Tool dispatch' },
+      { id: 'prompt-caching', name: 'Prompt caching' },
+      { id: 'pgvector', name: 'Semantic memory (pgvector)' },
     ],
   },
   {
@@ -73,12 +77,12 @@ export const skillGroups: readonly SkillGroup[] = [
     items: [
       { id: 'aws', name: 'AWS (Cognito, S3, IoT Core, CloudFront)' },
       { id: 'azure', name: 'Azure', usedAt: 'BCF, Diocese of Bridgeport' },
-      { id: 'vercel', name: 'Vercel' },
-      { id: 'netlify', name: 'Netlify' },
-      { id: 'ovh', name: 'OVH' },
       { id: 'docker', name: 'Docker' },
       { id: 'github-actions', name: 'GitHub Actions' },
       { id: 'gitlab', name: 'GitLab' },
+      { id: 'vercel', name: 'Vercel' },
+      { id: 'netlify', name: 'Netlify' },
+      { id: 'ovh', name: 'OVH' },
       { id: 'drone', name: 'Drone CI', usedAt: 'BCF, Timesheet' },
     ],
   },
@@ -91,7 +95,6 @@ export const skillGroups: readonly SkillGroup[] = [
       { id: 'vitest', name: 'Vitest', usedAt: 'BCF, live video monitoring' },
       { id: 'pytest', name: 'Pytest', usedAt: 'BCF, live video monitoring' },
       { id: 'postman', name: 'Postman' },
-      { id: 'capacitor', name: 'Capacitor', usedAt: 'BCF, live video monitoring' },
     ],
   },
 ];

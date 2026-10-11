@@ -12,6 +12,12 @@ describe('pixel icons', () => {
     }
   });
 
+  it('puts the tip of the arrow on the hotspot, so the tip is where you click', () => {
+    const { rows, hotspot } = ICONS.arrow;
+    expect(hotspot).toEqual({ x: 0, y: 0 });
+    expect(rows[0]![0]).toBe('#');
+  });
+
   it('maps sections and falls back to the heart', () => {
     expect(iconForSection('contact')).toBe('mail');
     expect(iconForSection('portfolio')).toBe('heart');

@@ -5,6 +5,7 @@ import { FIRE, WHITE } from '../glyph/palette';
 import { CELL_ASPECT } from '../glyph/portrait';
 import { HEAT_RAMP } from '../pixels/heatPalette';
 import { resolveCursorTarget, sameTarget, type CursorTarget } from '../ui/cursorTarget';
+import { isCursorPaused } from './cursorGate';
 import { drawIconDigits, FLICKER_MS } from './drawIcon';
 import { HeatBrush } from './HeatBrush';
 import { ICONS, type PixelIcon } from './pixelIcons';
@@ -141,6 +142,12 @@ export class CursorController {
   };
 
   private frame(dt: number): void {
+    if (isCursorPaused()) {
+      // The pixel field is exploding: draw nothing, look nothing up, keep the head where it is.
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      return;
+    }
     const step = Math.min(dt, 0.05);
     const k = 1 - Math.exp(-FOLLOW_RATE * step);
     const prevX = this.hx;
@@ -225,8 +232,8 @@ export class CursorController {
     const atlas = this.atlas;
     if (!atlas) return;
     const tick = Math.floor(performance.now() / FLICKER_MS);
-    const cx = Math.round(this.hx / CELL_W) * CELL_W;
-    const cy = Math.round(this.hy / CELL_H) * CELL_H;
+    const cx = this.px;
+    const cy = this.py;
     CLUSTER.forEach(([ox, oy], n) => {
       const palette = n === 0 ? FIRE : WHITE;
       drawGlyph(
@@ -241,14 +248,18 @@ export class CursorController {
     });
   }
 
-  /** An icon made of digits, centred on the pointer and snapped to the digit grid. */
+  /**
+   * An icon made of digits, placed so that its hotspot (the centre unless the icon says otherwise, e.g. the tip
+   * of the arrow) is exactly on the pointer. It follows the real pointer, not the smoothed comet head, and is
+   * not snapped to the digit grid, so what you point at is what you click.
+   */
   private drawIcon(icon: PixelIcon): void {
     const atlas = this.atlas;
     if (!atlas) return;
-    const { rows } = icon;
-    const left = Math.round((this.hx - (rows[0]!.length * CELL_W) / 2) / CELL_W) * CELL_W;
-    const top = Math.round((this.hy - (rows.length * CELL_H) / 2) / CELL_H) * CELL_H;
-    drawIconDigits(this.ctx, atlas, icon, left, top, {
+    const { rows, hotspot } = icon;
+    const hx = hotspot?.x ?? rows[0]!.length / 2;
+    const hy = hotspot?.y ?? rows.length / 2;
+    drawIconDigits(this.ctx, atlas, icon, this.px - hx * CELL_W, this.py - hy * CELL_H, {
       cellW: CELL_W,
       cellH: CELL_H,
       scale: this.dpr,
@@ -267,8 +278,8 @@ export class CursorController {
       this.labelFor = label;
       this.labelWidth = Math.ceil(ctx.measureText(label).width);
     }
-    const x = Math.round(this.hx + 62);
-    const y = Math.round(this.hy - 11);
+    const x = Math.round(this.px + 62);
+    const y = Math.round(this.py - 11);
     const w = this.labelWidth + 14;
     ctx.fillStyle = '#000';
     ctx.fillRect(x + 2, y + 2, w, 22);

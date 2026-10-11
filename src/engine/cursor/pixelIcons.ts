@@ -13,6 +13,11 @@ export interface PixelIcon {
   palette: number;
   /** Brightness (0..6) of the `+` fill; the default is a dim fill that keeps the content underneath readable. */
   fillTone?: number;
+  /**
+   * Where the click lands, in cells from the icon's top-left corner. Default: the centre. A pointer-shaped icon puts
+   * its tip here, so the tip is always exactly where the user clicks.
+   */
+  hotspot?: { x: number; y: number };
 }
 
 export const ICONS: Readonly<Record<IconName, PixelIcon>> = {
@@ -101,18 +106,20 @@ export const ICONS: Readonly<Record<IconName, PixelIcon>> = {
       '#############',
     ],
   },
+  // Points up and to the left like the system pointer; its tip (the top-left corner) is the click point.
   arrow: {
     palette: WHITE,
+    hotspot: { x: 0, y: 0 },
     rows: [
-      '......#######',
-      '........#####',
-      '.......#.####',
-      '......#...###',
-      '.....#.....##',
-      '....#.......#',
-      '...#.........',
-      '..#..........',
-      '.#...........',
+      '#######......',
+      '#####........',
+      '####.#.......',
+      '###...#......',
+      '##.....#.....',
+      '#.......#....',
+      '.........#...',
+      '..........#..',
+      '...........#.',
     ],
   },
   beam: {

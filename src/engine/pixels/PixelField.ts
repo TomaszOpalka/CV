@@ -18,7 +18,7 @@ export interface HeatInput {
 export const CHARGE_SECONDS = 1.8;
 
 const HOVER_RADIUS = 70;
-const MAX_RADIUS_FACTOR = 0.55; // of the field's diagonal
+const MAX_RADIUS_FACTOR = 0.42; // of the field's diagonal: a full charge lights most of the field, not all of it
 const COOL_PER_SECOND = 0.7;
 const SHOCK_SPEED = 1500;
 const KICK_MIN = 260;

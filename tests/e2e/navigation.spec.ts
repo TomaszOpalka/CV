@@ -23,7 +23,8 @@ test('a menu link scrolls to its section and becomes the current one', async ({
     .first()
     .click();
   await expect(page.locator('#stack')).toBeInViewport({ timeout: 5_000 });
-  await expect(page).toHaveURL(/#stack$/);
+  // One page, nothing to bookmark: the address bar stays clean.
+  expect(new URL(page.url()).hash).toBe('');
   if (!isMobile) {
     await expect(page.getByRole('link', { name: /^(\d{2}\s?)?Stack$/ })).toHaveAttribute(
       'aria-current',

@@ -167,6 +167,14 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
   jeden napis naraz, 0,17 s) jedna litera zamienia się w cyfrę, nigdy obok drugiej cyfry. Kopia dla czytników ekranu zawsze ma prawdziwy tekst.
 - **Treści z CV (PDF autora):** `src/content/*` zawiera już prawdziwe dane: BCF z czterema projektami, SG Consulting, wczesne projekty, szkoły, certyfikaty, języki,
   umiejętności i linki do portfolio. Numer telefonu z CV celowo nie jest publikowany. Serce (czerwone) to ikona sekcji „Other CVs”.
+- **Bez haszy w adresie:** to jedna strona, więc nawigacja przewija bez zmiany URL (linki `href="#id"` zostają tylko jako zapasowa wersja bez JS, a stary
+  adres z `#sekcja` jest czyszczony przy starcie). Karuzela odpadła (nie dało się w nią trafić kursorem z cyfr): po wybuchu są trzy karty.
+- **Odstępy:** sekcje mają 40 px (telefon) i 48 px (desktop) paddingu góra/dół, czyli 80 i 96 px między sekcjami. Po intro hero kurczy się do swojej zawartości.
+- **Strzałka kursora** wskazuje w lewo-góra jak systemowa, a jej czubek jest dokładnie w punkcie kliknięcia (hotspot ikony, bez przyciągania do siatki cyfr;
+  test e2e sprawdza to co do piksela).
+- **Wydajność portfolio:** cyfry rysują się w dwóch przejściach (najpierw łatki koloru strony, potem wszystkie cyfry z jednego atlasu), pełne naładowanie
+  zapala mniej komórek, `QualityGovernor` zwiększa cyfry przy wolnych klatkach, kursor nie rysuje nic podczas wybuchu, a zmiana stanu Reacta idzie w `startTransition`.
+  Pomiar w headless bez GPU (1600 × 900, build produkcyjny): klatka podczas wybuchu 107 → 21 ms przy 18 ms „pustej” klatki strony.
 - **Sekcja „Portfolio”** (dawniej „Other CVs”, id `portfolio`): po wybuchu karuzela projektów (sannagiulio.ch, broniu.com, dwa wczesne portfolia, GitHub).
   **Nawigacja** to kafelki na pełną wysokość nagłówka; na telefonie panel z tłem, a dotknięcie poza nim zamyka menu.
 - **Wydajność wybuchu (pomiar, profil CPU przez CDP, headless bez GPU):** koszt był w liczbie operacji rysowania, nie w logice. Przed: średnio 107 ms/klatkę

@@ -1,4 +1,6 @@
+import { QualityGovernor } from '../core/QualityGovernor';
 import { ticker } from '../core/Ticker';
+import { setCursorPaused } from '../cursor/cursorGate';
 import { drawGlyph, makeAtlas } from '../glyph/drawGlyph';
 import type { GlyphAtlas } from '../glyph/GlyphAtlas';
 import { CELL_ASPECT } from '../glyph/portrait';
@@ -13,6 +15,8 @@ const COLD_TONE = 1;
 const PAGE_COLOR = '#0b0b0b';
 /** The field is mostly dim digits; a device pixel ratio above this adds fill cost and no visible sharpness. */
 const MAX_DPR = 1.5;
+/** Digit size per quality level (0 = the coarsest, fewest sprites). The governor steps down when frames get slow. */
+const QUALITY_SCALE: readonly number[] = [1.6, 1.25, 1];
 
 export interface PixelFieldControllerOptions {
   canvas: HTMLCanvasElement;
@@ -51,6 +55,9 @@ export class PixelFieldController {
   private onScreen = false;
   private holding = false;
   private clearedNotified = false;
+  private readonly governor: QualityGovernor;
+  private builtLevel: number;
+  private pendingRebuild = false;
 
   constructor(options: PixelFieldControllerOptions) {
     this.options = options;
@@ -58,6 +65,13 @@ export class PixelFieldController {
     const ctx = this.canvas.getContext('2d');
     if (!ctx) throw new Error('2D canvas is not available');
     this.ctx = ctx;
+    // Phones start one step down: they have the least headroom.
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    this.governor = new QualityGovernor({
+      levels: QUALITY_SCALE.length,
+      startLevel: coarse ? 1 : QUALITY_SCALE.length - 1,
+    });
+    this.builtLevel = this.governor.level;
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.visibilityObserver = new IntersectionObserver((entries) => {
       this.onScreen = entries.some((entry) => entry.isIntersecting);
@@ -84,6 +98,8 @@ export class PixelFieldController {
     if (!field || field.phase !== 'idle') return;
     field.explode(x ?? this.width / 2, y ?? this.height / 2);
     this.holding = false;
+    // Nothing else may compete for the frame while the digits fly (the cursor draws nothing for a moment).
+    setCursorPaused(true);
     if (typeof navigator.vibrate === 'function') navigator.vibrate(40);
     this.options.onExplode();
     this.syncLoop();
@@ -95,6 +111,7 @@ export class PixelFieldController {
     this.field.reset();
     this.input.hold = 0;
     this.clearedNotified = false;
+    setCursorPaused(false);
     this.applyShake(0);
     this.syncLoop();
   }
@@ -111,6 +128,7 @@ export class PixelFieldController {
     this.resizeObserver.disconnect();
     this.visibilityObserver.disconnect();
     document.removeEventListener('visibilitychange', this.syncLoop);
+    setCursorPaused(false);
     this.applyShake(0);
   }
 
@@ -146,19 +164,23 @@ export class PixelFieldController {
     const shouldRun =
       this.onScreen && document.visibilityState === 'visible' && this.field !== null;
     if (shouldRun && !this.unsubscribe) {
+      // Coming back into view the first frames are slow for reasons that have nothing to do with the field.
+      this.governor.rearm();
       this.unsubscribe = ticker.add((deltaMs) => this.frame(deltaMs / 1000));
     } else if (!shouldRun && this.unsubscribe) {
       this.unsubscribe();
       this.unsubscribe = null;
     }
+    // The cursor is held back only while the explosion is actually running (not when it is scrolled out of view).
+    setCursorPaused(shouldRun && this.field?.phase === 'exploding');
   };
 
-  private resize(): void {
+  private resize(force = false): void {
     const rect = this.canvas.getBoundingClientRect();
     const width = Math.round(rect.width);
     const height = Math.round(rect.height);
     if (width === 0 || height === 0) return;
-    if (width === this.width && height === this.height && this.field) return;
+    if (!force && width === this.width && height === this.height && this.field) return;
     this.width = width;
     this.height = height;
 
@@ -167,7 +189,8 @@ export class PixelFieldController {
     this.canvas.width = Math.round(width * dpr);
     this.canvas.height = Math.round(height * dpr);
 
-    let cellH = cellHeightFor(width);
+    this.builtLevel = this.governor.level;
+    let cellH = Math.round(cellHeightFor(width) * QUALITY_SCALE[this.builtLevel]!);
     while ((width / (cellH * CELL_ASPECT)) * (height / cellH) > MAX_PIXELS) cellH += 2;
     const cellW = cellH * CELL_ASPECT;
     // A resize in the middle of an explosion keeps what is flying; an idle field is rebuilt to the new size.
@@ -214,12 +237,24 @@ export class PixelFieldController {
       this.explode(input.x, input.y);
     }
 
+    // Slow frames step the digit size up (fewer sprites); the change is applied while the field is idle.
+    if (this.governor.record(dt * 1000) !== null) this.pendingRebuild = true;
+    if (this.pendingRebuild && field.phase === 'idle' && !this.holding) {
+      this.pendingRebuild = false;
+      if (this.governor.level !== this.builtLevel) {
+        this.resize(true);
+        this.governor.rearm();
+        return;
+      }
+    }
+
     field.step(step, input);
     this.eraseLeftCells(field);
     this.draw(field);
     this.applyShake(field.shake());
     if (field.phase === 'cleared' && !this.clearedNotified) {
       this.clearedNotified = true;
+      setCursorPaused(false);
       this.options.onCleared();
     }
   }
@@ -269,18 +304,32 @@ export class PixelFieldController {
     // The cold wall is one image. Lit digits that are still on the grid sit on a patch of page colour (no
     // composite-mode change, no big path); thrown digits fly over whatever is left of the wall.
     if (this.coldLayer) ctx.drawImage(this.coldLayer, 0, 0);
+    // Two passes, so the GPU can batch: first every patch of page colour, then every digit (one atlas image).
+    const patch = ctx;
+    patch.fillStyle = PAGE_COLOR;
+    for (let i = 0; i < field.count; i++) {
+      // The faintest step looks the same as the cold digit: skip it (a third fewer sprites at the edge of the heat).
+      if (field.bucket[i]! < 1 || field.attached[i] === 0) continue;
+      patch.fillRect(
+        field.x[i]! * scale - gw / 2 - 1,
+        field.y[i]! * scale - gh / 2 - 1,
+        gw + 2,
+        gh + 2,
+      );
+    }
     for (let i = 0; i < field.count; i++) {
       const bucket = field.bucket[i]!;
-      // The faintest step looks the same as the cold digit: skip it (a third fewer sprites at the edge of the heat).
       if (bucket < 1) continue;
       const shade = HEAT_RAMP[bucket]!;
-      const x = field.x[i]! * scale - gw / 2;
-      const y = field.y[i]! * scale - gh / 2;
-      if (field.attached[i] === 1) {
-        ctx.fillStyle = PAGE_COLOR;
-        ctx.fillRect(x - 1, y - 1, gw + 2, gh + 2);
-      }
-      drawGlyph(ctx, atlas, field.glyph[i]!, shade.palette, shade.tone, x, y);
+      drawGlyph(
+        ctx,
+        atlas,
+        field.glyph[i]!,
+        shade.palette,
+        shade.tone,
+        field.x[i]! * scale - gw / 2,
+        field.y[i]! * scale - gh / 2,
+      );
     }
   }
 }

@@ -2,11 +2,13 @@
 
 .section {
   position: relative;
-  padding: $space-16 $space-6;
+
+  // Tight on purpose: between two sections the gap is the bottom plus the top padding (80 px on a phone, 96 px on desktop).
+  padding: rem(40) $space-6;
   scroll-margin-top: rem(64);
 
   @include mq(md) {
-    padding: rem(112) $space-12;
+    padding: rem(48) $space-12;
   }
 }
 
