@@ -185,3 +185,25 @@ Tak, można pracować ze mną bezpośrednio na Twoim komputerze, na lokalnych pl
 
 Każda z tych sesji czyta `CLAUDE.md` (reguły pracy), widzi cały projekt i pracuje na tym samym lokalnym folderze co Ty.
 Sesja w chmurze, w której pisałem szkielet, pracuje na kopii repozytorium i oddaje zmiany przez GitHub.
+
+## 9. Domena (OVH), Netlify i Google Search Console
+
+Adres główny to **`https://tomaszopałka.com`** (bez `www`; w sieci i w kodzie: `https://xn--tomaszopaka-15b.com`). Stałą `siteUrl` ma `src/content/seo.ts`
+i z niej biorą adres canonical, `robots.txt`, `sitemap.xml` i JSON-LD.
+
+### 9.1 DNS w OVH (Web Cloud → Nazwy domen → domena → Strefa DNS)
+
+1. Usuń domyślne wpisy OVH: `A` i `AAAA` domeny głównej, `A` i `TXT` na `www`, `TXT` ze znacznikami `1|…` i `3|welcome`.
+2. Dodaj `A`, subdomena `@`, cel `75.2.60.5`.
+3. Dodaj `CNAME`, subdomena `www`, cel `tomaszopalka.netlify.app.` (z kropką).
+4. `NS`, `MX` i `SPF` zostaw: to serwery nazw i poczta.
+5. W Netlify (Domain management) po propagacji: **Retry DNS verification**, potem certyfikat HTTPS włącza się sam.
+
+### 9.2 Google Search Console
+
+1. search.google.com/search-console → **Add property** → typ **Domain** → wpisz `tomaszopałka.com` (jeśli odrzuci, `xn--tomaszopaka-15b.com`).
+2. Google poda rekord `TXT`: dodaj go w strefie DNS OVH (subdomena pusta) i kliknij **Verify**.
+3. **Sitemaps** → `sitemap.xml` → **Submit** (dopiero po wdrożeniu tej wersji na `main`).
+4. **URL inspection** → `https://tomaszopałka.com/` → **Request indexing**.
+
+Indeksacja trwa od kilku dni do kilku tygodni. Linkowanie strony z LinkedIna i GitHuba pomaga bardziej niż jakakolwiek metadana.
