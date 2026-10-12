@@ -177,13 +177,12 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
   Pomiar w headless bez GPU (1600 × 900, build produkcyjny): klatka podczas wybuchu 107 → 21 ms przy 18 ms „pustej” klatki strony.
 - **Design po przeglądzie (11.10.2026):** jeden akcent (`--accent`, pomarańcz) użyty systemowo: numery sekcji, aktywna nawigacja, pasek postępu,
   przycisk „Hire me”, hover kart i linków, kafle AI w stacku, zaznaczenie tekstu i focus. Za tytułami sekcji wielkie obrysowane numery (cyfry jako materiał strony).
-  Po przekątnej ekranu (lewy-góra → prawy-dół) dryfuje przyciemniona ikona z cyfr aktualnej sekcji (tylko przy scrollu, tylko szerokie ekrany).
   Experience: nazwa, jedno zdanie, technologie, 3 punkty, reszta w „Show more”. Contact: duży e-mail jako jedyny główny element.
 - **Stack jako zakładki (szkic autora):** na desktopie lista technologii otwartej grupy po lewej, lista grup (zakładek) po prawej; na telefonie ten sam kod to
   akordeon (klik w cały nagłówek otwiera i zwija). Technologie „core” grupy są na górze i na pomarańczowo. Jedna grupa otwarta naraz.
 - **SEO bez sztuczek:** tytuł, opis, Open Graph, JSON-LD `Person` i `llms.txt` mówią to samo co strona. Żadnego ukrytego tekstu, słów kluczowych dla botów ani
   poleceń dla AI (to prowadzi do filtrów, nie do wyższej pozycji). Odrzucone: „najlepszy junior” (twierdzenie nie do sprawdzenia).
-- **Sekcja „Portfolio”** (dawniej „Other CVs”, id `portfolio`): po wybuchu karuzela projektów (sannagiulio.ch, broniu.com, dwa wczesne portfolia, GitHub).
+- **Sekcja „Portfolio”** (dawniej „Other CVs”, id `portfolio`): po wybuchu karuzela projektów (sannagiulio.ch, broniu.com, dwa wczesne portfolia).
   **Nawigacja** to kafelki na pełną wysokość nagłówka; na telefonie panel z tłem, a dotknięcie poza nim zamyka menu.
 - **Wydajność wybuchu (pomiar, profil CPU przez CDP, headless bez GPU):** koszt był w liczbie operacji rysowania, nie w logice. Przed: średnio 107 ms/klatkę
   podczas wybuchu (4,2 tys. `drawImage` na klatkę + ścieżka z 12 tys. prostokątów w trybie `destination-out`). Po: 20 ms/klatkę. Zmiany: zimna ściana cyfr
@@ -202,6 +201,14 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
 - [ ] Spełniony budżet wydajności z fazy 2 (60 fps desktop, ≥ 50 fps telefon), także w trakcie wybuchu
 - [x] Testy: Vitest (silnik pikseli), Playwright (klik → linki widoczne, nawigacja, sekcje)
 - [ ] Autor zaakceptował wygląd
+
+### Odrzucone po przeglądzie autora (12.10.2026)
+
+- **Sznurek z cyfr** (nitka po lewym marginesie, odliczanie przy scrollu, strzałka przy e-mailu): zbudowany jako proof of concept, działał jak w
+  zamyśle, ale autorowi się nie spodobał. Cofnięty (`git revert`), kod zostaje w historii (commit `45da1c3`).
+- **Dryfująca ikona sekcji** (lewy-góra → prawy-dół): usunięta. Wróci tylko, jeśli pojawi się zdecydowanie lepsza koncepcja.
+- **Portfolio:** trzy karty to Portfolio 1, Portfolio 2 i broniu.com. sannagiulio.ch jest przy doświadczeniu w Experience.
+- Bez ręki z cyfr w Contact i bez dwukolumnowego układu ze sticky nagłówkiem. Zakładki w Stack (flagi `core`) zostają.
 
 ## Ryzyka
 

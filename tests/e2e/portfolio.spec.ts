@@ -184,14 +184,20 @@ test('scrolling with a still mouse changes the cursor icon to the one of the sec
     );
 
   // Experience: the briefcase is cyan (blue-ish). Contact: the envelope is orange (red-ish).
+  // Polled instead of a fixed wait: the icon swaps on the next 120 ms hit-test, which a loaded CI machine can delay.
+  const settled = async () => {
+    let colour = await averageColour();
+    await expect
+      .poll(async () => (colour = await averageColour()).n, { timeout: 10_000 })
+      .toBeGreaterThan(50);
+    return colour;
+  };
   await goTo('experience');
   await page.waitForTimeout(1800);
-  const experience = await averageColour();
+  const experience = await settled();
   await goTo('contact');
   await page.waitForTimeout(1800);
-  const contact = await averageColour();
-  expect(experience.n).toBeGreaterThan(50);
-  expect(contact.n).toBeGreaterThan(50);
+  const contact = await settled();
   expect(experience.b).toBeGreaterThan(contact.b + 20);
   expect(contact.r).toBeGreaterThan(experience.r - 1);
 });

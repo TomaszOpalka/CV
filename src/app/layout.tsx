@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
 import { Cursor } from '@/components/layout/Cursor';
-import { DriftIcon } from '@/components/layout/DriftIcon';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { ScrollReveal } from '@/components/layout/ScrollReveal';
@@ -44,7 +43,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <JsonLd />
         <Header />
-        <DriftIcon />
         {children}
         <Footer />
         <SmoothScroll />
