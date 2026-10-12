@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { ScrollReveal } from '@/components/layout/ScrollReveal';
 import { SectionTracker } from '@/components/layout/SectionTracker';
 import { SmoothScroll } from '@/components/layout/SmoothScroll';
+import { ThreadLine } from '@/components/layout/ThreadLine';
 import { TouchEffects } from '@/components/layout/TouchEffects';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { seo } from '@/content/seo';
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <JsonLd />
         <Header />
         <DriftIcon />
+        <ThreadLine />
         {children}
         <Footer />
         <SmoothScroll />

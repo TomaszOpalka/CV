@@ -203,6 +203,19 @@ dla dostępności i mobile), animacja rozwijania kart, fizyczny „tilt” kart 
 - [x] Testy: Vitest (silnik pikseli), Playwright (klik → linki widoczne, nawigacja, sekcje)
 - [ ] Autor zaakceptował wygląd
 
+### Sznurek z cyfr (proof of concept, 12.10.2026)
+
+- Pomysł autora: nitka z cyfr w szarości dużych numerów sekcji, prowadzona od hero lewym marginesem w dół i kończąca się strzałką
+  przy adresie e-mail w Contact. Przeliczana ze scrollem jak pasek postępu (głowa = postęp × długość ścieżki), przy scrollu w górę się cofa.
+- Za głową zostaje blady ślad z zer, a sama głowa to odliczanie 9…0 (jasność maleje z odległością). Pod niewybuchniętym polem Portfolio
+  nitka jest niewidoczna (tło sceny), po wybuchu wraca.
+- Kod: `src/engine/thread/` (czysta geometria `threadPath.ts` z testami, rysowanie `ThreadLine.ts`) i `components/layout/ThreadLine/`.
+  Tylko ≥ 1100 px szerokości, wyłączony przy `prefers-reduced-motion`, rysuje wyłącznie widoczny fragment, ścieżka liczona na nowo przy zmianie
+  wysokości dokumentu. Strzałka to rząd cyfr w skrzydłach pod kątem 45°.
+- **Jak wycofać:** usuń `src/components/layout/ThreadLine/`, `src/engine/thread/`, linię `<ThreadLine />` w `src/app/layout.tsx` i regułę
+  oznaczoną „thread” w `sections/Portfolio/index.module.scss`. Dodatkowo hero (`Intro`) jest w stanie `done` przezroczyste, żeby nitka była
+  widoczna; po wycofaniu można to zostawić.
+
 ## Ryzyka
 
 | Ryzyko                                          | Co robimy                                                           |
