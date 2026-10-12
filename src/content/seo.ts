@@ -3,6 +3,9 @@ import { education } from './education';
 import { profile } from './profile';
 import { skillGroups } from './skills';
 
+/** Canonical address of the site (origin, punycode form of tomaszopałka.com). */
+export const siteUrl = new URL('https://tomaszopałka.com').origin;
+
 /** Search-engine copy. It must match what the page shows to people: no hidden text or keyword lists. */
 export const seo = {
   title: `${profile.name} | Junior Fullstack Developer in Wrocław`,
@@ -31,6 +34,7 @@ export function personJsonLd(): Record<string, unknown> {
     '@context': 'https://schema.org',
     '@type': 'Person',
     name: profile.name,
+    url: siteUrl,
     alternateName: 'Tomasz Opalka',
     jobTitle: seo.jobTitle,
     description: seo.description,
