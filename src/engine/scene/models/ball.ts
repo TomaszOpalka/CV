@@ -14,18 +14,18 @@ function seamPoint(curve: number, i: number, out: Float64Array): void {
   const c = Math.cos(a);
   const s = Math.sin(a);
   switch (curve) {
-    case 0: // equator
+    case 0:
       out[0] = c;
       out[1] = s;
       out[2] = 0;
       return;
-    case 1: // meridian
+    case 1:
       out[0] = c;
       out[1] = 0;
       out[2] = s;
       return;
     default: {
-      // the two curved side seams: circles in planes offset from the centre
+      // side seams: circles in planes offset from the centre
       const side = curve === 2 ? 1 : -1;
       const offset = 0.55 * side;
       const r = Math.sqrt(1 - offset * offset);
@@ -44,7 +44,7 @@ export interface BallDraw {
   spin: number;
   /** Overall opacity. */
   alpha: number;
-  /** Opacity of the seams (they are the first thing to disappear when it turns into the reactor). */
+  /** Opacity of the seams. */
   seams: number;
   lw: number;
   /** 0..1 squash when it hits the floor, 0..1 stretch along its fall. */
@@ -63,7 +63,7 @@ export function drawBall(pen: Pen, o: BallDraw): number {
   const stretch = o.stretch ?? 0;
   const deformed = squash > 0.01 || stretch > 0.01;
   if (deformed) {
-    // Squash and stretch happen in screen space, around the ball's centre.
+    // squash and stretch are applied in screen space around the centre
     if (!cam.project(o.x, o.y, o.z, centre)) return -1;
     ctx.save();
     ctx.translate(centre[0]!, centre[1]!);
@@ -77,7 +77,6 @@ export function drawBall(pen: Pen, o: BallDraw): number {
     if (deformed) ctx.restore();
     return -1;
   }
-  // a lighter patch gives the disc some volume
   ctx.fillStyle = YELLOW;
   ctx.globalAlpha = 0.14 * o.alpha;
   pen.disc(o.x - BALL_RADIUS * 0.28, o.y, o.z + BALL_RADIUS * 0.3, BALL_RADIUS * 0.6);
@@ -124,7 +123,6 @@ export function drawBall(pen: Pen, o: BallDraw): number {
     ctx.stroke();
   }
 
-  // bright rim
   ctx.strokeStyle = YELLOW;
   ctx.lineWidth = o.lw * 1.6;
   ctx.globalAlpha = 1 * o.alpha;

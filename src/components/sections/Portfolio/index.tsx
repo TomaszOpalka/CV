@@ -12,10 +12,8 @@ import styles from './index.module.scss';
 type Mode = 'static' | 'armed' | 'exploding' | 'cleared';
 
 /**
- * A field of digits that heats up under the pointer and explodes when held long enough, revealing the
- * author's projects. Without JavaScript, with reduced motion or when canvas is missing the field is never
- * armed and the cards are simply there. While armed, a real button ("Reveal links") starts the explosion
- * from the keyboard, and the hidden cards are `inert` so nobody tabs into something invisible.
+ * A digit field that explodes when held long enough, revealing the projects. Without JavaScript, with reduced
+ * motion or without canvas it is never armed and the cards are simply shown. While armed, hidden cards are `inert`.
  */
 export function Portfolio() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -36,7 +34,7 @@ export function Portfolio() {
         const controller = new Controller({
           canvas,
           shakeTarget: stage,
-          // Not urgent: React may do this between frames instead of inside the first frame of the explosion.
+          // Not urgent: keeps React work out of the explosion's first frame.
           onExplode: () => startTransition(() => setMode('exploding')),
           onCleared: () => startTransition(() => setMode('cleared')),
         });

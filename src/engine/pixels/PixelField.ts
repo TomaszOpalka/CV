@@ -18,7 +18,7 @@ export interface HeatInput {
 export const CHARGE_SECONDS = 1.8;
 
 const HOVER_RADIUS = 70;
-const MAX_RADIUS_FACTOR = 0.42; // of the field's diagonal: a full charge lights most of the field, not all of it
+const MAX_RADIUS_FACTOR = 0.42; // of the field's diagonal
 const COOL_PER_SECOND = 0.7;
 const SHOCK_SPEED = 1500;
 const KICK_MIN = 260;
@@ -32,11 +32,9 @@ const FLICKER = 0.12;
 const COLD_DEBRIS_SHARE = 0.3;
 
 /**
- * Structure-of-arrays field of digits (one per grid cell, the cells are taller than wide like the intro's) that heats up around the pointer:
- * hovering lights a small spot, holding makes it grow, and the heat then cools off cell by cell with ragged
- * edges. `explode` sends a shockwave from a point; every pixel the front reaches is thrown out as debris that
- * cools while it falls, until the field is `cleared`. No DOM access and no per-frame allocation.
- * Units: CSS px and seconds; positions are pixel centres.
+ * Structure-of-arrays field of digits, one per grid cell, that heats up around the pointer and cools off with ragged edges.
+ * `explode` sends a shockwave; every cell the front reaches is thrown out as debris until the field is `cleared`.
+ * No DOM access and no per-frame allocation. Units: CSS px and seconds; positions are cell centres.
  */
 export class PixelField {
   readonly cols: number;
@@ -201,8 +199,7 @@ export class PixelField {
         if (!shock.passed(d)) continue;
         this.attached[i] = 0;
         this.leftGrid[this.leftCount++] = i;
-        // Lit digits always fly; of the cold ones only a share does (fewer sprites to draw, the look is the same
-        // because cold digits are dim). The others vanish with the front.
+        // Lit digits always fly; only a share of the dim cold ones does (fewer sprites, same look).
         if (this.bucket[i]! < 0 && this.rng() > COLD_DEBRIS_SHARE) {
           this.life[i] = 0;
           continue;
@@ -224,7 +221,6 @@ export class PixelField {
     const drag = dragFactor(DEBRIS_DRAG, dt);
     for (let i = 0; i < this.count; i++) {
       if (this.attached[i] === 1) {
-        // Cells the front has not reached yet cool down as usual.
         const level = Math.max(0, this.heat[i]! - COOL_PER_SECOND * dt);
         this.heat[i] = level;
         this.bucket[i] = level > 0 ? heatBucket(level + this.noise[i]!) : -1;

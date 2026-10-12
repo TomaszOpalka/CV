@@ -1,9 +1,8 @@
 import { CYAN, FIRE, GREEN, RED, WHITE } from '../glyph/palette';
 
 /**
- * Cursor icons drawn in digits. Every row is a string on a 13 x 9 grid (digit cells are taller than wide, so
- * this is roughly square on screen): `#` is the bright outline, `+` a dim fill that keeps the content under
- * the cursor readable, `.` is empty. Each icon has its own colour (a palette of the glyph atlas).
+ * Cursor icons drawn in digits. Each row is a string on a 13 x 9 grid: `#` is the bright outline,
+ * `+` a dim fill that keeps the content underneath readable, `.` is empty.
  */
 export type IconName = 'heart' | 'smile' | 'case' | 'layers' | 'cap' | 'mail' | 'arrow' | 'beam';
 
@@ -11,12 +10,9 @@ export interface PixelIcon {
   rows: readonly string[];
   /** Palette index of the glyph atlas (white, green, cyan, fire, red). */
   palette: number;
-  /** Brightness (0..6) of the `+` fill; the default is a dim fill that keeps the content underneath readable. */
+  /** Brightness (0..6) of the `+` fill. */
   fillTone?: number;
-  /**
-   * Where the click lands, in cells from the icon's top-left corner. Default: the centre. A pointer-shaped icon puts
-   * its tip here, so the tip is always exactly where the user clicks.
-   */
+  /** Where the click lands, in cells from the top-left corner. Default: the centre. */
   hotspot?: { x: number; y: number };
 }
 
@@ -106,7 +102,6 @@ export const ICONS: Readonly<Record<IconName, PixelIcon>> = {
       '#############',
     ],
   },
-  // Points up and to the left like the system pointer; its tip (the top-left corner) is the click point.
   arrow: {
     palette: WHITE,
     hotspot: { x: 0, y: 0 },

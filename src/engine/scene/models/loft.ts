@@ -56,10 +56,9 @@ export interface MeshDraw {
 }
 
 /**
- * Solid-looking wire-frame bodies made by lofting cross-sections along x (a car's nose, sidepods,
- * floor and engine cover are one group each). All faces of all groups are depth-sorted together every
- * frame and drawn dark with a light tint and bright edges, so the model hides what is behind it
- * without a real hidden-line pass. Silhouette edges are drawn bolder.
+ * Wire-frame bodies lofted from cross-sections along x (one group each). All faces are depth-sorted
+ * together each frame and drawn dark with a light tint and bright edges, which hides what is behind
+ * without a hidden-line pass.
  */
 export class Mesh {
   private readonly groups: Group[] = [];

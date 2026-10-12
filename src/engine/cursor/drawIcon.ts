@@ -18,13 +18,13 @@ export interface IconDrawOptions {
   tick: number;
   /** Brighter outline and a stronger fill, used while the mouse button is down. */
   pressed?: boolean;
-  /** Dims the icon: this many brightness levels are taken off every digit (0 = full brightness). */
+  /** Brightness levels taken off every digit (0 = full brightness). */
   toneShift?: number;
 }
 
 /**
  * Draws an icon of digits with its top-left corner at (left, top) CSS px. The canvas transform must be the
- * identity (coordinates are scaled to device pixels here). Shared by the mouse cursor and the touch pop-up.
+ * identity (coordinates are scaled to device pixels here).
  */
 export function drawIconDigits(
   ctx: CanvasRenderingContext2D,

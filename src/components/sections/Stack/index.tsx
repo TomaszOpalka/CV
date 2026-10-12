@@ -10,9 +10,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import styles from './index.module.scss';
 
 /**
- * The stack as tabs. On a wide screen the groups are a list on the right and the technologies of the open
- * group are listed on the left; on a phone the same markup is an accordion (tap the whole header to open or
- * close). The core technologies of a group come first, in the accent colour. One group is open at a time.
+ * The stack as tabs on wide screens and an accordion on phones (same markup). One group is open at a time.
  */
 export function Stack() {
   const baseId = useId();
@@ -20,7 +18,7 @@ export function Stack() {
   const [openId, setOpenId] = useState<string | null>(skillGroups[0]?.id ?? null);
 
   const toggle = (id: string): void => {
-    // With the list on the side there is always one group open; the accordion on a phone can close it.
+    // Only the phone accordion can close the open group.
     setOpenId((current) => (current === id && !wide ? null : id));
   };
 

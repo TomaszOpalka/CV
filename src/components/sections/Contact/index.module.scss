@@ -18,8 +18,6 @@
   width: fit-content;
   max-width: 100%;
   font-family: var(--font-mono);
-
-  // As big as it can be while staying on one line on a phone.
   font-size: clamp(1.15rem, 5.4vw, 3.5rem);
   font-weight: 700;
   letter-spacing: -0.02em;

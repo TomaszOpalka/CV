@@ -7,7 +7,7 @@ import { afterFirstSentence, firstSentence } from '@/content/text';
 
 import styles from './index.module.scss';
 
-/** How many points of a project are shown right away; the rest sits behind "Show more". */
+/** Points of a project shown up front; the rest sits behind "Show more". */
 const VISIBLE_POINTS = 3;
 
 interface MoreDetailsProps {
@@ -15,7 +15,7 @@ interface MoreDetailsProps {
   points: string[];
 }
 
-/** The rest of a project, folded away: a plain `<details>` (no JavaScript, keyboard and screen reader friendly). */
+/** The rest of a project, in a plain `<details>` (works without JavaScript). */
 function MoreDetails({ summary, points }: MoreDetailsProps) {
   if (!summary && points.length === 0) return null;
   return (

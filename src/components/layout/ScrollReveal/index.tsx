@@ -5,9 +5,8 @@ import { useEffect } from 'react';
 import { prefersReducedMotion } from '@/engine/ui/scroller';
 
 /**
- * Fades `[data-reveal]` elements in as they enter the screen (see base/_root.scss). The hidden state applies only
- * after `html[data-reveal-ready]` is set here, so without JavaScript or with reduced motion everything is visible.
- * Renders nothing.
+ * Fades `[data-reveal]` elements in as they enter the screen (see base/_root.scss). The hidden state applies
+ * only after `html[data-reveal-ready]` is set here, so without JavaScript everything stays visible. Renders nothing.
  */
 export function ScrollReveal() {
   useEffect(() => {

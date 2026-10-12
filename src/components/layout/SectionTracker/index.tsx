@@ -5,8 +5,7 @@ import { useEffect } from 'react';
 import { sectionStore } from '@/engine/ui/sectionStore';
 
 /**
- * Watches every `[data-section]` and tells the store which one crosses the middle of the screen
- * (a thin band, so exactly one section is "active" at a time). Renders nothing.
+ * Tells the store which `[data-section]` crosses the middle of the screen (a thin band, so exactly one). Renders nothing.
  */
 export function SectionTracker() {
   useEffect(() => {

@@ -1,8 +1,5 @@
 import type { Profile } from '@/types';
 
-/**
- * Photo: optimised copy of the author's picture in public/assets/portrait/ (see docs/ASSETS.md for how to swap it).
- */
 export const profile: Profile = {
   name: 'Tomasz Opałka',
   role: 'Fullstack Developer',

@@ -3,7 +3,7 @@
 .section {
   position: relative;
 
-  // Tight on purpose: between two sections the gap is the bottom plus the top padding (80 px on a phone, 96 px on desktop).
+  // Tight on purpose: the gap between sections is bottom plus top padding.
   padding: rem(40) $space-6;
   scroll-margin-top: rem(64);
 
@@ -38,8 +38,7 @@
 }
 
 .ghost {
-  // A huge outlined section number in the empty right half of the heading row: digits as the page's material,
-  // quiet enough that it never competes with the content (decoration only: no pointer events, hidden from AT).
+  // Decorative section number: no pointer events, hidden from AT.
   position: absolute;
   top: 50%;
   right: 0;

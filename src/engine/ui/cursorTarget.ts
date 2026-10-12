@@ -7,9 +7,8 @@ export type CursorKind = 'default' | 'link' | 'card' | 'text';
 
 export interface CursorTarget {
   kind: CursorKind;
-  /** Pixel icon the cursor shows when it rests or hovers something. */
+  /** Icon shown when the cursor rests or hovers something. */
   icon: IconName;
-  /** Colour set: `heat` over the pixel field, `negative` (the intro colours) everywhere else. */
   theme: CursorTheme;
   /** Short text shown next to the cursor ("Details", "since 2021"); empty for none. */
   label: string;
@@ -24,10 +23,8 @@ function isKind(value: string | undefined): value is CursorKind {
 }
 
 /**
- * Decides what the custom cursor shows over `element`. Explicit `data-cursor`, `data-cursor-label` and
- * `data-cursor-icon` attributes win (nearest ancestor first); otherwise native links, buttons and form
- * fields get a sensible kind, the icon follows the enclosing `[data-section]`, and `data-cursor-theme="heat"`
- * switches the colours.
+ * What the custom cursor shows over `element`. Explicit `data-cursor*` attributes win (nearest ancestor first);
+ * otherwise the kind follows native links and form fields and the icon follows the enclosing `[data-section]`.
  */
 export function resolveCursorTarget(element: Element | null): CursorTarget {
   if (!element) return { kind: 'default', icon: 'heart', theme: 'negative', label: '' };

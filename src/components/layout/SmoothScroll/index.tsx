@@ -6,14 +6,12 @@ import { useIntroState } from '@/hooks/useIntroState';
 import { loadGsap } from '@/engine/ui/gsapLoader';
 import { prefersReducedMotion, registerScroller } from '@/engine/ui/scroller';
 
-/** The fixed header covers this much of the top of the screen (see Header/index.module.scss). */
+/** Height of the fixed header (see Header/index.module.scss). */
 const HEADER_HEIGHT = 64;
 
 /**
- * Lenis smooth scrolling driven by GSAP's ticker (one loop), kept in sync with ScrollTrigger.
- * Off for `prefers-reduced-motion`. Nothing is loaded or started until the intro is over, so the intro
- * (the heaviest animation on the page) does not compete with GSAP and Lenis for the main thread.
- * Renders nothing.
+ * Lenis smooth scrolling driven by GSAP's ticker, in sync with ScrollTrigger. Off for `prefers-reduced-motion`.
+ * Loaded only after the intro so it does not compete with it for the main thread. Renders nothing.
  */
 export function SmoothScroll() {
   const ready = useIntroState() === 'done';
@@ -45,9 +43,7 @@ export function SmoothScroll() {
           lenis.destroy();
         };
       })
-      .catch(() => {
-        // Native scrolling keeps working if the libraries fail to load.
-      });
+      .catch(() => {});
 
     return () => {
       disposed = true;

@@ -7,7 +7,7 @@ const LOAD_MS = 900;
 const NOISE_MS = 55;
 /** An idle letter turns into a digit for this long. */
 const GLITCH_MS = 170;
-/** A glitch happens somewhere on screen every GLITCH_GAP_MIN..MAX ms: rare, and only one at a time. */
+/** One glitch at a time, somewhere on screen, every GLITCH_GAP_MIN..MAX ms. */
 const GLITCH_GAP_MIN = 2200;
 const GLITCH_GAP_MAX = 5200;
 
@@ -89,9 +89,8 @@ function glitchOnce(): void {
 }
 
 /**
- * Registers an element whose text decodes from digits when it first scrolls into view and, now and then,
- * flips a single letter to a digit for a moment. `text` is the final text (the element shows it until then,
- * so nothing breaks without JavaScript). Off for `prefers-reduced-motion`. Returns the unregister function.
+ * Registers an element whose text decodes from digits when it first scrolls into view and occasionally glitches
+ * a letter. `text` is the final text. Off for `prefers-reduced-motion`. Returns the unregister function.
  */
 export function registerScramble(el: HTMLElement, text: string, delay = 0): () => void {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return () => undefined;
@@ -111,7 +110,6 @@ export function registerScramble(el: HTMLElement, text: string, delay = 0): () =
   return () => {
     entries.delete(el);
     observer?.unobserve(el);
-    // Leave the final text in place when the element goes away mid-animation.
     el.textContent = text;
     if (entries.size === 0) {
       window.clearTimeout(glitchTimer);

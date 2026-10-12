@@ -8,9 +8,8 @@ import { useIntroState } from '@/hooks/useIntroState';
 import styles from './index.module.scss';
 
 /**
- * Pixel cursor (see engine/cursor). Desktop only (fine pointer + hover), off for reduced motion, and the
- * system cursor is hidden only while the controller runs (`html[data-cursor-ready]`), so a failed
- * script never leaves you without a cursor. Renders one click-through canvas; React does no work per frame.
+ * Pixel cursor (see engine/cursor). Desktop only, off for reduced motion. The system cursor is hidden only
+ * while the controller runs (`html[data-cursor-ready]`). Renders one click-through canvas.
  */
 export function Cursor() {
   const introState = useIntroState();
@@ -32,9 +31,7 @@ export function Cursor() {
         controller = new Controller(canvas);
         controller.init();
       })
-      .catch(() => {
-        // Without the controller the system cursor simply stays.
-      });
+      .catch(() => {});
 
     return () => {
       disposed = true;

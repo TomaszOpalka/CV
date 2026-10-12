@@ -21,7 +21,7 @@ const REST_MS = 280;
 const MOVING_PX_PER_SECOND = 30;
 const LABEL_FONT = '600 11px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 
-/** Offsets (in cells) of the small plus-shaped cluster used over the pixel field, where the field is the comet. */
+/** Offsets (in cells) of the plus-shaped cluster used over the pixel field. */
 const CLUSTER: ReadonlyArray<readonly [number, number]> = [
   [0, 0],
   [-1, 0],
@@ -31,11 +31,8 @@ const CLUSTER: ReadonlyArray<readonly [number, number]> = [
 ];
 
 /**
- * The cursor, drawn in the digits of the intro. A full-screen, click-through canvas: moving the pointer paints
- * a comet of digits (orange-hot core, white, greys at the edge) that cools and vanishes within about half a
- * second. At rest, or over links and cards, the cursor turns into a large icon made of digits (each icon has
- * its own colour). Over the pixel field only a small cluster follows the pointer, because the field itself
- * lights up there. One shared ticker subscription; it sleeps when the pointer has left and the comet is gone.
+ * The cursor, drawn in digits on a full-screen click-through canvas: a cooling comet while moving, an icon at
+ * rest or over links, a small cluster over the pixel field. Sleeps once the pointer has left and the comet is gone.
  */
 export class CursorController {
   private readonly canvas: HTMLCanvasElement;
@@ -128,7 +125,6 @@ export class CursorController {
   private readonly onDown = (event: PointerEvent): void => {
     if (event.pointerType !== 'mouse') return;
     this.pressed = true;
-    // A bigger puff of heat under the pointer.
     this.brush?.stamp(this.hx, this.hy, BRUSH_RADIUS * 1.5, 1.4);
     this.wake();
   };
@@ -143,7 +139,7 @@ export class CursorController {
 
   private frame(dt: number): void {
     if (isCursorPaused()) {
-      // The pixel field is exploding: draw nothing, look nothing up, keep the head where it is.
+      // The pixel field is exploding: draw nothing.
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       return;
@@ -248,11 +244,7 @@ export class CursorController {
     });
   }
 
-  /**
-   * An icon made of digits, placed so that its hotspot (the centre unless the icon says otherwise, e.g. the tip
-   * of the arrow) is exactly on the pointer. It follows the real pointer, not the smoothed comet head, and is
-   * not snapped to the digit grid, so what you point at is what you click.
-   */
+  /** Places the icon's hotspot exactly on the real pointer (not the smoothed comet head, not snapped to the grid). */
   private drawIcon(icon: PixelIcon): void {
     const atlas = this.atlas;
     if (!atlas) return;

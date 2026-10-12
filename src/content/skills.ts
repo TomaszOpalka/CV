@@ -1,9 +1,6 @@
 import type { SkillGroup } from '@/types';
 
-/**
- * Source: the SKILLS block of the author's CV plus the author's notes. `usedAt` only where it is known.
- * Order is the order of importance for a recruiter: groups and tiles run from the core of the profile outwards.
- */
+/** Ordered by importance for a recruiter: from the core of the profile outwards. */
 export const skillGroups: readonly SkillGroup[] = [
   {
     id: 'frontend',

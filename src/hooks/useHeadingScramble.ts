@@ -4,10 +4,7 @@ import { useEffect, type RefObject } from 'react';
 
 import type { IntroState } from '@/engine/intro/introMachine';
 
-/**
- * While the intro reveals the page, the heading "decodes" from random digits into the name
- * (GSAP ScrambleText, loaded on demand). Any other state shows the plain text.
- */
+/** While the intro reveals the page, the heading decodes from digits (GSAP ScrambleText, loaded on demand). */
 export function useHeadingScramble(
   ref: RefObject<HTMLElement | null>,
   text: string,

@@ -1,6 +1,5 @@
 import type { CertificateItem, EducationItem, LanguageItem } from '@/types';
 
-/** Source: the EDUCATION, CERTIFICATES and LANGUAGES blocks of the author's CV. */
 export const education: readonly EducationItem[] = [
   {
     id: 'wsb-merito',

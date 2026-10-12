@@ -13,10 +13,8 @@ import { scrollToSection } from '@/engine/ui/scroller';
 import styles from './index.module.scss';
 
 /**
- * Fixed navigation. Hidden until the intro is over. Highlights the section that crosses the middle
- * of the screen, shows scroll progress (CSS variable, no React state). Every link is a tile as tall as the
- * header (easy to hit with the big cursor icon); on small screens the links open as a panel with a backdrop
- * that closes the menu when tapped.
+ * Fixed navigation, hidden until the intro is over. Highlights the current section and shows scroll
+ * progress via a CSS variable. On small screens the links open as a panel with a backdrop.
  */
 export function Header() {
   const introState = useIntroState();
@@ -72,14 +70,12 @@ export function Header() {
       className={styles.root}
       data-visible={visible}
       data-open={menuOpen}
-      // Hidden from keyboard and screen readers while the intro owns the page.
       inert={!visible}
     >
       <a className={styles.brand} href="#about" onClick={(event) => go(event, 'about')}>
         <Scramble text={profile.name} />
       </a>
 
-      {/* On small screens a tap anywhere outside the menu closes it. */}
       <div className={styles.backdrop} aria-hidden="true" onClick={() => setMenuOpen(false)} />
 
       <nav id="site-nav" className={styles.nav} aria-label="Main">

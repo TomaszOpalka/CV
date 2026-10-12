@@ -20,7 +20,7 @@ export function prefersReducedMotion(): boolean {
   );
 }
 
-/** Scroll to a section id (without the #). The address bar is left alone: this is one page, nothing to bookmark. */
+/** Scroll to a section id (without the #); the address bar is left alone. */
 export function scrollToSection(id: string): void {
   const element = document.getElementById(id);
   if (!element) return;

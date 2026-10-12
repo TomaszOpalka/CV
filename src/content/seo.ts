@@ -3,11 +3,7 @@ import { education } from './education';
 import { profile } from './profile';
 import { skillGroups } from './skills';
 
-/**
- * What search engines and AI assistants get to read about the site. Everything here is also on the page for
- * people (the same name, role, city, skills and offer): hidden text, keyword lists and instructions to
- * crawlers are exactly what gets a site demoted, so none of that lives here.
- */
+/** Search-engine copy. It must match what the page shows to people: no hidden text or keyword lists. */
 export const seo = {
   title: `${profile.name} | Junior Fullstack Developer in Wrocław`,
   description:

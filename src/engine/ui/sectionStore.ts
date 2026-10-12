@@ -3,10 +3,7 @@ type Listener = () => void;
 let active = 'about';
 const listeners = new Set<Listener>();
 
-/**
- * The section that currently crosses the middle of the screen. One observer (SectionTracker) writes it;
- * the header, the cursor and the touch effects read it.
- */
+/** The section that currently crosses the middle of the screen. Written by SectionTracker only. */
 export const sectionStore = {
   get(): string {
     return active;

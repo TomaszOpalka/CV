@@ -28,8 +28,8 @@
 }
 
 .root::before {
-  // The blur lives on a pseudo-element: `backdrop-filter` on the header itself would make it the containing
-  // block of the menu panel and its backdrop (both `position: fixed`) and shrink them to the header's height.
+  // Blur lives on a pseudo-element: `backdrop-filter` on the header would make it the containing block
+  // of the fixed menu panel and backdrop.
   content: '';
   position: absolute;
   inset: 0;
@@ -47,7 +47,6 @@
 }
 
 .backdrop {
-  // Mobile: dims the page behind the open menu; a tap on it closes the menu.
   position: fixed;
   inset: rem(64) 0 0;
   background: rgb(0 0 0 / 65%);
@@ -69,7 +68,6 @@
 }
 
 .nav {
-  // Mobile: a panel under the bar, with its own background.
   position: fixed;
   inset: rem(72) $space-4 auto;
   padding: $space-2;
@@ -124,7 +122,6 @@
 }
 
 .link {
-  // A tile: the whole box is the target, not just the text. On desktop it is as tall as the header.
   display: flex;
   flex: 1;
   align-items: center;
@@ -182,7 +179,6 @@
 }
 
 .hire {
-  // Stepped, pixel-style corners (4 px notches).
   --notch: 4px;
 
   margin-left: auto;

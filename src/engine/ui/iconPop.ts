@@ -4,16 +4,13 @@ import { ICONS, type IconName } from '../cursor/pixelIcons';
 import { makeAtlas } from '../glyph/drawGlyph';
 import type { GlyphAtlas } from '../glyph/GlyphAtlas';
 
-/** One digit cell of the pop-up icon in CSS px (smaller than the mouse cursor's). */
+/** One digit cell in CSS px. */
 const CELL_W = 6;
 const CELL_H = 10;
 /** How long the icon stays on screen (matches the CSS animation). */
 export const POP_MS = 900;
 
-/**
- * The touch counterpart of the cursor icon: draws the icon of the section you scrolled into on a small canvas
- * and keeps its digits flickering while it is visible. The canvas is sized to the icon (13 x 9 digits).
- */
+/** The touch counterpart of the cursor icon: a small canvas that flickers the icon of the section scrolled into. */
 export class IconPop {
   private readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
@@ -36,7 +33,7 @@ export class IconPop {
     canvas.height = Math.round(rows.length * CELL_H * this.dpr);
   }
 
-  /** Show `icon` now (restarts the flicker; the fade in and out is CSS). */
+  /** Show `icon` now (the fade in and out is CSS). */
   show(icon: IconName): void {
     this.icon = icon;
     this.elapsed = 0;

@@ -6,10 +6,9 @@ const PEAK = 1.25;
 const FLICKER = 0.12;
 
 /**
- * A coarse grid of heat (one cell per digit) that the pointer paints with: the cursor's "comet". Stamping a
- * disc heats the cells around a point (hot core, cooler ragged edge); every step the heat cools, so the path
- * behind the pointer fades from hot to cold and disappears. Lit cells keep changing their digit. Only the
- * bounding box of lit cells is scanned, so an idle cursor costs nothing. No allocation after construction.
+ * A coarse grid of heat (one cell per digit) the pointer paints into: the cursor's "comet".
+ * Stamped heat cools every step. Only the bounding box of lit cells is scanned, so an idle cursor costs nothing.
+ * No allocation after construction.
  */
 export class HeatBrush {
   readonly cols: number;

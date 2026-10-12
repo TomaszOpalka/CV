@@ -1,6 +1,5 @@
 import type { ExperienceItem } from '@/types';
 
-/** Source: the author's CV (EN_CV_Tomasz_Opalka_Fullstack-AI.pdf). Keep the wording in sync with it. */
 export const experience: readonly ExperienceItem[] = [
   {
     id: 'bcf',

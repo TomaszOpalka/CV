@@ -1,4 +1,4 @@
-// Grayscale palette + fonts as CSS variables (also readable from canvas code).
+// CSS variables, also readable from canvas code.
 :root {
   --gray-0: #fff;
   --gray-50: #f4f4f4;
@@ -9,7 +9,6 @@
   --gray-900: #161616;
   --gray-1000: #0b0b0b;
 
-  // The one accent colour (the orange of the intro's fire): action and attention, nothing else.
   --accent: #ff9632;
   --accent-soft: rgb(255 150 50 / 35%);
 
@@ -19,7 +18,6 @@
   color-scheme: dark;
 }
 
-// Scroll is locked while the intro plays and while the mobile menu is open.
 html[data-intro-lock],
 html[data-menu-open],
 html[data-scroll-stopped] {
@@ -30,14 +28,12 @@ html {
   scroll-padding-top: 4rem;
 }
 
-// The custom cursor replaces the system one only while it is running.
 html[data-cursor-ready],
 html[data-cursor-ready] * {
   cursor: none !important;
 }
 
-// Scroll reveal: hidden only once ScrollReveal is running (no JS or reduced motion: always visible).
-// An animation (not a transition), so it never fights with the component's own hover transitions.
+// An animation, not a transition, so it never fights the component's own hover transitions.
 html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
   opacity: 0;
 }

@@ -9,13 +9,13 @@ import { CHARGE_SECONDS, PixelField, type HeatInput } from './PixelField';
 
 const MAX_PIXELS = 16000;
 const MAX_SHAKE_PX = 10;
-/** Brightness of the cold digits: the faint wall of numbers you see before anything heats up. */
+/** Brightness of the cold digits (the faint wall of numbers). */
 const COLD_TONE = 1;
-/** The page colour (--gray-1000): lit digits are drawn on a patch of it, so the cold digit under them is hidden. */
+/** Page colour (--gray-1000): lit digits are drawn on a patch of it to hide the cold digit below. */
 const PAGE_COLOR = '#0b0b0b';
-/** The field is mostly dim digits; a device pixel ratio above this adds fill cost and no visible sharpness. */
+/** A higher device pixel ratio only adds fill cost for a mostly dim field. */
 const MAX_DPR = 1.5;
-/** Digit size per quality level (0 = the coarsest, fewest sprites). The governor steps down when frames get slow. */
+/** Digit size per quality level (0 = coarsest, fewest sprites). */
 const QUALITY_SCALE: readonly number[] = [1.6, 1.25, 1];
 
 export interface PixelFieldControllerOptions {
@@ -31,11 +31,8 @@ function cellHeightFor(width: number): number {
 }
 
 /**
- * Drives a PixelField on a 2D canvas that spans the full width of the page: sizing (DPR, ResizeObserver),
- * digits from the shared glyph atlas (the cold wall of digits is pre-rendered once into an offscreen layer),
- * pointer (hover heats, holding makes the heat grow and finally explodes the field), one shared ticker
- * subscription that runs only while the canvas is on screen and the tab is visible, batched drawing
- * shake and vibration on the explosion.
+ * Drives a PixelField on a full-width 2D canvas: sizing, pointer input (hover heats, holding explodes),
+ * glyph-atlas drawing and shake on the explosion. The ticker runs only while the canvas is on screen and the tab is visible.
  */
 export class PixelFieldController {
   private readonly canvas: HTMLCanvasElement;
@@ -98,7 +95,7 @@ export class PixelFieldController {
     if (!field || field.phase !== 'idle') return;
     field.explode(x ?? this.width / 2, y ?? this.height / 2);
     this.holding = false;
-    // Nothing else may compete for the frame while the digits fly (the cursor draws nothing for a moment).
+    // Nothing else may compete for the frame while the digits fly.
     setCursorPaused(true);
     if (typeof navigator.vibrate === 'function') navigator.vibrate(40);
     this.options.onExplode();
@@ -109,7 +106,7 @@ export class PixelFieldController {
   reset(): void {
     if (!this.field || !this.atlas) return;
     this.field.reset();
-    // The shockwave erased the cold wall for good, and `reset` deals new digits: paint the wall again.
+    // The shockwave erased the cold wall and `reset` deals new digits: repaint it.
     this.coldLayer = this.renderColdLayer(this.field, this.atlas);
     this.coldCtx = this.coldLayer.getContext('2d');
     this.input.hold = 0;
@@ -167,14 +164,14 @@ export class PixelFieldController {
     const shouldRun =
       this.onScreen && document.visibilityState === 'visible' && this.field !== null;
     if (shouldRun && !this.unsubscribe) {
-      // Coming back into view the first frames are slow for reasons that have nothing to do with the field.
+      // The first frames after coming back into view are slow for unrelated reasons.
       this.governor.rearm();
       this.unsubscribe = ticker.add((deltaMs) => this.frame(deltaMs / 1000));
     } else if (!shouldRun && this.unsubscribe) {
       this.unsubscribe();
       this.unsubscribe = null;
     }
-    // The cursor is held back only while the explosion is actually running (not when it is scrolled out of view).
+    // Pause the cursor only while the explosion is actually running.
     setCursorPaused(shouldRun && this.field?.phase === 'exploding');
   };
 
@@ -233,14 +230,14 @@ export class PixelFieldController {
     if (!field) return;
     const step = Math.min(dt, 0.05);
 
-    // Holding charges the field; letting go drains the charge quickly so the spot shrinks smoothly.
+    // Letting go drains the charge quickly so the spot shrinks smoothly.
     const input = this.input;
     input.hold = this.holding ? input.hold + step : Math.max(0, input.hold - step * 2.5);
     if (this.holding && field.phase === 'idle' && input.hold >= CHARGE_SECONDS) {
       this.explode(input.x, input.y);
     }
 
-    // Slow frames step the digit size up (fewer sprites); the change is applied while the field is idle.
+    // Slow frames raise the digit size; applied only while the field is idle.
     if (this.governor.record(dt * 1000) !== null) this.pendingRebuild = true;
     if (this.pendingRebuild && field.phase === 'idle' && !this.holding) {
       this.pendingRebuild = false;
@@ -262,7 +259,7 @@ export class PixelFieldController {
     }
   }
 
-  /** A plain `transform` on the stage (compositor only); a CSS variable here would re-style the whole subtree every frame. */
+  /** A plain `transform` (compositor only); a CSS variable would re-style the whole subtree every frame. */
   private applyShake(amount: number): void {
     const target = this.options.shakeTarget;
     if (amount <= 0) {
@@ -304,14 +301,12 @@ export class PixelFieldController {
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     if (field.phase === 'cleared') return;
 
-    // The cold wall is one image. Lit digits that are still on the grid sit on a patch of page colour (no
-    // composite-mode change, no big path); thrown digits fly over whatever is left of the wall.
     if (this.coldLayer) ctx.drawImage(this.coldLayer, 0, 0);
-    // Two passes, so the GPU can batch: first every patch of page colour, then every digit (one atlas image).
+    // Two passes so the GPU can batch: page-colour patches first, then the digits.
     const patch = ctx;
     patch.fillStyle = PAGE_COLOR;
     for (let i = 0; i < field.count; i++) {
-      // The faintest step looks the same as the cold digit: skip it (a third fewer sprites at the edge of the heat).
+      // The faintest step looks like the cold digit: skip it.
       if (field.bucket[i]! < 1 || field.attached[i] === 0) continue;
       patch.fillRect(
         field.x[i]! * scale - gw / 2 - 1,

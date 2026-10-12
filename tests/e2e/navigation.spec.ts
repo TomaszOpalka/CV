@@ -23,7 +23,6 @@ test('a menu link scrolls to its section and becomes the current one', async ({
     .first()
     .click();
   await expect(page.locator('#stack')).toBeInViewport({ timeout: 5_000 });
-  // One page, nothing to bookmark: the address bar stays clean.
   expect(new URL(page.url()).hash).toBe('');
   if (!isMobile) {
     await expect(page.getByRole('link', { name: /^(\d{2}\s?)?Stack$/ })).toHaveAttribute(
@@ -71,7 +70,6 @@ test('headings decode from digits as they scroll in and keep the real text for a
 
   const visible = page.locator('#stack-title [aria-hidden="true"]');
   await expect(visible).toHaveText('Stack', { timeout: 5_000 });
-  // The accessibility tree always has the real text, never the digits.
   await expect(page.getByRole('heading', { level: 2, name: 'Stack' })).toBeVisible();
   await context.close();
 });
@@ -86,7 +84,6 @@ test('on a phone a tap outside the open menu closes it', async ({ page, isMobile
     'aria-expanded',
     'true',
   );
-  // The backdrop covers the page below the header.
   const viewport = page.viewportSize()!;
   await page.mouse.click(viewport.width / 2, viewport.height - 40);
   await expect(page.locator('#site-nav')).toBeHidden();
@@ -148,16 +145,13 @@ test('stack: the groups are tabs, the core technologies come first in the accent
   await page.goto('/');
   const stack = page.locator('#stack');
 
-  // The first group is open from the start.
   const frontend = stack.getByRole('button', { name: /Languages & Frontend/i });
   await expect(frontend).toHaveAttribute('aria-expanded', 'true');
   const typescript = stack.getByRole('listitem').filter({ hasText: 'TypeScript' }).first();
   await expect(typescript).toHaveCSS('color', 'rgb(255, 150, 50)');
-  // A non-core technology is white, and listed after the core ones.
   const tanstack = stack.getByRole('listitem').filter({ hasText: 'TanStack Query' }).first();
   await expect(tanstack).toHaveCSS('color', 'rgb(255, 255, 255)');
 
-  // Opening another group shows its technologies and closes the first one.
   const ui = stack.getByRole('button', { name: /UI & Styling/i });
   await ui.click();
   await expect(ui).toHaveAttribute('aria-expanded', 'true');
@@ -165,11 +159,9 @@ test('stack: the groups are tabs, the core technologies come first in the accent
   await expect(stack.getByRole('listitem').filter({ hasText: 'Figma' }).first()).toBeVisible();
 
   if (isMobile) {
-    // On a phone the open header closes again when tapped (accordion).
     await ui.click();
     await expect(ui).toHaveAttribute('aria-expanded', 'false');
   } else {
-    // With the list on the side one group always stays open.
     await ui.click();
     await expect(ui).toHaveAttribute('aria-expanded', 'true');
   }

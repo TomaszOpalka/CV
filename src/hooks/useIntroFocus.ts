@@ -6,10 +6,8 @@ import type { IntroState } from '@/engine/intro/introMachine';
 import { introStore } from '@/engine/intro/introStore';
 
 /**
- * The prompt and skip buttons unmount on the very state change their own activation causes, which
- * would drop keyboard focus to <body>. Remember (before React commits) whether focus was inside
- * the section, and if it was lost, hand it on: to "Skip intro" while the intro plays, to the
- * heading once it is over.
+ * The prompt and skip buttons unmount on the state change they cause, which drops focus to <body>.
+ * If focus was inside the section before the change, hand it on: to "Skip intro" while the intro plays, to the heading once over.
  */
 export function useIntroFocus(
   rootRef: RefObject<HTMLElement | null>,
@@ -33,7 +31,7 @@ export function useIntroFocus(
     if (!focusWasInside.current) return;
     focusWasInside.current = false;
     const active = document.activeElement;
-    if (active && active !== document.body) return; // focus is still somewhere sensible
+    if (active && active !== document.body) return;
     const target = state === 'done' ? titleRef.current : skipRef.current;
     target?.focus({ preventScroll: true });
   }, [state, titleRef, skipRef]);

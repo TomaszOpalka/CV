@@ -5,7 +5,7 @@ export function JsonLd() {
   return (
     <script
       type="application/ld+json"
-      // The data comes from our own content files and `<` is escaped by serializeJsonLd.
+      // Own content only, and `<` is escaped by serializeJsonLd.
       dangerouslySetInnerHTML={{ __html: serializeJsonLd(personJsonLd()) }}
     />
   );

@@ -12,9 +12,8 @@ import styles from './index.module.scss';
 const RIPPLE_MS = 600;
 
 /**
- * What the custom cursor is for mouse users, this is for touch: a ripple under every tap and the icon of the
- * section you scroll into, drawn in digits, popping up just below the header. Touch devices only
- * (`hover: none`), off for reduced motion. Ripples are short-lived DOM nodes removed when their CSS animation ends.
+ * Touch counterpart of the cursor: a ripple under every tap and a digit icon of the section scrolled into.
+ * Touch devices only (`hover: none`), off for reduced motion.
  */
 export function TouchEffects() {
   const introState = useIntroState();
@@ -42,7 +41,7 @@ export function TouchEffects() {
       layer.appendChild(ripple);
       const remove = (): void => ripple.remove();
       ripple.addEventListener('animationend', remove, { once: true });
-      // Safety net in case the animation never runs (tab hidden).
+      // Fallback in case the animation never runs (tab hidden).
       window.setTimeout(remove, RIPPLE_MS * 2);
     };
     window.addEventListener('pointerdown', onDown, { passive: true });
@@ -52,9 +51,7 @@ export function TouchEffects() {
       .then(({ IconPop: Pop }) => {
         if (!disposed) iconPopRef.current = new Pop(pop);
       })
-      .catch(() => {
-        // No pop-up icon without the module; ripples still work.
-      });
+      .catch(() => {});
 
     return () => {
       disposed = true;

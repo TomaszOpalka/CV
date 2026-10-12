@@ -1,7 +1,6 @@
 @use '@/styles/abstracts' as *;
 
-// Phone: an accordion. Wide: the open group's technologies on the left, the list of groups on the right
-// (`display: contents` lets the buttons and the panels become cells of one grid).
+// Phone: accordion. Wide: one grid, via `display: contents` on the buttons and panels.
 
 .stack {
   display: grid;
@@ -113,7 +112,6 @@
     transform: rotate(180deg);
   }
 
-  // On a wide screen the side list is a menu, not an accordion: no chevron.
   @include mq(md) {
     display: none;
   }
@@ -165,7 +163,6 @@
   }
 }
 
-// A little air between the core and the rest.
 .core + .rest {
   margin-top: $space-4;
 }

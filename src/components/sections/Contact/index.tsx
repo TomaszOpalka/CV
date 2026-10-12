@@ -6,8 +6,7 @@ import styles from './index.module.scss';
 const [email, ...others] = contactLinks;
 
 /**
- * The contact form arrives in phase 4 (UI) and phase 5 (sending). Until then the e-mail address is the whole
- * section: big, one click, nothing else competing with it.
+ * Contact section: for now just the e-mail address, big and one click away.
  */
 export function Contact() {
   return (
