@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { GREEN, WHITE } from '../glyph/palette';
-import { MatrixRain } from './matrixRain';
+import { GREEN, WHITE } from '@/engine/glyph/palette';
+import { MatrixRain } from '@/engine/scene/matrixRain';
 
 const COLS = 40;
 const ROWS = 30;

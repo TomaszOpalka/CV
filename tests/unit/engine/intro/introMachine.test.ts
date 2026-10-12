@@ -7,7 +7,7 @@ import {
   nextIntroState,
   type IntroEvent,
   type IntroState,
-} from './introMachine';
+} from '@/engine/intro/introMachine';
 
 function run(start: IntroState, events: IntroEvent[]): IntroState {
   return events.reduce(nextIntroState, start);

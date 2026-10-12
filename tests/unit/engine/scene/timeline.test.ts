@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { carTravel, DRIVE_START } from './driving';
-import { ACT_LENGTHS, ACT_NAMES, ACT_START, actAt, SEQUENCE_SECONDS } from './timeline';
+import { carTravel, DRIVE_START } from '@/engine/scene/driving';
+import {
+  ACT_LENGTHS,
+  ACT_NAMES,
+  ACT_START,
+  actAt,
+  SEQUENCE_SECONDS,
+} from '@/engine/scene/timeline';
 
 describe('timeline', () => {
   it('lays the acts end to end', () => {

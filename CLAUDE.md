@@ -41,6 +41,8 @@ własny silnik Canvas 2D · TanStack Query · Zod · npm. Nie używamy jQuery, G
 
 ## Konwencje
 
+- **Testy:** jednostkowe w `tests/unit/` (struktura lustrzana do `src/`, import przez `@/...`), integracyjne w `tests/integration/` (jeśli są),
+  e2e w `tests/e2e/`. Obok kodu źródłowego testów nie trzymamy.
 - **Komponenty:** folder PascalCase z `index.tsx` i `index.module.scss` obok (`components/sections/About/index.tsx`).
 - **Typy:** props jako `interface <Nazwa>Props` nad komponentem. Typy domenowe w `src/types/index.ts`,
   kontrakt API (front i funkcje) w `src/shared/types.ts`. Zawsze `import type`. Zakaz `any`.

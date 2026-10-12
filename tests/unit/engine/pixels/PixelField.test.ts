@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { CHARGE_SECONDS, PixelField, type HeatInput } from './PixelField';
-import { Shockwave } from './Shockwave';
+import { CHARGE_SECONDS, PixelField, type HeatInput } from '@/engine/pixels/PixelField';
+import { Shockwave } from '@/engine/pixels/Shockwave';
 
 const away: HeatInput = { x: -9999, y: -9999, active: false, hold: 0 };
 

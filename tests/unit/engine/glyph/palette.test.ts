@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyColor, CYAN, FIRE, GREEN, PALETTES, RED, WHITE } from './palette';
+import { classifyColor, CYAN, FIRE, GREEN, PALETTES, RED, WHITE } from '@/engine/glyph/palette';
 
 describe('classifyColor', () => {
   it('keeps whites, greys and black white', () => {

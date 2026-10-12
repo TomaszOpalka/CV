@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ICONS, iconForSection, isIconName } from './pixelIcons';
+import { ICONS, iconForSection, isIconName } from '@/engine/cursor/pixelIcons';
 
 describe('pixel icons', () => {
   it('draws every icon on a 13 x 9 grid with at least one lit cell', () => {

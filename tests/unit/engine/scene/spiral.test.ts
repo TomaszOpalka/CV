@@ -7,7 +7,7 @@ import {
   spiralClosed,
   spiralMorph,
   spiralOpen,
-} from './spiral';
+} from '@/engine/scene/spiral';
 
 const p = new Float64Array(2);
 const q = new Float64Array(2);

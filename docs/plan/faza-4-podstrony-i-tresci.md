@@ -1,6 +1,7 @@
 # Faza 4: Podstrony, treści i interfejs formularza kontaktowego
 
-> **Status:** ⚪ nie rozpoczęta (wymaga ukończenia fazy 3)
+> **Status:** ✅ zrobiona (12.10.2026). Doświadczenie, stack, edukacja, portfolio i kontakt są sekcjami jednej strony (faza 3), osobne podstrony
+> i interfejs formularza są odłożone razem z [fazą 5](./faza-5-formularz-kontaktowy.md) (decyzja autora: nie ma na razie czego na nie dodać).
 > **Poprzednia:** [Faza 3](./faza-3-kursor-pole-pikseli-nawigacja.md) · **Następna:** [Faza 5](./faza-5-formularz-kontaktowy.md)
 
 ## Warunek ukończenia (z briefu)

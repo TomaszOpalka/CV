@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { clamp01, easeInOut, hash1, KeyTrack, ramp, smoothstep } from './math';
+import { clamp01, easeInOut, hash1, KeyTrack, ramp, smoothstep } from '@/engine/scene/math';
 
 describe('easing helpers', () => {
   it('clamp, ramp and smoothstep stay inside 0..1 and hit their ends', () => {

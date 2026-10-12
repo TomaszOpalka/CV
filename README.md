@@ -11,11 +11,11 @@ Do tego kursor z emoji zmieniającym się między sekcjami, podstrony (doświadc
 | Faza                                                                                    | Zakres                                                                          | Status           |
 | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------- |
 | [1. Stack i architektura](docs/plan/faza-1-stack-i-architektura.md)                     | Technologie, hosting (OVH + Netlify) za koszt domeny, struktura repo, konwencje | ✅ zaakceptowana |
-| [2. Animacja startowa](docs/plan/faza-2-animacja-startowa.md)                           | Intro z cyframi → portret → zdjęcie i „O mnie”                                  | 🟢 do przeglądu  |
-| [3. Kursor, pole pikseli, nawigacja](docs/plan/faza-3-kursor-pole-pikseli-nawigacja.md) | Kursor z emoji, wybuch odsłaniający linki, sekcje jako karty                    | 🟡 w toku        |
-| [4. Podstrony i treści](docs/plan/faza-4-podstrony-i-tresci.md)                         | Doświadczenie, stack, portfolio, interfejs formularza                           | ⚪               |
-| [5. Formularz kontaktowy](docs/plan/faza-5-formularz-kontaktowy.md)                     | Netlify Forms, antyspam, opcjonalna auto-odpowiedź                              | ⚪               |
-| [6. Minigra (opcjonalna)](docs/plan/faza-6-minigra-kaplay.md)                           | KAPLAY (następca Kaboom.js)                                                     | 🔒               |
+| [2. Animacja startowa](docs/plan/faza-2-animacja-startowa.md)                           | Intro z cyframi → portret → zdjęcie i „O mnie”                                  | ✅ zrobiona      |
+| [3. Kursor, pole pikseli, nawigacja](docs/plan/faza-3-kursor-pole-pikseli-nawigacja.md) | Kursor z emoji, wybuch odsłaniający linki, sekcje jako karty                    | 🟢 do przeglądu  |
+| [4. Podstrony i treści](docs/plan/faza-4-podstrony-i-tresci.md)                         | Doświadczenie, stack, portfolio (zrobione na jednej stronie w fazie 3)          | ✅ zrobiona      |
+| [5. Formularz kontaktowy](docs/plan/faza-5-formularz-kontaktowy.md)                     | Netlify Forms, antyspam, opcjonalna auto-odpowiedź                              | ⏸ odłożona       |
+| [6. Minigra (opcjonalna)](docs/plan/faza-6-minigra-kaplay.md)                           | KAPLAY (następca Kaboom.js)                                                     | ⏸ odłożona       |
 
 ## Stack w skrócie
 

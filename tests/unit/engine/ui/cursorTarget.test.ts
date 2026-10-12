@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveCursorTarget, sameTarget } from './cursorTarget';
+import { resolveCursorTarget, sameTarget } from '@/engine/ui/cursorTarget';
 
 function mount(html: string): HTMLElement {
   document.body.innerHTML = html;

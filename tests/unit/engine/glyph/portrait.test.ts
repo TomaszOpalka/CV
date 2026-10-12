@@ -8,7 +8,7 @@ import {
   localContrast,
   rampFromCoverage,
   sampleLuminance,
-} from './portrait';
+} from '@/engine/glyph/portrait';
 
 function solid(
   width: number,

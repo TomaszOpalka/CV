@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { dragFactor, explosionSpeed, falloff, springStep } from './forces';
+import { dragFactor, explosionSpeed, falloff, springStep } from '@/engine/glyph/forces';
 
 describe('falloff', () => {
   it('is 1 at the centre, 0 at and beyond the radius, and monotonic', () => {

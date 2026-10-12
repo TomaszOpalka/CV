@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { contactLead } from './contact';
-import { profile } from './profile';
-import { personJsonLd, seo, serializeJsonLd } from './seo';
+import { contactLead } from '@/content/contact';
+import { profile } from '@/content/profile';
+import { personJsonLd, seo, serializeJsonLd } from '@/content/seo';
 
 describe('seo', () => {
   it('describes the same person, role and city as the page', () => {

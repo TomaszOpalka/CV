@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { QualityGovernor } from './QualityGovernor';
+import { QualityGovernor } from '@/engine/core/QualityGovernor';
 
 function feed(governor: QualityGovernor, frameMs: number, frames: number): Array<number | null> {
   return Array.from({ length: frames }, () => governor.record(frameMs));

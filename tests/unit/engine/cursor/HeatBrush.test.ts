@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { HeatBrush } from './HeatBrush';
+import { HeatBrush } from '@/engine/cursor/HeatBrush';
 
 const rng = (): number => 0.5;
 

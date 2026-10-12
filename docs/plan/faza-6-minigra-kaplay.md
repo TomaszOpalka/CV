@@ -1,6 +1,6 @@
 # Faza 6 (opcjonalna): Minigra w KAPLAY
 
-> **Status:** 🔒 zablokowana. Planowanie dopiero po ukończeniu faz 1 do 5.
+> **Status:** ⏸ odłożona (decyzja autora z 12.10.2026).
 > **Poprzednia:** [Faza 5](./faza-5-formularz-kontaktowy.md)
 
 ## Warunek startu (z briefu)

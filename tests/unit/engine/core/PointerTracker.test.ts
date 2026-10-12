@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { PointerTracker } from './PointerTracker';
+import { PointerTracker } from '@/engine/core/PointerTracker';
 
 function pointerEvent(
   type: string,

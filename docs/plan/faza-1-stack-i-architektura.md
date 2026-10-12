@@ -387,7 +387,10 @@ CV/
 │   └── types/index.ts              # typy domenowe frontu
 ├── netlify/functions/              # API: health.ts (jest); ewentualnie funkcja formularza (faza 5)
 ├── public/                         # statyczne: zdjęcie portretowe, OG, (faza 5) __forms.html
-├── tests/e2e/                      # Playwright (od fazy 2)
+├── tests/
+│   ├── unit/                       # Vitest, struktura lustrzana do src/ (src/engine/glyph/x.ts → tests/unit/engine/glyph/x.test.ts)
+│   ├── integration/                # Vitest, testy kilku modułów razem (jeśli są)
+│   └── e2e/                        # Playwright (od fazy 2)
 ├── docs/                           # plan faz i SETUP.md
 ├── netlify.toml                    # build, publish=out, nagłówki, funkcje
 ├── next.config.ts                  # output: 'export', trailingSlash, images.unoptimized
@@ -403,18 +406,18 @@ Aliasy importu: `@/…` → `src/…`, `@shared/…` → `src/shared/…`.
 
 ### 7.1 Nazewnictwo
 
-| Co                          | Konwencja                                             | Przykład                                              |
-| --------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
-| Komponent React             | folder PascalCase + `index.tsx` + `index.module.scss` | `components/sections/PixelField/index.tsx`            |
-| Pliki pomocnicze komponentu | obok, w tym samym folderze                            | `types.ts`, `usePixelField.ts`, `PixelField.test.tsx` |
-| Hooki                       | `useCamelCase.ts`                                     | `hooks/useReducedMotion.ts`                           |
-| Silnik (czysty TS)          | klasa PascalCase w pliku PascalCase                   | `engine/glyph/GlyphField.ts`                          |
-| Trasy Next                  | po angielsku (zmiana z 10.10.2026)                    | `app/experience/page.tsx`                             |
-| Klasy CSS w modułach        | camelCase, stany z prefiksem `is`                     | `.heroTitle`, `.isActive`, `.isExploded`              |
-| Tokeny                      | CSS: `--gray-900`, SCSS: `$space-4`                   |                                                       |
-| Stałe                       | `SCREAMING_SNAKE_CASE`                                | `MAX_DPR_MOBILE`                                      |
-| Commity                     | Conventional Commits                                  | `feat(intro): explode glyphs on click`                |
-| Branche                     | `feat/…`, `fix/…`, `docs/…`, `chore/…`                | `feat/intro-digit-grid`                               |
+| Co                          | Konwencja                                             | Przykład                                   |
+| --------------------------- | ----------------------------------------------------- | ------------------------------------------ |
+| Komponent React             | folder PascalCase + `index.tsx` + `index.module.scss` | `components/sections/PixelField/index.tsx` |
+| Pliki pomocnicze komponentu | obok, w tym samym folderze                            | `types.ts`, `usePixelField.ts`             |
+| Hooki                       | `useCamelCase.ts`                                     | `hooks/useReducedMotion.ts`                |
+| Silnik (czysty TS)          | klasa PascalCase w pliku PascalCase                   | `engine/glyph/GlyphField.ts`               |
+| Trasy Next                  | po angielsku (zmiana z 10.10.2026)                    | `app/experience/page.tsx`                  |
+| Klasy CSS w modułach        | camelCase, stany z prefiksem `is`                     | `.heroTitle`, `.isActive`, `.isExploded`   |
+| Tokeny                      | CSS: `--gray-900`, SCSS: `$space-4`                   |                                            |
+| Stałe                       | `SCREAMING_SNAKE_CASE`                                | `MAX_DPR_MOBILE`                           |
+| Commity                     | Conventional Commits                                  | `feat(intro): explode glyphs on click`     |
+| Branche                     | `feat/…`, `fix/…`, `docs/…`, `chore/…`                | `feat/intro-digit-grid`                    |
 
 Język kodu i nazw: angielski. Treści na stronie: angielski (decyzja autora, 08.10.2026). Dokumentacja: polski.
 

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Ticker } from './Ticker';
+import { Ticker } from '@/engine/core/Ticker';
 
 describe('Ticker', () => {
   let frame: ((now: number) => void) | null = null;

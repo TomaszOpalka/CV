@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { GlyphField } from '../glyph/GlyphField';
-import { CYAN } from '../glyph/palette';
-import { computeGrid, rampFromCoverage } from '../glyph/portrait';
-import { CellShader } from './cells';
+import { GlyphField } from '@/engine/glyph/GlyphField';
+import { CYAN } from '@/engine/glyph/palette';
+import { computeGrid, rampFromCoverage } from '@/engine/glyph/portrait';
+import { CellShader } from '@/engine/scene/cells';
 
 const GRID = computeGrid(120, 60, 10);
 const RAMP = rampFromCoverage([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);

@@ -9,8 +9,8 @@ import {
   HOOP_TIME,
   IMPACTS,
   impactPulse,
-} from './ballFlight';
-import { ACT_START } from './timeline';
+} from '@/engine/scene/ballFlight';
+import { ACT_START } from '@/engine/scene/timeline';
 
 const STEP = 1 / 240;
 

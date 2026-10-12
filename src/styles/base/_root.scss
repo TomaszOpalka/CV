@@ -10,8 +10,8 @@
   --gray-1000: #0b0b0b;
 
   // The one accent colour (the orange of the intro's fire): action and attention, nothing else.
-  --accent: #ff9632; //ff9632 #32c5ff
-  --accent-soft: rgba(255, 150, 50, 0.35); //rgb(50 197 50 / 35%);
+  --accent: #ff9632;
+  --accent-soft: rgb(255 150 50 / 35%);
 
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Menlo', 'Consolas', monospace;
   --font-sans: system-ui, -apple-system, 'Segoe UI', 'Roboto', sans-serif;

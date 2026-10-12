@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { glitchIndex, scrambleFrame, withDigitAt } from './scramble';
+import { glitchIndex, scrambleFrame, withDigitAt } from '@/engine/ui/scramble';
 
 function seeded(): () => number {
   let s = 11;

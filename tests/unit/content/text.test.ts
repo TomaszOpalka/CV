@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { afterFirstSentence, firstSentence } from './text';
+import { afterFirstSentence, firstSentence } from '@/content/text';
 
 describe('firstSentence', () => {
   it('returns the first sentence and the rest', () => {

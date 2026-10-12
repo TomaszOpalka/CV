@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { GlyphField, type PointerState } from './GlyphField';
-import { computeGrid } from './portrait';
+import { GlyphField, type PointerState } from '@/engine/glyph/GlyphField';
+import { computeGrid } from '@/engine/glyph/portrait';
 
 /** Small deterministic PRNG so the simulation tests are repeatable. */
 function mulberry32(seed: number): () => number {

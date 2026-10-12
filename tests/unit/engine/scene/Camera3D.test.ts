@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { Camera3D } from './Camera3D';
+import { Camera3D } from '@/engine/scene/Camera3D';
 
 function camera(): Camera3D {
   const cam = new Camera3D();
