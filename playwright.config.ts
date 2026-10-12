@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// In sandboxes with a pre-installed browser set PW_CHROMIUM_PATH. On a normal machine run
-// `npx playwright install chromium` once and leave the variable unset.
+// In sandboxes with a pre-installed browser set PW_CHROMIUM_PATH; otherwise run `npx playwright install chromium`.
 const executablePath = process.env.PW_CHROMIUM_PATH;
 
 export default defineConfig({

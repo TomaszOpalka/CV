@@ -1,6 +1,6 @@
 # Faza 5: Podpięcie formularza kontaktowego
 
-> **Status:** ⚪ nie rozpoczęta (wymaga ukończenia fazy 4)
+> **Status:** ⏸ odłożona (decyzja autora z 12.10.2026, wrócimy do niej po wdrożeniu)
 > **Poprzednia:** [Faza 4](./faza-4-podstrony-i-tresci.md) · **Następna (opcjonalna):** [Faza 6](./faza-6-minigra-kaplay.md)
 
 ## Warunek ukończenia (z briefu)

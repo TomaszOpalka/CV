@@ -15,10 +15,8 @@ function stagger(index: number): CSSProperties {
 }
 
 /**
- * Hero: a grid of digits that reacts to the pointer, explodes on click and re-assembles into
- * the author's portrait, which then turns into the real photo next to the "about me" text.
- * The heading and text are in the DOM (and the accessibility tree) from the first render;
- * only their opacity is animated. The canvas is decoration.
+ * Hero: a digit grid that explodes on click and re-assembles into the portrait, then the real photo.
+ * Heading and text are in the DOM from the first render; only their opacity is animated.
  */
 export function Intro() {
   const rootRef = useRef<HTMLElement>(null);
@@ -44,7 +42,14 @@ export function Intro() {
   const playing = state !== 'done';
 
   return (
-    <section ref={rootRef} className={styles.root} data-state={state} aria-labelledby="hero-title">
+    <section
+      ref={rootRef}
+      id="about"
+      className={styles.root}
+      data-state={state}
+      data-section
+      aria-labelledby="hero-title"
+    >
       {playing && (
         <button
           ref={skipRef}

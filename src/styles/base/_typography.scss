@@ -4,6 +4,18 @@ body {
   background: var(--gray-1000);
 }
 
+::selection {
+  background: var(--accent);
+  color: var(--gray-1000);
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 h1,
 h2,
 h3 {

@@ -69,7 +69,7 @@ test('boot -> idle -> click -> the whole film act by act -> photo + text', async
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'skip intro' })).toHaveCount(0);
-  expect(await page.locator('section').getAttribute('data-act')).toBeNull();
+  expect(await page.locator('#about').getAttribute('data-act')).toBeNull();
   expect(problems).toEqual([]);
 });
 
@@ -169,7 +169,6 @@ test('the heading and text are in the accessibility tree while the intro plays',
   await expect(page.locator('section[data-state="idle"]')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('heading', { level: 1, name: 'Tomasz Opałka' })).toBeAttached();
   await expect(page.getByText(/Full-Stack Developer based in Wrocław/)).toBeAttached();
-  // ...but not visible yet
   const opacity = await page.locator('h1').evaluate((el) => getComputedStyle(el).opacity);
   expect(opacity).toBe('0');
 });
@@ -191,11 +190,9 @@ test('keyboard focus is handed on, never dropped to <body>', async ({ page }, in
   await page.getByRole('button', { name: /turn on animation/ }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('section[data-state="exploding"]')).toBeVisible({ timeout: 2_000 });
-  // The prompt unmounted: focus moved to "skip intro".
   await expect(page.getByRole('button', { name: 'skip intro' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('section[data-state="done"]')).toBeVisible();
-  // The skip button unmounted: focus moved to the heading.
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
 });
 
@@ -210,12 +207,11 @@ test('if the scripts never load, the content is revealed by a CSS failsafe', asy
   await page.route('**/_next/static/chunks/**/*.js', (route) => route.abort());
   await page.route('**/_next/static/chunks/*.js', (route) => route.abort());
   await page.goto('/');
-  expect(await page.locator('section').getAttribute('data-armed')).toBeNull();
+  expect(await page.locator('#about').getAttribute('data-armed')).toBeNull();
   await expect(page.locator('h1')).toHaveCSS('opacity', '1', { timeout: 7_000 });
   await expect(page.getByAltText(/Portrait of Tomasz/)).toBeVisible();
-  // and the dead "skip" button is not offered
   await expect(page.getByRole('button', { name: 'skip intro' })).toBeHidden();
-  expect(await page.locator('section').evaluate((el) => getComputedStyle(el).touchAction)).toBe(
+  expect(await page.locator('#about').evaluate((el) => getComputedStyle(el).touchAction)).toBe(
     'auto',
   );
 });

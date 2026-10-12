@@ -1,0 +1,69 @@
+@use '@/styles/abstracts' as *;
+
+.section {
+  position: relative;
+
+  // Tight on purpose: the gap between sections is bottom plus top padding.
+  padding: rem(40) $space-6;
+  scroll-margin-top: rem(64);
+
+  @include mq(md) {
+    padding: rem(48) $space-12;
+  }
+}
+
+.isBleed {
+  padding-inline: 0;
+
+  @include mq(md) {
+    padding-inline: 0;
+  }
+
+  .header {
+    padding-inline: $space-6;
+
+    @include mq(md) {
+      padding-inline: $space-12;
+    }
+  }
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: $space-4;
+  max-width: rem(1200);
+  margin: 0 auto $space-8;
+}
+
+.ghost {
+  // Decorative section number: no pointer events, hidden from AT.
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: -1;
+  font-family: var(--font-mono);
+  font-size: clamp(6rem, 17vw, 15rem);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(255 255 255 / 12%);
+  transform: translateY(-46%);
+  user-select: none;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+}
+
+.index {
+  font-family: var(--font-mono);
+  font-size: rem(13);
+  letter-spacing: 0.22em;
+  color: var(--accent);
+}
+
+.title {
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  text-transform: uppercase;
+}

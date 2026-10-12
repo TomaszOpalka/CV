@@ -109,7 +109,7 @@ export class IntroController {
     try {
       this.build();
     } catch {
-      return false; // e.g. no second canvas for the scene
+      return false;
     }
     this.loadImage();
 
@@ -143,8 +143,6 @@ export class IntroController {
     this.sequence = null;
     this.o.root.removeAttribute('data-act');
   }
-
-  // --- setup ---------------------------------------------------------------------------
 
   private build(): void {
     const { root } = this.o;
@@ -258,15 +256,13 @@ export class IntroController {
     return { brightness, inside };
   }
 
-  // --- state machine -------------------------------------------------------------------
-
   private dispatch(event: IntroEvent): void {
     const next = nextIntroState(this.state, event);
     if (next === this.state) return;
     this.state = next;
     this.stateMs = 0;
     this.onEnter(next);
-    // onEnter may have moved on already (e.g. no usable photo -> skip). Never report a stale state.
+    // onEnter may have moved on already (e.g. no usable photo -> skip).
     if (this.state === next) this.o.onState(next);
   }
 
@@ -288,7 +284,6 @@ export class IntroController {
         this.unsubscribeTicker?.();
         this.unsubscribeTicker = null;
         this.pointer.detach();
-        // Nothing needs the scene any more: drop what is big (the owner then drops the controller).
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
         window.clearTimeout(this.resizeTimer);
@@ -329,8 +324,6 @@ export class IntroController {
       this.dispatch('skip');
     }
   }
-
-  // --- frame loop ----------------------------------------------------------------------
 
   private update(deltaMs: number): void {
     if (this.destroyed || this.state === 'done') return;
@@ -410,13 +403,10 @@ export class IntroController {
     if (progress >= 1) this.dispatch('elapsed');
   }
 
-  // --- resize --------------------------------------------------------------------------
-
   private onResize(): void {
     if (this.destroyed || this.state === 'done') return;
     const root = this.o.root;
-    // The section is min-height: 100svh (the *small* viewport), so mobile browser bars do not change it:
-    // any real size change means a real layout change and the canvas bitmap must follow.
+    // min-height is 100svh, so mobile browser bars do not change it: any size change is a real layout change.
     const changed =
       Math.abs(root.clientWidth - this.width) > 2 || Math.abs(root.clientHeight - this.height) > 2;
     if (!changed) return;
@@ -427,15 +417,14 @@ export class IntroController {
         this.pendingResize = true;
       }, 120);
     } else {
-      this.dispatch('skip'); // the layout changed mid-animation: jump to the final view
+      this.dispatch('skip');
     }
   }
 
   private applyResize(): void {
     this.pendingResize = false;
     if (this.state !== 'boot' && this.state !== 'idle') {
-      // The layout changed after the user already started the animation: the grid and the portrait
-      // targets are stale, so jump to the final view instead of showing a misplaced portrait.
+      // Grid and portrait targets are stale once the animation has started: jump to the final view.
       this.dispatch('skip');
       return;
     }

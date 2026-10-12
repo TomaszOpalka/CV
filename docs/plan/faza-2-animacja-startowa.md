@@ -86,7 +86,7 @@ Jak to działa technicznie (`src/engine/scene/`):
 **W zakresie:** intro z cyframi, reakcja na kursor i dotyk, wybuch po kliknięciu, morphing w portret, przejście w zdjęcie,
 sekcja „O mnie”, przycisk „skip intro”, wersja `prefers-reduced-motion`, optymalizacja na telefony.
 
-**Poza zakresem:** kursor z emoji, pole migających kwadratów, zapis do API (faza 3), podstrony (faza 4), formularz (faza 5).
+**Poza zakresem:** kursor z emoji, pole migających kwadratów, wybuch z zapisem do API (zrezygnowano w fazie 3), podstrony (faza 4), formularz (faza 5).
 
 ---
 

@@ -1,6 +1,7 @@
 # Faza 4: Podstrony, treści i interfejs formularza kontaktowego
 
-> **Status:** ⚪ nie rozpoczęta (wymaga ukończenia fazy 3)
+> **Status:** ✅ zrobiona (12.10.2026). Doświadczenie, stack, edukacja, portfolio i kontakt są sekcjami jednej strony (faza 3), osobne podstrony
+> i interfejs formularza są odłożone razem z [fazą 5](./faza-5-formularz-kontaktowy.md) (decyzja autora: nie ma na razie czego na nie dodać).
 > **Poprzednia:** [Faza 3](./faza-3-kursor-pole-pikseli-nawigacja.md) · **Następna:** [Faza 5](./faza-5-formularz-kontaktowy.md)
 
 ## Warunek ukończenia (z briefu)
@@ -24,7 +25,7 @@ i formularz „Zgłoś się po stronę” na dole strony głównej.
 
 ## Zakres
 
-**W zakresie:** podstrony `/doswiadczenie`, `/stack`, `/portfolio`, przejścia między stronami, SEO (metadane, podglądy, mapa strony),
+**W zakresie:** podstrony `/experience`, `/stack`, `/portfolio` (adresy po angielsku, spójnie z treściami strony; ewentualna `/education`), przejścia między stronami, SEO (metadane, podglądy, mapa strony),
 interfejs i walidacja formularza kontaktowego.
 
 **Poza zakresem:** faktyczna wysyłka formularza (faza 5), minigra (faza 6).
@@ -33,12 +34,12 @@ interfejs i walidacja formularza kontaktowego.
 
 ## 4.1 Podstrony
 
-### `/doswiadczenie` (emoji 💼)
+### `/experience` (emoji 💼)
 
 - Oś czasu stanowisk: firma, rola, okres, 2 do 3 zdań opisu, osiągnięcia w punktach (najlepiej mierzalne), użyte technologie.
 - Tagi technologii prowadzą do `/stack#<technologia>`.
 - Nad kartą firmy kursor pokazuje „Szczegóły”, a karta rozwija się płynnie (animacja wysokości przez GSAP).
-- Uczelnia jako osobny blok na końcu (albo osobna podstrona `/uczelnia`, do decyzji).
+- Uczelnia jako osobny blok na końcu (albo osobna podstrona `/education`, do decyzji).
 
 ### `/stack` (emoji 🛠️)
 
@@ -57,7 +58,7 @@ interfejs i walidacja formularza kontaktowego.
 
 - **Przejścia między stronami:** komponent `TransitionLink` najpierw odgrywa animację wyjścia (kwadraty zakrywają ekran), potem zmienia stronę.
   Animacja wejścia (kwadraty się rozpraszają) startuje po zamontowaniu nowej strony. Kursor przeżywa przejście, bo siedzi w `layout.tsx`.
-- Ten sam nagłówek, stopka i licznik wybuchów co na stronie głównej.
+- Ten sam nagłówek i stopka co na stronie głównej.
 - Każda podstrona ma `generateMetadata`: tytuł, opis i obraz podglądu.
 
 ## 4.2 Formularz „Zgłoś się po stronę” (interfejs)
@@ -98,7 +99,7 @@ Na dole strony głównej, sekcja **Kontakt** (emoji ✉️).
 | #   | Etap                                                                     | Wynik                               |
 | --- | ------------------------------------------------------------------------ | ----------------------------------- |
 | 4.1 | Zebranie treści od autora (CV, opisy projektów, zrzuty) i szkice tekstów | Zaakceptowane treści w `content/`   |
-| 4.2 | `/doswiadczenie` (z uczelnią)                                            | Gotowa podstrona                    |
+| 4.2 | `/experience` (z uczelnią)                                               | Gotowa podstrona                    |
 | 4.3 | `/stack`                                                                 | Gotowa podstrona                    |
 | 4.4 | `/portfolio`                                                             | Gotowa podstrona                    |
 | 4.5 | `TransitionLink` i przejścia między stronami                             | Płynne przejścia, kursor bez przerw |
@@ -118,5 +119,5 @@ Na dole strony głównej, sekcja **Kontakt** (emoji ✉️).
 
 1. Pełne CV: stanowiska, daty, opisy, osiągnięcia.
 2. Lista projektów do portfolio, ze zrzutami ekranu i linkami.
-3. Uczelnia jako blok w `/doswiadczenie` czy osobna podstrona?
+3. Uczelnia jako blok w `/experience` czy osobna podstrona `/education`?
 4. Przedziały budżetu w formularzu, albo czy w ogóle pytać o budżet?
