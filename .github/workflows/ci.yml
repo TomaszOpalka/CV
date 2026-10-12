@@ -1,0 +1,27 @@
+name: CI
+
+# Runs the same command as a developer before every commit (`npm run check`: lint, styles, types,
+# unit tests, production build) on Linux AND Windows, because some problems only show up on one of them
+# (for example Sass import resolution in Next.js with Turbopack).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    name: check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check

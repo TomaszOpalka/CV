@@ -157,7 +157,22 @@ npm run dev:full       # strona + API pod http://localhost:8888
 Sekrety (klucze do bazy, formularza) trzymasz w pliku `.env` (jest w `.gitignore`, nigdy nie trafia do repo).
 Wzór zmiennych znajdzie się w `.env.example`.
 
-## 7. Claude Code lokalnie
+## 7. Rozwiązywanie problemów
+
+**`Can't find stylesheet to import` (Sass, np. `@forward 'tokens'`)**
+Na Windowsie Turbopack nie znajduje pliku wskazanego „gołą” nazwą. Importy między plikami SCSS muszą mieć jawną ścieżkę względną,
+np. `@forward '../abstracts/tokens'` (tak jest w repo od commita `50d83d6`). Nie dodawaj `includePaths` w `next.config`, to nie jest potrzebne.
+Build z webpackiem (`npx next build --webpack`) i z Turbopackiem przechodzą na Linuksie, a CI sprawdza też Windowsa.
+
+**CI: `npm ci` kończy się błędem „Missing: @emnapi/... from lock file”**
+`npm install` na Windowsie potrafi usunąć z `package-lock.json` pakiety opcjonalne, których nie instaluje na tym systemie, a `npm ci` (CI, Linux)
+wymaga kompletnego pliku. `@emnapi/core` i `@emnapi/runtime` są dlatego wpisane jawnie w `devDependencies`. Jeśli podobny błąd dotyczy innego pakietu:
+`npm install -D <pakiet>` i zacommituj `package-lock.json`. Sprawdzenie bez ryzyka: `npm ci --dry-run`.
+
+**Node starszy niż 22.12**
+`npm install` zgłasza błędy wersji albo testy nie startują: zaktualizuj Node (sekcja 2).
+
+## 8. Claude Code lokalnie
 
 Tak, można pracować ze mną bezpośrednio na Twoim komputerze, na lokalnych plikach (wymagany płatny plan Claude: Pro, Max, Team lub Enterprise):
 
