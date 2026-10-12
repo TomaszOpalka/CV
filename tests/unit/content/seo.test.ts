@@ -2,9 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import { contactLead } from '@/content/contact';
 import { profile } from '@/content/profile';
-import { personJsonLd, seo, serializeJsonLd } from '@/content/seo';
+import { personJsonLd, seo, serializeJsonLd, siteUrl } from '@/content/seo';
 
 describe('seo', () => {
+  it('uses the punycode origin of tomaszopałka.com without a trailing slash', () => {
+    expect(siteUrl).toBe('https://xn--tomaszopaka-15b.com');
+    expect(personJsonLd().url).toBe(siteUrl);
+  });
+
   it('describes the same person, role and city as the page', () => {
     const data = personJsonLd();
     expect(data['@type']).toBe('Person');
