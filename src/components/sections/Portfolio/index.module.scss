@@ -24,12 +24,6 @@
   min-height: clamp(rem(380), 62svh, rem(640));
 }
 
-.stage[data-mode='armed'],
-.stage[data-mode='exploding'] {
-  // thread: until the pixels explode they hide whatever runs behind them (the thread of digits in the margin).
-  background: var(--gray-1000);
-}
-
 .content {
   position: relative;
   z-index: 1;

@@ -99,9 +99,7 @@ test('the pixel cursor leaves a coloured trail and the system cursor is hidden',
   const painted = await page.evaluate(() => {
     const canvas = document.querySelector<HTMLCanvasElement>('canvas[aria-hidden]:last-of-type');
     const all = [...document.querySelectorAll('canvas')];
-    const cursor =
-      all.find((c) => !c.hasAttribute('data-thread') && getComputedStyle(c).position === 'fixed') ??
-      canvas;
+    const cursor = all.find((c) => getComputedStyle(c).position === 'fixed') ?? canvas;
     if (!cursor) return 0;
     const data = cursor.getContext('2d')!.getImageData(0, 0, cursor.width, cursor.height).data;
     let count = 0;
@@ -125,8 +123,7 @@ test('the arrow cursor puts its tip exactly on the pointer', async ({ page, isMo
   await page.waitForTimeout(1500); // the comet is gone, only the arrow is left
   const tip = await page.evaluate(() => {
     const canvas = [...document.querySelectorAll('canvas')].find(
-      (c) =>
-        !c.hasAttribute('data-thread') && getComputedStyle(c).position === 'fixed' && c.width > 500,
+      (c) => getComputedStyle(c).position === 'fixed' && c.width > 500,
     )!;
     const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
     let minX = Infinity;
@@ -161,10 +158,7 @@ test('scrolling with a still mouse changes the cursor icon to the one of the sec
   const averageColour = () =>
     page.evaluate(() => {
       const canvas = [...document.querySelectorAll('canvas')].find(
-        (c) =>
-          !c.hasAttribute('data-thread') &&
-          getComputedStyle(c).position === 'fixed' &&
-          c.width > 500,
+        (c) => getComputedStyle(c).position === 'fixed' && c.width > 500,
       )!;
       const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
       let r = 0;
@@ -200,42 +194,4 @@ test('scrolling with a still mouse changes the cursor icon to the one of the sec
   expect(contact.n).toBeGreaterThan(50);
   expect(experience.b).toBeGreaterThan(contact.b + 20);
   expect(contact.r).toBeGreaterThan(experience.r - 1);
-});
-
-test('the digit thread runs down the left margin and ends at the e-mail', async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'the thread is for wide screens only');
-  await page.setViewportSize({ width: 1600, height: 900 });
-  await page.goto('/');
-  await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
-  const thread = page.locator('canvas[data-thread][data-ready="true"]').first();
-  await expect(thread).toBeAttached({ timeout: 10_000 });
-
-  const litLeftOfEmail = () =>
-    page.evaluate(() => {
-      const canvas = document.querySelector<HTMLCanvasElement>(
-        'canvas[data-thread][data-ready="true"]',
-      )!;
-      const mail = document
-        .querySelector<HTMLElement>('#contact a[href^="mailto:"]')!
-        .getBoundingClientRect();
-      const scale = canvas.width / window.innerWidth;
-      const x = Math.max(0, Math.floor((mail.left - 140) * scale));
-      const y = Math.max(0, Math.floor((mail.top - 60) * scale));
-      const w = Math.floor(130 * scale);
-      const h = Math.min(canvas.height - y, Math.floor(140 * scale));
-      if (h <= 0 || w <= 0) return 0;
-      const data = canvas.getContext('2d')!.getImageData(x, y, w, h).data;
-      let count = 0;
-      for (let i = 3; i < data.length; i += 4) if (data[i]! > 0) count++;
-      return count;
-    });
-
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(300);
-  expect(await litLeftOfEmail()).toBe(0);
-
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  await expect.poll(litLeftOfEmail, { timeout: 5000 }).toBeGreaterThan(20);
 });

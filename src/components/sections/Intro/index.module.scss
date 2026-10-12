@@ -19,9 +19,6 @@
 
   &[data-state='done'] {
     min-height: 0;
-
-    // Transparent once the intro is over, so what runs behind the hero (the thread of digits in the margin) shows.
-    background: transparent;
   }
 
   @include reduced-motion {
