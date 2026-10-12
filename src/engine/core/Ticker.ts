@@ -36,7 +36,7 @@ export class Ticker {
   }
 
   private readonly tick = (now: number): void => {
-    // Clamp so a long pause (hidden tab) does not produce a huge physics step.
+    // Clamp so a hidden tab does not produce a huge physics step.
     const delta = Math.min(now - this.last, 100);
     this.last = now;
     for (const callback of this.callbacks) callback(delta, now);

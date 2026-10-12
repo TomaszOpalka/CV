@@ -4,12 +4,15 @@ export const PALETTES: ReadonlyArray<readonly [number, number, number]> = [
   [70, 255, 120],
   [90, 225, 255],
   [255, 150, 50],
+  [255, 64, 72],
 ];
 
 export const WHITE = 0;
 export const GREEN = 1;
 export const CYAN = 2;
 export const FIRE = 3;
+/** Only used by UI icons (the heart); the scenes never produce it. */
+export const RED = 4;
 
 /**
  * Picks the palette closest to a colour (components 0..255). Greys and near-whites stay white, so

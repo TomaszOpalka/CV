@@ -7,7 +7,7 @@ import { spiralMorph } from '../spiral';
 const REAR_AXLE = 1.7;
 /** Outer radius of the vortex (metres) and the angle at which its outer end leaves the ground. */
 const VORTEX_RADIUS = 1.7;
-/** The outer end sits under the rear wheel; the spiral winds clockwise (the mirror image of a counter-clockwise one). */
+/** The outer end sits under the rear wheel; the spiral winds clockwise. */
 const VORTEX_START = -Math.PI * 0.38;
 const WIND = -1;
 
@@ -28,10 +28,9 @@ const p = new Float64Array(2);
 const scratch = new Float64Array(2);
 
 /**
- * Tyre smoke that leaves the rear wheels and curls into a golden spiral (a vortex), which then
- * winds up and closes into the basketball. Every puff owns a place on the spiral: the first ones
- * born sit at the outer end, under the tyre, the later ones further in towards the eye. A thin trace
- * through the spiral keeps its shape readable even at a coarse grid.
+ * Tyre smoke that curls into a golden spiral and closes into the basketball. Every puff owns a place
+ * on the spiral (first born at the outer end, later ones towards the eye); a thin trace keeps the
+ * shape readable at a coarse grid.
  */
 export class Smoke {
   constructor(private readonly count = 110) {}
@@ -52,14 +51,12 @@ export class Smoke {
       const born = o.start + lifespan * Math.pow(i / n, 1.4);
       const age = o.now - born;
       if (age <= 0) continue;
-      // The first puff is born under the tyre (the outer end, s = 0); every next one lies further
-      // along the spiral, so the vortex grows out of the tyre like a stroke being drawn.
       const s = i / (n - 1);
       newest = Math.max(newest, s);
 
       spiralMorph(s, close, VORTEX_RADIUS, BALL_RADIUS, VORTEX_START, p, scratch, WIND);
       const side = i % 2 === 0 ? -1 : 1;
-      // Where the puff would be right under the tyre, then it is drawn into its place on the spiral.
+      // born under the tyre, then drawn into its place on the spiral
       const wheelX = o.carX(born) - REAR_AXLE;
       const gather = smoothstep(0, 0.7, age);
       const jitter = (1 - close) * 0.1;
@@ -79,7 +76,6 @@ export class Smoke {
       pen.disc(x, y, z, r * 0.55);
     }
 
-    // A thin trace of the spiral itself, from the tyre to the newest puff.
     if (newest > 0) {
       ctx.strokeStyle = '#fff';
       ctx.lineCap = 'round';

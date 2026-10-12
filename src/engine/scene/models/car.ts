@@ -2,12 +2,7 @@ import { drawEngine } from './engine';
 import { Mesh, ring8, type LoftStation } from './loft';
 import type { Pen } from '../Pen';
 
-/**
- * A modern (ground-effect era) F1 car in metres: x forward, y to the side, z up. Built from lofted
- * bodies (monocoque with nose, two sidepods, floor, engine cover) plus wings, wheels, halo and
- * suspension. The proportions follow the blueprint: long low nose, high airbox behind the halo, a
- * thin spine that runs back to the rear wing, sidepods that waist in towards the rear.
- */
+/** An F1 car in metres (x forward, y to the side, z up): lofted bodies plus wings, wheels, halo and suspension. */
 
 type Row = readonly number[];
 
@@ -48,7 +43,7 @@ const FLOOR: ReadonlyArray<Row> = [
   [-2.45, 0.5],
 ];
 
-/** [x, halfWidth, topWidth, top] of the engine cover: a tent that hides the engine, with the airbox at the front. */
+/** [x, halfWidth, topWidth, top] of the engine cover (a tent with the airbox at the front). */
 const COVER: ReadonlyArray<Row> = [
   [-0.1, 0.22, 0.08, 0.72],
   [-0.3, 0.3, 0.11, 0.98],
@@ -133,7 +128,7 @@ export class Car {
     const { ctx } = pen;
     pen.at(o.x, 0, 0);
 
-    // The engine sits inside the body and is drawn first.
+    // the engine sits inside the body, so it is drawn first
     if (o.engine > 0.002) {
       const { ox, oy, oz } = pen;
       pen.at(ox + ENGINE_AT.x, oy + ENGINE_AT.y, oz + ENGINE_AT.z);
@@ -152,7 +147,7 @@ export class Car {
       lifts[g] = g === COVER_GROUP ? o.coverLift : 0;
     }
 
-    // Everything that can overlap is drawn far to near.
+    // far to near
     depth[PART_BODY] = pen.depth(0, 0, 0.3);
     for (let w = 0; w < 4; w++) {
       const [wx, wy, r] = WHEELS[w]!;
@@ -196,7 +191,6 @@ export class Car {
       const hubY = wy - side * (w / 2);
       const front = wx > 0;
       const bodyX = front ? 1.45 : -1.4;
-      // two wishbones and a push rod
       pen.line(bodyX + 0.22, side * 0.18, 0.2, wx, hubY, r - 0.05);
       pen.line(bodyX - 0.22, side * 0.18, 0.2, wx, hubY, r - 0.05);
       pen.line(bodyX, side * 0.14, 0.46, wx, hubY, r + 0.06);
@@ -210,7 +204,6 @@ export class Car {
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#fff';
 
-    // cockpit opening
     quad.set([0.55, -0.15, 0.585, 0.55, 0.15, 0.585, -0.05, 0.17, 0.585, -0.05, -0.17, 0.585]);
     ctx.fillStyle = '#000';
     ctx.globalAlpha = 0.95 * o.alpha;
@@ -221,7 +214,6 @@ export class Car {
     pen.poly(quad, 4, true);
     ctx.stroke();
 
-    // louvres on both sidepods
     ctx.globalAlpha = 0.85 * o.alpha;
     ctx.lineWidth = o.lw * 0.7;
     ctx.beginPath();
@@ -233,7 +225,6 @@ export class Car {
     }
     ctx.stroke();
 
-    // halo: front pillar and two arcs to the rear mounts
     ctx.globalAlpha = 0.95 * o.alpha;
     ctx.lineWidth = o.lw * 1.1;
     ctx.beginPath();
@@ -245,12 +236,11 @@ export class Car {
     }
     ctx.stroke();
 
-    // helmet
     ctx.fillStyle = '#fff';
     ctx.globalAlpha = 0.9 * o.alpha;
     pen.disc(0.12, 0, 0.66, 0.1);
 
-    // the airbox intake, a black mouth that only shows when seen from the front
+    // the airbox intake only shows when seen from the front
     if (cam.posX - pen.ox > -0.1) {
       quad.set([-0.12, -0.09, 0.62, -0.12, 0.09, 0.62, -0.28, 0.1, 0.94, -0.28, -0.1, 0.94]);
       ctx.fillStyle = '#000';
@@ -267,7 +257,7 @@ export class Car {
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#fff';
 
-    // Tread band: back-face culled quads around the axle (the axle is parallel to y).
+    // tread band: back-face culled quads around the axle (parallel to y)
     for (let i = 0; i < WHEEL_POINTS; i++) {
       const a0 = (i / WHEEL_POINTS) * TAU + o.spin;
       const a1 = ((i + 1) / WHEEL_POINTS) * TAU + o.spin;
@@ -300,7 +290,7 @@ export class Car {
       }
     }
 
-    // The visible side face: the one whose normal (+-y) points at the camera.
+    // the visible side face: its normal (+-y) points at the camera
     const outerY = cam.posY - pen.oy < wy ? yA : yB;
     const farY = outerY === yA ? yB : yA;
     for (const y of [farY, outerY]) {
@@ -322,7 +312,6 @@ export class Car {
       pen.poly(wheelRing, WHEEL_POINTS, true);
       ctx.stroke();
       if (visible) {
-        // rim (inner ring), multi-spoke wheel and the white sidewall stripe
         ctx.globalAlpha = 0.9 * o.alpha;
         ctx.lineWidth = o.lw * 0.8;
         ctx.beginPath();
@@ -438,7 +427,6 @@ export class Car {
       quad.set([x0, -0.54, z, x1, -0.54, z, x1, 0.54, z, x0, 0.54, z]);
       this.wingFace(pen, o, quad, tint);
     }
-    // beam wing and the pylon that holds the whole thing
     quad.set([-2.8, -0.42, 0.55, -2.5, -0.42, 0.55, -2.5, 0.42, 0.55, -2.8, 0.42, 0.55]);
     this.wingFace(pen, o, quad, 0.16);
     ctx.globalAlpha = 0.7 * o.alpha;

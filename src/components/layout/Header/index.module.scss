@@ -1,0 +1,292 @@
+@use '@/styles/abstracts' as *;
+
+.root {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: $z-header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: rem(64);
+  padding: 0 $space-6;
+  background: rgb(11 11 11 / 78%);
+  border-bottom: 1px solid var(--gray-800);
+  transform: translateY(-100%);
+  transition: transform $duration-base $ease-out;
+
+  &[data-visible='true'] {
+    transform: none;
+  }
+
+  @include mq(md) {
+    padding: 0 $space-12;
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+.root::before {
+  // Blur lives on a pseudo-element: `backdrop-filter` on the header would make it the containing block
+  // of the fixed menu panel and backdrop.
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  font-family: var(--font-mono);
+  font-size: rem(14);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-50);
+  text-decoration: none;
+}
+
+.backdrop {
+  position: fixed;
+  inset: rem(64) 0 0;
+  background: rgb(0 0 0 / 65%);
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity $duration-base $ease-out,
+    visibility 0s linear $duration-base;
+
+  .root[data-open='true'] & {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+  }
+
+  @include mq(md) {
+    display: none;
+  }
+}
+
+.nav {
+  position: fixed;
+  inset: rem(72) $space-4 auto;
+  padding: $space-2;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-800);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity $duration-base $ease-out,
+    transform $duration-base $ease-out,
+    visibility 0s linear $duration-base;
+
+  .root[data-open='true'] & {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  @include mq(md) {
+    position: static;
+    height: 100%;
+    margin-left: auto;
+    padding: 0;
+    background: none;
+    border: 0;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.list {
+  display: grid;
+  gap: $space-1;
+  list-style: none;
+
+  @include mq(md) {
+    display: flex;
+    height: 100%;
+    gap: 0;
+  }
+
+  li {
+    display: flex;
+
+    @include mq(md) {
+      height: 100%;
+    }
+  }
+}
+
+.link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: $space-3;
+  min-height: rem(56);
+  padding: 0 $space-4;
+  font-family: var(--font-mono);
+  font-size: rem(18);
+  text-transform: uppercase;
+  color: var(--gray-400);
+  text-decoration: none;
+  background: rgb(255 255 255 / 4%);
+  transition:
+    color $duration-fast,
+    background $duration-fast;
+
+  &[aria-current='true'] {
+    color: var(--gray-0);
+    background: rgb(255 255 255 / 10%);
+  }
+
+  &:focus-visible {
+    color: var(--gray-0);
+    outline-offset: -2px;
+  }
+
+  @include hover-only {
+    &:hover {
+      color: var(--gray-0);
+      background: rgb(255 255 255 / 10%);
+    }
+  }
+
+  @include mq(md) {
+    min-height: 0;
+    padding: 0 $space-4;
+    font-size: rem(13);
+    letter-spacing: 0.1em;
+    background: transparent;
+
+    &[aria-current='true'] {
+      background: transparent;
+      box-shadow: inset 0 -2px 0 var(--accent);
+    }
+  }
+}
+
+.number {
+  font-size: rem(12);
+  color: var(--gray-600);
+
+  @include mq(md) {
+    display: none;
+  }
+}
+
+.hire {
+  --notch: 4px;
+
+  margin-left: auto;
+  margin-right: $space-2;
+  padding: $space-2 $space-4;
+  background: var(--accent);
+  clip-path: polygon(
+    0 var(--notch),
+    var(--notch) var(--notch),
+    var(--notch) 0,
+    calc(100% - var(--notch)) 0,
+    calc(100% - var(--notch)) var(--notch),
+    100% var(--notch),
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    var(--notch) 100%,
+    var(--notch) calc(100% - var(--notch)),
+    0 calc(100% - var(--notch))
+  );
+  color: var(--gray-1000);
+  font-family: var(--font-mono);
+  font-size: rem(12);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background $duration-fast;
+
+  &:focus-visible {
+    background: var(--gray-0);
+  }
+
+  @include hover-only {
+    &:hover {
+      background: var(--gray-0);
+    }
+  }
+
+  @include mq(md) {
+    margin-left: $space-6;
+    margin-right: 0;
+  }
+}
+
+.toggle {
+  display: grid;
+  place-items: center;
+  width: rem(44);
+  height: rem(44);
+  background: none;
+  border: 0;
+  color: var(--gray-50);
+  cursor: pointer;
+
+  @include mq(md) {
+    display: none;
+  }
+}
+
+.bars {
+  position: relative;
+  width: rem(22);
+  height: 2px;
+  background: currentcolor;
+  transition: background $duration-fast;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: currentcolor;
+    transition: transform $duration-base $ease-out;
+  }
+
+  &::before {
+    transform: translateY(-7px);
+  }
+
+  &::after {
+    transform: translateY(7px);
+  }
+
+  .root[data-open='true'] & {
+    background: transparent;
+
+    &::before {
+      transform: rotate(45deg);
+    }
+
+    &::after {
+      transform: rotate(-45deg);
+    }
+  }
+}
+
+.progress {
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+}
+
+.srOnly {
+  @include visually-hidden;
+}

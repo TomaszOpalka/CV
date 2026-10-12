@@ -1,0 +1,62 @@
+@use '@/styles/abstracts' as *;
+
+.wrap {
+  display: grid;
+  gap: $space-6;
+  max-width: rem(1200);
+  margin: 0 auto;
+}
+
+.lead {
+  max-width: 40ch;
+  color: var(--gray-200);
+  font-size: rem(18);
+  line-height: 1.5;
+}
+
+.email {
+  width: fit-content;
+  max-width: 100%;
+  font-family: var(--font-mono);
+  font-size: clamp(1.15rem, 5.4vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--gray-0);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+  transition: color $duration-fast;
+
+  &:focus-visible {
+    color: var(--accent);
+  }
+
+  @include hover-only {
+    &:hover {
+      color: var(--accent);
+    }
+  }
+}
+
+.others {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2 $space-6;
+  list-style: none;
+
+  a {
+    font-family: var(--font-mono);
+    font-size: rem(14);
+    color: var(--gray-400);
+    text-decoration-color: var(--accent);
+    text-underline-offset: 3px;
+
+    @include hover-only {
+      &:hover {
+        color: var(--gray-0);
+      }
+    }
+  }
+}

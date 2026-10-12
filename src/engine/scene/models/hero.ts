@@ -49,10 +49,7 @@ export interface ReactorDraw {
   mechanism: number;
 }
 
-/**
- * An arc reactor: a glowing core, a rotating triangle, a ring of coils, an outer ring with ticks and,
- * around it, counter-rotating rings of dashes and pistons that move in and out like a mechanism.
- */
+/** An arc reactor: glowing core, triangle, coils, ticked outer ring and a mechanism of dashes and pistons around it. */
 export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDraw): void {
   const { cx, cy, radius: R, lw } = h;
   const t = o.time;
@@ -66,7 +63,6 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
-  // core glow: stacked discs
   ctx.globalCompositeOperation = 'lighter';
   for (let i = 0; i < 7; i++) {
     ctx.globalAlpha = 0.1 * core * pulse;
@@ -82,7 +78,6 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
   ctx.fill();
   ctx.fillStyle = CYAN;
 
-  // rotating triangle inside a ring
   if (tri > 0.01) {
     ctx.globalAlpha = 0.9 * tri;
     ctx.lineWidth = lw * 1.2;
@@ -97,7 +92,6 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
     ctx.stroke();
   }
 
-  // ring of coils
   if (coils > 0.01) {
     const n = 10;
     const gap = 0.16;
@@ -120,7 +114,6 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
     ctx.stroke();
   }
 
-  // outer ring with ticks
   if (outer > 0.01) {
     ctx.strokeStyle = WHITE;
     ctx.globalAlpha = 1 * outer;
@@ -139,7 +132,6 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
     ctx.stroke();
   }
 
-  // the mechanism around it
   const m = o.mechanism;
   if (m > 0.01) {
     ctx.strokeStyle = WHITE;
@@ -160,7 +152,6 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
       }
       ctx.stroke();
     }
-    // pistons: radial bars sliding in and out
     ctx.lineWidth = lw * 2;
     ctx.globalAlpha = 0.85 * m;
     ctx.beginPath();
@@ -173,7 +164,6 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
       ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
     }
     ctx.stroke();
-    // a pulse wave leaving the core
     ctx.strokeStyle = CYAN;
     const wave = (t * 0.7) % 1;
     ctx.globalAlpha = 0.5 * m * (1 - wave);
@@ -185,7 +175,7 @@ export function drawReactor(ctx: CanvasRenderingContext2D, h: Hero, o: ReactorDr
   ctx.globalAlpha = 1;
 }
 
-/** Slowly drifting lines behind the hero ("the background moves a little"). */
+/** Slowly drifting lines behind the hero. */
 export function drawDrift(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -249,7 +239,7 @@ export interface DeathStarDraw {
 }
 
 const TILT = 0.2;
-/** The whole sphere is rolled so the trench runs diagonally (a level trench plus a round dish looks like a Pokeball). */
+/** Rolls the whole sphere so the trench runs diagonally (a level trench plus a round dish reads as a Pokeball). */
 const ROLL = -0.5;
 const DISH_LATITUDE = 0.5;
 const DISH_ANGLE = 0.4;
@@ -336,7 +326,6 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
 
   const turn = o.dishLongitude * 0.35; // the surface turns with the dish, but slower
   ctx.lineWidth = lw * 0.8;
-  // latitude lines
   ctx.globalAlpha = 0.45 * o.alpha;
   ctx.beginPath();
   for (const lat of [-1.0, -0.55, 0.3, 0.8, 1.15]) {
@@ -377,7 +366,6 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
   }
   ctx.stroke();
 
-  // equatorial trench: two bright lines with small ribs across
   ctx.globalAlpha = 0.7 * o.alpha;
   ctx.lineWidth = lw * 0.8;
   ctx.beginPath();
@@ -422,7 +410,6 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
   }
   ctx.stroke();
 
-  // the superlaser dish
   const d = dv;
   dishCenter(o.dishLongitude, d);
   sphereToScreen(d[0]!, d[1]!, d[2]!, sv);
@@ -450,7 +437,6 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
           out,
         );
       };
-    // dark bowl
     ctx.beginPath();
     let first = true;
     const rimFn = rim(1);
@@ -479,7 +465,6 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
     surfaceCurve(ctx, h, 40, rim(0.3), true);
     ctx.stroke();
 
-    // charging: rays converge on the dish and its centre glows
     sphereToScreen(d[0]!, d[1]!, d[2]!, sv);
     const dx = cx + sv[0]! * R;
     const dy = cy - sv[1]! * R;
@@ -511,7 +496,6 @@ export function drawDeathStar(ctx: CanvasRenderingContext2D, h: Hero, o: DeathSt
     }
   }
 
-  // outline
   ctx.globalAlpha = o.alpha;
   ctx.lineWidth = lw * 1.5;
   ctx.beginPath();
@@ -555,7 +539,6 @@ export function drawBeam(
     ctx.arc(x, y, radius * (0.4 + i * 0.16), 0, TAU);
     ctx.stroke();
   }
-  // rays
   ctx.strokeStyle = WHITE;
   ctx.lineWidth = lw * 1.4;
   ctx.globalAlpha = 0.9;
@@ -568,7 +551,6 @@ export function drawBeam(
     ctx.lineTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1);
   }
   ctx.stroke();
-  // whiteout at the end
   const white = ramp(p, 0.72, 1);
   if (white > 0) {
     ctx.fillStyle = WHITE;
@@ -630,7 +612,6 @@ export function drawExplosion(
   ctx.arc(cx, cy, diagonal * 0.1 * (0.4 + e), 0, TAU);
   ctx.fill();
 
-  // shock rings
   for (let i = 0; i < 3; i++) {
     const q = clamp01(p * 1.15 - i * 0.08);
     const radius = diagonal * 0.8 * easeOutCubic(q);
@@ -641,7 +622,6 @@ export function drawExplosion(
     ctx.arc(cx, cy, radius, 0, TAU);
     ctx.stroke();
   }
-  // debris streaks
   ctx.strokeStyle = YELLOW;
   ctx.lineWidth = lw * 1.2;
   ctx.globalAlpha = 0.95 * fade;

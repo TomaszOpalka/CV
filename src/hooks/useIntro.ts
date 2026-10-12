@@ -6,9 +6,9 @@ import type { IntroController } from '@/engine/intro/IntroController';
 import type { IntroState } from '@/engine/intro/introMachine';
 import { introStore } from '@/engine/intro/introStore';
 
-/** If the engine has not started after this long (blocked chunk, very slow network), show the page as is. */
+/** Show the page as is if the engine has not started after this long. */
 const ENGINE_TIMEOUT_MS = 6000;
-/** Keep the canvas this long after `done` so the DOM photo can cross-fade in over its last frame. */
+/** Keep the canvas this long after `done` so the DOM photo can cross-fade in. */
 const CANVAS_RELEASE_DELAY_MS = 450;
 
 interface UseIntroOptions {
@@ -28,11 +28,8 @@ export interface UseIntroResult {
 }
 
 /**
- * Wires the imperative IntroController to React. The engine is loaded lazily, so the
- * first paint never waits for it; React only re-renders on the few coarse state changes.
- *
- * The section carries `data-armed` once this effect runs. The stylesheet hides the content only
- * for armed sections (plus a CSS failsafe that reveals it if the script never starts).
+ * Wires the imperative IntroController to React; the engine is loaded lazily.
+ * The section carries `data-armed` once this effect runs, and the stylesheet hides content only for armed sections.
  */
 export function useIntro({
   rootRef,
@@ -46,9 +43,13 @@ export function useIntro({
   const controllerRef = useRef<IntroController | null>(null);
 
   useEffect(() => {
-    // Already played during this page session (client-side navigation back to the home page).
+    // Drop a stale #section: the intro always starts at the top.
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    // Already played during this page session.
     if (introStore.get() === 'done') return;
-    // A remount in the middle of an intro (Fast Refresh, navigation) starts the intro over.
+    // A remount in the middle of an intro starts it over.
     introStore.set('boot');
 
     const reduced =
@@ -61,6 +62,11 @@ export function useIntro({
 
     const root = rootRef.current;
     root?.setAttribute('data-armed', '');
+    // Otherwise a reload restores the old scroll position and the lock below freezes the page scrolled down.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+    // See base/_root.scss.
+    document.documentElement.setAttribute('data-intro-lock', '');
 
     let cancelled = false;
     let controller: IntroController | null = null;
@@ -72,7 +78,7 @@ export function useIntro({
       .then(({ IntroController: Controller }) => {
         const canvas = canvasRef.current;
         const frame = frameRef.current;
-        // The user may have pressed "skip" (or the component unmounted) while the chunk was loading.
+        // "Skip" may have been pressed, or the component unmounted, while the chunk loaded.
         if (cancelled || introStore.get() === 'done' || !root || !canvas || !frame) return;
 
         controller = new Controller({
@@ -84,7 +90,7 @@ export function useIntro({
           onState: (next) => {
             introStore.set(next);
             if (next === 'done') {
-              // The scene is no longer needed: let go of it so its buffers can be collected.
+              // Let go of the scene so its buffers can be collected.
               controller?.destroy();
               controller = null;
               controllerRef.current = null;
@@ -106,10 +112,16 @@ export function useIntro({
       controller?.destroy();
       controllerRef.current = null;
       root?.removeAttribute('data-armed');
+      document.documentElement.removeAttribute('data-intro-lock');
     };
   }, [rootRef, canvasRef, frameRef, counterRef, imageSrc, focalY]);
 
-  // After the intro, free the canvas backing store (up to ~30 MB on a large high-DPI screen).
+  // The intro is over (finished, skipped, timed out or reduced motion).
+  useEffect(() => {
+    if (state === 'done') document.documentElement.removeAttribute('data-intro-lock');
+  }, [state]);
+
+  // Free the canvas backing store (up to ~30 MB on a large high-DPI screen).
   useEffect(() => {
     if (state !== 'done') return;
     const timer = window.setTimeout(() => {

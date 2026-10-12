@@ -144,7 +144,6 @@ export class World {
     if (t < S.fall) this.drawCarWorld(t, lw);
     else this.drawArena(t, lw);
 
-    // --- screen-space finale ---
     const cx = this.width / 2;
     const cy = this.height / 2;
     if (t >= S.reactor && t < S.explosion) this.drawHero(t, cx, cy, lw);
@@ -161,8 +160,6 @@ export class World {
     }
     ctx.globalAlpha = 1;
   }
-
-  // --- acts 1 - 7: engine, car, smoke, ball ------------------------------------------------
 
   private drawCarWorld(t: number, lw: number): void {
     const { ctx, pen } = this;
@@ -197,7 +194,6 @@ export class World {
       });
     }
 
-    // the ball forms inside the swirl
     const form = smoothstep(S.smoke + 0.3, S.smoke + 0.85, t);
     if (form > 0.01) {
       drawBall(pen, {
@@ -229,8 +225,6 @@ export class World {
     ctx.stroke();
   }
 
-  // --- acts 7 - 9: the fall, the hoop and the bounces --------------------------------------
-
   private drawArena(t: number, lw: number): void {
     const { ctx, pen, ball } = this;
     const S = ACT_START;
@@ -245,7 +239,6 @@ export class World {
     drawCourt(pen, { alpha: court, lw });
     drawHoop(pen, { alpha: court, lw, swish });
 
-    // shock rings on the floor after every touch
     if (court > 0.05) {
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = lw * 0.9;
@@ -267,7 +260,7 @@ export class World {
       }
     }
 
-    // the ball's mark on the floor: it shrinks and brightens as the ball comes down
+    // floor mark that shrinks and brightens as the ball comes down
     if (court > 0.05 && height < 8) {
       const near = 1 / (1 + height * 1.2);
       const r = 0.2 + 0.1 * (1 - near);
@@ -282,7 +275,6 @@ export class World {
       pen.face(this.mark, 16, false);
     }
 
-    // the ball: seams fade and the disc dims while the reactor takes over
     const build = ramp(t, S.reactor + 0.9, S.reactor + 2.3);
     this.ballRadiusPx = this.cam.project(ball[0]!, ball[1]!, ball[2]!, this.tmp)
       ? this.tmp[2]! * BALL_RADIUS
@@ -290,7 +282,6 @@ export class World {
     const alpha = 1 - smoothstep(0.15, 1, build);
     if (alpha > 0.004) {
       const speed = ballSpeed(t);
-      // motion trail: ghosts of where the ball just was, orange and fading
       if (Math.abs(speed) > 3 && court > 0.05) {
         ctx.fillStyle = '#ff9632';
         for (let g = 1; g <= 3; g++) {
@@ -321,14 +312,11 @@ export class World {
   /** Screen radius of the ball in the last frame (the reactor grows out of it). */
   private ballRadiusPx = -1;
 
-  // --- acts 9 - 11: reactor, Death Star, shot -----------------------------------------------
-
   private drawHero(t: number, cx: number, cy: number, lw: number): void {
     const { ctx } = this;
     const S = ACT_START;
     const L = ACT_LENGTHS;
 
-    // reactor
     if (t < S.deathStar + 1.2) {
       const local = t - S.reactor;
       const R =
@@ -353,7 +341,6 @@ export class World {
       });
     }
 
-    // Death Star
     if (t >= S.deathStar) {
       const tau = t - S.deathStar;
       const grow = 1 + 0.35 * easeInOut(ramp(tau, 0.3, 2.0));

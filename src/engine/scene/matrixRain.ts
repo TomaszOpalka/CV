@@ -104,7 +104,6 @@ export class MatrixRain {
         palette[i] = WHITE;
         locked[i] = 1;
       }
-      // the bright head and a short glow just behind it
       if (head > 0) {
         for (
           let r = Math.max(0, Math.floor(head) - 1);

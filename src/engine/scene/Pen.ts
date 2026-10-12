@@ -27,7 +27,6 @@ export class Pen {
     readonly cam: Camera3D,
   ) {}
 
-  /** Move to the origin of a model. */
   at(x: number, y: number, z: number): this {
     this.ox = x;
     this.oy = y;

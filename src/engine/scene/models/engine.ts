@@ -1,11 +1,9 @@
 import { DEG } from '../math';
 import type { Pen } from '../Pen';
 
-/**
- * A V8 as a wire-frame model, in metres, centred on the crankshaft (x along the crank, z up).
- * Eight pistons run on a cross-plane crank: the pistons move for real (crank + connecting-rod
- * geometry), and each cylinder flashes when it fires.
- */
+// V8 wire-frame model in metres, centred on the crankshaft (x along the crank, z up). Pistons follow real
+// crank and connecting-rod geometry on a cross-plane crank; each cylinder flashes when it fires.
+
 const BORE = 0.062;
 const THROW = 0.06;
 const ROD = 0.2;
@@ -73,7 +71,6 @@ export function drawEngine(pen: Pen, o: EngineDraw): void {
   ctx.strokeStyle = '#fff';
   ctx.fillStyle = '#fff';
 
-  // --- block: crankcase pan and the two heads (dim) ---
   ctx.globalAlpha = 0.4 * a;
   ctx.lineWidth = o.lw * 0.8;
   ctx.beginPath();
@@ -93,7 +90,6 @@ export function drawEngine(pen: Pen, o: EngineDraw): void {
     pen.line(-0.44, y, z, 0.44, y, z);
   }
   for (const b of [-1, 1]) {
-    // head slab (top of the bank), its two long edges
     for (const side of [-1, 1]) {
       const sy = b * AXIS * SLEEVE_TO + side * 0.1 * b * AXIS;
       const sz = AXIS * SLEEVE_TO - side * 0.1 * AXIS;
@@ -102,7 +98,6 @@ export function drawEngine(pen: Pen, o: EngineDraw): void {
   }
   ctx.stroke();
 
-  // --- sleeves: two outlines per cylinder ---
   ctx.globalAlpha = 0.7 * a;
   ctx.lineWidth = o.lw * 1.1;
   ctx.beginPath();
@@ -126,7 +121,6 @@ export function drawEngine(pen: Pen, o: EngineDraw): void {
   }
   ctx.stroke();
 
-  // --- crankshaft, webs, rods, pistons ---
   for (let k = 0; k < 4; k++) {
     const x = STATION_X[k]!;
     const theta = angle + STATION_PHASE[k]! * DEG;
@@ -148,7 +142,6 @@ export function drawEngine(pen: Pen, o: EngineDraw): void {
       pen.line(x, pin[1]!, pin[2]!, x, b * AXIS * (s - 0.03), AXIS * (s - 0.03));
       ctx.stroke();
 
-      // piston body: the side silhouette as a filled quad plus the crown
       const top = s;
       const bottom = s - PISTON_HEIGHT;
       quad[0] = x - BORE;
@@ -183,7 +176,6 @@ export function drawEngine(pen: Pen, o: EngineDraw): void {
     }
   }
 
-  // crank main axis
   ctx.globalAlpha = 0.9 * a;
   ctx.lineWidth = o.lw * 1.2;
   ctx.beginPath();

@@ -44,7 +44,6 @@ export function drawCourt(pen: Pen, o: CourtDraw): void {
   ctx.strokeStyle = '#fff';
   ctx.fillStyle = '#fff';
 
-  // the painted lane, filled lightly
   ctx.globalAlpha = 0.1 * o.alpha;
   quad.set([
     -2.45,
@@ -65,23 +64,20 @@ export function drawCourt(pen: Pen, o: CourtDraw): void {
   ctx.lineWidth = o.lw;
   ctx.globalAlpha = 0.9 * o.alpha;
   ctx.beginPath();
-  // boundary
   pen.line(-7.5, BASELINE_Y, 0, 7.5, BASELINE_Y, 0);
   pen.line(-7.5, BASELINE_Y, 0, -7.5, -9.5, 0);
   pen.line(7.5, BASELINE_Y, 0, 7.5, -9.5, 0);
-  // lane
   pen.line(-2.45, BASELINE_Y, 0, -2.45, BASELINE_Y - 5.8, 0);
   pen.line(2.45, BASELINE_Y, 0, 2.45, BASELINE_Y - 5.8, 0);
   pen.line(-2.45, BASELINE_Y - 5.8, 0, 2.45, BASELINE_Y - 5.8, 0);
   // free throw circle (the half towards the centre line is solid)
   arc(pen, 0, BASELINE_Y - 5.8, 1.8, Math.PI, TAU, 24);
-  // three point line: arc plus the corner lines
+  // three point line
   const corner = 6.6;
   const arcAngle = Math.acos(corner / 6.75);
   arc(pen, 0, 0, 6.75, Math.PI + arcAngle - 0, TAU - arcAngle, 40);
   pen.line(-corner, BASELINE_Y, 0, -corner, -Math.sqrt(6.75 * 6.75 - corner * corner), 0);
   pen.line(corner, BASELINE_Y, 0, corner, -Math.sqrt(6.75 * 6.75 - corner * corner), 0);
-  // restricted area under the basket
   arc(pen, 0, 0, 1.25, Math.PI, TAU, 16);
   ctx.stroke();
 
@@ -102,7 +98,6 @@ export function drawCourt(pen: Pen, o: CourtDraw): void {
   }
   ctx.stroke();
 
-  // floor boards, very faint
   ctx.globalAlpha = 0.05 * o.alpha;
   ctx.lineWidth = o.lw * 0.6;
   ctx.beginPath();
@@ -120,14 +115,13 @@ export function drawHoop(pen: Pen, o: CourtDraw): void {
   ctx.fillStyle = '#fff';
   const boardY = RIM_RADIUS + 0.15;
 
-  // support arm going back from the board (the post itself would only clutter the view)
+  // support arm only; the post would clutter the view
   ctx.globalAlpha = 0.6 * o.alpha;
   ctx.lineWidth = o.lw * 1.2;
   ctx.beginPath();
   pen.line(0, boardY, HOOP_HEIGHT + 0.25, 0, BASELINE_Y + 1.4, HOOP_HEIGHT + 0.5);
   ctx.stroke();
 
-  // backboard
   quad.set([
     -0.9,
     boardY,
@@ -152,7 +146,6 @@ export function drawHoop(pen: Pen, o: CourtDraw): void {
   ctx.lineWidth = o.lw;
   ctx.beginPath();
   pen.poly(quad, 4, true);
-  // the inner square
   pen.line(-0.3, boardY, HOOP_HEIGHT - 0.05, 0.3, boardY, HOOP_HEIGHT - 0.05);
   pen.line(0.3, boardY, HOOP_HEIGHT - 0.05, 0.3, boardY, HOOP_HEIGHT + 0.4);
   pen.line(0.3, boardY, HOOP_HEIGHT + 0.4, -0.3, boardY, HOOP_HEIGHT + 0.4);
@@ -188,7 +181,6 @@ export function drawHoop(pen: Pen, o: CourtDraw): void {
   }
   ctx.stroke();
 
-  // rim (orange, like the real thing)
   ctx.strokeStyle = '#ff9632';
   ctx.globalAlpha = 1 * o.alpha;
   ctx.lineWidth = o.lw * (1.5 + 0.8 * swish);
