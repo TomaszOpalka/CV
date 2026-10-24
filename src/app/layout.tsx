@@ -9,18 +9,21 @@ import { SectionTracker } from '@/components/layout/SectionTracker';
 import { SmoothScroll } from '@/components/layout/SmoothScroll';
 import { TouchEffects } from '@/components/layout/TouchEffects';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { seo } from '@/content/seo';
+import { seo, siteUrl } from '@/content/seo';
 
 import '@/styles/main.scss';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: seo.title,
   description: seo.description,
   authors: [{ name: 'Tomasz Opałka' }],
   creator: 'Tomasz Opałka',
   robots: { index: true, follow: true },
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'profile',
+    url: '/',
     title: seo.title,
     description: seo.description,
     locale: 'en_US',
