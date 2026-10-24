@@ -5,7 +5,7 @@ export const education: readonly EducationItem[] = [
     id: 'wsb-merito',
     school: 'WSB Merito University, Wrocław',
     degree: 'Master’s Degree in Computer Science (in progress)',
-    period: '2024 - present',
+    period: '2024 - 2026',
     note: 'Specialization: Artificial Intelligence and Machine Learning. Deep learning in Python, project management.',
   },
   {
@@ -26,13 +26,13 @@ export const education: readonly EducationItem[] = [
 export const certificates: readonly CertificateItem[] = [
   {
     id: 'nodejs',
-    name: 'Node.js for Programmers (backend, 36 h)',
+    name: 'Node.js for Programmers',
     issuer: 'Coders Lab',
     year: '2024',
   },
   {
     id: 'javascript',
-    name: 'JavaScript Developer (frontend, 180 h)',
+    name: 'JavaScript Developer',
     issuer: 'Coders Lab',
     year: '2023',
   },
