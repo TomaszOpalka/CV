@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 import type { CursorController } from '@/engine/cursor/CursorController';
 import { useIntroState } from '@/hooks/useIntroState';
+import { useTheme } from '@/hooks/useTheme';
 
 import styles from './index.module.scss';
 
@@ -14,7 +15,9 @@ import styles from './index.module.scss';
 export function Cursor() {
   const introState = useIntroState();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const enabled = introState === 'done';
+  const edge = useTheme() === 'edgerunner';
+  // The Edgerunner look has its own cursor (see EdgerunnerFx).
+  const enabled = introState === 'done' && !edge;
 
   useEffect(() => {
     if (!enabled) return;

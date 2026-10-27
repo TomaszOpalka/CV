@@ -3,10 +3,12 @@
 import Image from 'next/image';
 import { useRef, type CSSProperties } from 'react';
 
+import { edgerunnerAssets, edgerunnerHeroAlt, EDGERUNNER_MOBILE_MAX } from '@/content/edgerunner';
 import { profile } from '@/content/profile';
 import { useHeadingScramble } from '@/hooks/useHeadingScramble';
 import { useIntro } from '@/hooks/useIntro';
 import { useIntroFocus } from '@/hooks/useIntroFocus';
+import { useTheme } from '@/hooks/useTheme';
 
 import styles from './index.module.scss';
 
@@ -40,6 +42,7 @@ export function Intro() {
   useIntroFocus(rootRef, titleRef, skipRef, state);
 
   const playing = state !== 'done';
+  const edge = useTheme() === 'edgerunner' && !playing;
 
   return (
     <section
@@ -47,6 +50,7 @@ export function Intro() {
       id="about"
       className={styles.root}
       data-state={state}
+      data-edge={edge}
       data-section
       aria-labelledby="hero-title"
     >
@@ -64,6 +68,20 @@ export function Intro() {
 
       <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
 
+      {edge && (
+        <picture className={styles.art}>
+          <source
+            media={`(max-width: ${EDGERUNNER_MOBILE_MAX}px)`}
+            srcSet={edgerunnerAssets.heroMobile}
+          />
+          <img
+            className={styles.artImage}
+            src={edgerunnerAssets.heroDesktop}
+            alt={edgerunnerHeroAlt}
+          />
+        </picture>
+      )}
+
       <div className={styles.inner}>
         <div className={styles.text}>
           <p className={styles.eyebrow} style={stagger(0)}>
@@ -79,11 +97,13 @@ export function Intro() {
           >
             <span ref={nameRef}>{name}</span>
           </h1>
-          {about.map((paragraph, index) => (
-            <p key={paragraph} className={styles.about} style={stagger(index + 2)}>
-              {paragraph}
-            </p>
-          ))}
+          <div className={styles.aboutBlock}>
+            {about.map((paragraph, index) => (
+              <p key={paragraph} className={styles.about} style={stagger(index + 2)}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
         </div>
 
         <div ref={frameRef} className={styles.frame}>

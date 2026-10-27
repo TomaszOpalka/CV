@@ -1,4 +1,31 @@
-# Edgerunner: gdzie wrzucać grafiki i w jakim formacie
+# Edgerunner: motyw graficzny, grafiki i formaty
+
+## Jak to działa (stan na 27.10.2026)
+
+Przycisk „Edgerunner” w nagłówku (obok imienia) przełącza całą stylistykę strony. Po kliknięciu:
+
+1. z przycisku strzelają czerwone błyskawice, coraz gęstsze, aż pokryją ekran (`engine/edgerunner/LightningTransition.ts`),
+2. pod białym błyskiem zmienia się motyw (`html[data-theme='edgerunner']`) i strona wraca na górę,
+3. hero pokazuje ilustrację na tle: na PC napisy po lewej i prawej stronie postaci, na telefonie napisy u góry,
+4. kursor zamienia się w laserową kropkę z trzaskającymi błyskawicami (`engine/edgerunner/LaserCursor.ts`; tylko myszka, nie dotyk).
+
+Reszta strony zmienia kolory (żółty akcent, granatowe tło), ma linie skanowania i podzielone kolorystycznie tytuły (`styles/base/_edgerunner.scss`).
+Ponowne kliknięcie przycisku wraca do zwykłego wyglądu. Przy `prefers-reduced-motion` zmiana jest natychmiastowa, bez błyskawic i bez laserowego kursora.
+Grafiki i kod efektów ładują się dopiero przy najechaniu na przycisk, więc zwykły odwiedzający nic nie pobiera.
+
+Pliki w repo (zoptymalizowane z oryginałów `.jfif` po ok. 3 MB każdy):
+
+| Plik                                               | Rozmiar | Rola                                                  |
+| -------------------------------------------------- | ------- | ----------------------------------------------------- |
+| `public/assets/edgerunner/logo/edgerunner.webp`    | 95 kB   | przycisk w nagłówku (tło wycięte do przezroczystości) |
+| `public/assets/edgerunner/images/hero-pc.webp`     | 201 kB  | hero na PC, 1920 × 1072                               |
+| `public/assets/edgerunner/images/hero-mobile.webp` | 166 kB  | hero na telefon, 900 × 1613                           |
+
+**Jak to wycofać:** usuń `components/layout/EdgerunnerFx/`, `components/layout/EdgerunnerButton/`, `engine/edgerunner/`, `content/edgerunner.ts`,
+`styles/base/_edgerunner.scss` (i jego linię w `styles/main.scss`), `public/assets/edgerunner/`, oraz części „edge” w `Header`, `Intro` i `Cursor`
+(`useTheme`, `<EdgerunnerButton />`, `data-edge`, `<picture>`, blok „Edgerunner” w `Intro/index.module.scss`).
+
+## Gdzie wrzucać nowe grafiki i w jakim formacie
 
 Branch: `edgerunner` (z `develop`). Przycisk „Edgerunner” w nagłówku ma przełączać szatę graficzną strony.
 Wszystkie pliki trafiają do **`public/assets/edgerunner/`** (serwowane pod `/assets/edgerunner/...`).

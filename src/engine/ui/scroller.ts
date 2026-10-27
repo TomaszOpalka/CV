@@ -4,6 +4,8 @@
  */
 export interface Scroller {
   scrollTo(target: string | HTMLElement): void;
+  /** Jumps to a scroll position without animation. */
+  jump(y: number): void;
   stop(): void;
   start(): void;
 }
@@ -30,6 +32,12 @@ export function scrollToSection(id: string): void {
       behavior: prefersReducedMotion() ? 'auto' : 'smooth',
       block: 'start',
     });
+}
+
+/** Back to the very top, at once. */
+export function jumpToTop(): void {
+  if (current) current.jump(0);
+  else window.scrollTo(0, 0);
 }
 
 export function stopScroll(): void {

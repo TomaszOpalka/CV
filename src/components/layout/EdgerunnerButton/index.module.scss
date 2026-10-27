@@ -1,0 +1,49 @@
+@use '@/styles/abstracts' as *;
+
+.root {
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  height: rem(44);
+  margin: rem(10) 0 0 $space-2;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: transform $duration-fast $ease-out;
+
+  @include mq(md) {
+    height: rem(64);
+    margin-left: $space-6;
+  }
+
+  @include hover-only {
+    &:hover {
+      transform: scale(1.06) rotate(-1.5deg);
+    }
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  // While the look is on the button glows, like a lit sign.
+  &[aria-pressed='true'] {
+    filter: drop-shadow(0 0 8px rgb(255 42 85 / 70%));
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+.logo {
+  display: block;
+  width: auto;
+  height: 100%;
+}

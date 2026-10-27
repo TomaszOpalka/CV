@@ -29,7 +29,9 @@ html {
 }
 
 html[data-cursor-ready],
-html[data-cursor-ready] * {
+html[data-cursor-ready] *,
+html[data-laser-ready],
+html[data-laser-ready] * {
   cursor: none !important;
 }
 

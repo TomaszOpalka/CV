@@ -1,0 +1,55 @@
+@use '../abstracts' as *;
+
+// The "Edgerunner" look, switched on by the header button (`html[data-theme='edgerunner']`, see EdgerunnerFx).
+// Most of the page follows from the colour tokens; the hero has its own layout in Intro/index.module.scss.
+
+html[data-theme='edgerunner'] {
+  --gray-50: #f2f5ff;
+  --gray-200: #d3dbfa;
+  --gray-400: #8f9bc6;
+  --gray-600: #4a5788;
+  --gray-800: #1a2244;
+  --gray-900: #0b1024;
+  --gray-1000: #060912;
+
+  --accent: #fcee0a;
+  --accent-soft: rgb(252 238 10 / 35%);
+  --edge-cyan: #00f0ff;
+  --edge-red: #ff2a55;
+
+  background: var(--gray-1000);
+}
+
+// Scan lines over everything; clicks go straight through.
+html[data-theme='edgerunner'] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: $z-cursor - 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0%) 0,
+    rgb(0 0 0 / 0%) 2px,
+    rgb(0 240 255 / 4%) 3px
+  );
+}
+
+html[data-theme='edgerunner'] body > header {
+  background: rgb(6 9 18 / 84%);
+  border-bottom-color: rgb(0 240 255 / 45%);
+  box-shadow: 0 1px 18px rgb(0 240 255 / 18%);
+}
+
+// Section headings: a split-colour edge, like a badly tuned screen.
+html[data-theme='edgerunner'] section[data-section] h2 {
+  font-style: italic;
+  text-shadow:
+    2px 0 var(--edge-red),
+    -2px 0 var(--edge-cyan);
+}
+
+html[data-theme='edgerunner'] ::selection {
+  background: var(--edge-cyan);
+  color: var(--gray-1000);
+}

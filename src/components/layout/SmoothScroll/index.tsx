@@ -32,6 +32,7 @@ export function SmoothScroll() {
 
         registerScroller({
           scrollTo: (target) => lenis.scrollTo(target, { duration: 1.1, offset: -HEADER_HEIGHT }),
+          jump: (y) => lenis.scrollTo(y, { immediate: true }),
           stop: () => lenis.stop(),
           start: () => lenis.start(),
         });
