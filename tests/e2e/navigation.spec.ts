@@ -121,7 +121,7 @@ test('the page tells search engines and AI assistants the same thing it tells pe
   request,
 }) => {
   const html = await (await request.get('/')).text();
-  expect(html).toContain('<title>Tomasz Opałka | Junior Fullstack Developer in Wrocław</title>');
+  expect(html).toContain('<title>Tomasz Opałka | Fullstack Developer in Wrocław</title>');
   const match = /<script type="application\/ld\+json">(.*?)<\/script>/s.exec(html);
   expect(match).not.toBeNull();
   const data = JSON.parse(match![1]!) as {
@@ -165,4 +165,29 @@ test('stack: the groups are tabs, the core technologies come first in the accent
     await ui.click();
     await expect(ui).toHaveAttribute('aria-expanded', 'true');
   }
+});
+
+test('the stack tabs keep a fixed height whatever the length of the open list', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'the tabs are an accordion on phones');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await page.locator('#stack').scrollIntoViewIfNeeded();
+
+  const tabs = page.locator('#stack button[aria-controls]');
+  const heights = () =>
+    tabs.evaluateAll((nodes) =>
+      nodes.map((node) => Math.round(node.getBoundingClientRect().height)),
+    );
+
+  await page.getByRole('button', { name: /Machine Learning/ }).click();
+  const tall = await heights();
+  await page.getByRole('button', { name: /Testing/ }).click();
+  const short = await heights();
+
+  expect(new Set(tall).size).toBe(1);
+  expect(short).toEqual(tall);
+  expect(tall[0]).toBeLessThanOrEqual(96);
 });
