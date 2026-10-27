@@ -80,12 +80,13 @@ test('on a wide screen the text sits left and right of the character', async ({ 
   expect(about.x).toBeGreaterThan(middle);
 });
 
-test('the education picture and the contact band appear with the look, and are gone without it', async ({
+test('the section backdrops and the contact band appear with the look, and are gone without it', async ({
   page,
 }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await openSite(page);
+  await expect(page.locator('#experience img[src*="bg-experience"]')).toHaveCount(0);
   await expect(page.locator('#education img[src*="bg-education"]')).toHaveCount(0);
   await expect(page.locator('#contact img[src*="bg-contact"]')).toHaveCount(0);
 
@@ -93,6 +94,8 @@ test('the education picture and the contact band appear with the look, and are g
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'edgerunner', {
     timeout: 5_000,
   });
+  await expect(page.locator('#experience img[src*="bg-experience"]')).toHaveCount(1);
+  await expect(page.locator('#stack img[src*="bg-stack"]')).toHaveCount(1);
   await expect(page.locator('#education img[src*="bg-education"]')).toHaveCount(1);
   await expect(page.locator('#contact img[src*="bg-contact"]')).toHaveCount(1);
   // The band has a ragged clip-path and a canvas for the interference.

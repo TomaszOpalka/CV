@@ -13,8 +13,11 @@ import { useTheme } from '@/hooks/useTheme';
 import styles from './index.module.scss';
 
 interface EdgeBackdropProps {
-  /** "education": a picture behind the section; "contact": the red band with ragged edges and interference. */
-  variant: 'education' | 'contact';
+  /**
+   * "experience" and "stack": line art drawn by `scripts/edgerunner-art.py`; "education": a picture behind the
+   * section; "contact": the red band with ragged edges and interference.
+   */
+  variant: 'experience' | 'stack' | 'education' | 'contact';
 }
 
 /** Ragged top and bottom of the contact band, fixed seeds so the shape is the same on every visit. */
@@ -60,7 +63,7 @@ export function EdgeBackdrop({ variant }: EdgeBackdropProps) {
     >
       <Image
         className={styles.image}
-        src={variant === 'contact' ? edgerunnerAssets.contact : edgerunnerAssets.education}
+        src={edgerunnerAssets[variant]}
         alt=""
         fill
         sizes="100vw"

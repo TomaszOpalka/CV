@@ -21,6 +21,10 @@ Tła sekcji w motywie Edgerunner (ładowane tylko po włączeniu motywu):
   (`engine/edgerunner/InterferenceCanvas.ts`, ok. 12 klatek na sekundę, tylko gdy pas jest na ekranie, przy reduced motion jedna klatka).
   To odpowiednik krótkiego wideo, tyle że rysowany kodem: 0 kB i bez problemów z formatami w Safari.
 
+- **Experience i Stack:** grafiki liniowe w stylu interfejsu netrunnera (ścieżki układu scalonego, chipy z kodami, macierz bajtów z zaznaczoną trasą, pierścienie
+  z modułami i paskami). Rysuje je skrypt `scripts/edgerunner-art.py` do plików SVG (`bg-experience.svg`, `bg-stack.svg`, po 40 do 55 kB), przy tym samym ziarnie
+  wychodzi ten sam obraz. Lewa strona zanika, żeby tekst był czytelny. Można je zastąpić własnymi grafikami pod tymi samymi nazwami (SVG, WebP albo AVIF).
+
 Które hero jest użyte: stała `EDGERUNNER_HERO` w `src/content/edgerunner.ts` (`'night'` czerwone miasto albo `'day'` niebieski las).
 
 Pliki w repo (zoptymalizowane z oryginałów po ok. 0,4 do 3 MB każdy, razem ok. 1,1 MB):
@@ -32,6 +36,8 @@ Pliki w repo (zoptymalizowane z oryginałów po ok. 0,4 do 3 MB każdy, razem ok
 | `public/assets/edgerunner/images/hero-night-mobile.webp` | 153 kB  | hero „night” na telefon, 900 × 1613                   |
 | `public/assets/edgerunner/images/hero-day-pc.webp`       | 201 kB  | hero „day” na PC (do wyboru zamiast night)            |
 | `public/assets/edgerunner/images/hero-day-mobile.webp`   | 166 kB  | hero „day” na telefon                                 |
+| `public/assets/edgerunner/images/bg-experience.svg`      | 55 kB   | tło sekcji Experience (rysowane skryptem)             |
+| `public/assets/edgerunner/images/bg-stack.svg`           | 41 kB   | tło sekcji Stack (rysowane skryptem)                  |
 | `public/assets/edgerunner/images/bg-education.webp`      | 132 kB  | tło sekcji Education                                  |
 | `public/assets/edgerunner/images/bg-contact.webp`        | 82 kB   | tło paska w sekcji Contact                            |
 

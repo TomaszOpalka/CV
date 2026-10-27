@@ -55,7 +55,7 @@ html[data-theme='edgerunner'] ::selection {
 }
 
 // Sections with a picture behind them: their own stacking context, and room for the red band's ragged edges.
-html[data-theme='edgerunner'] :is(#education, #contact) {
+html[data-theme='edgerunner'] :is(#experience, #stack, #education, #contact) {
   isolation: isolate;
 }
 

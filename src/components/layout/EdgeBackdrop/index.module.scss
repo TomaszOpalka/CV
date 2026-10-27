@@ -30,8 +30,23 @@
 }
 
 // Fades into the page at the top and the bottom.
-.root[data-variant='education'] {
+.root[data-variant='education'],
+.root[data-variant='experience'],
+.root[data-variant='stack'] {
   mask-image: linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+}
+
+// Line art: already faded on its left, so it is shown as it is, anchored to the right, and the text shade is light.
+.root[data-variant='experience'],
+.root[data-variant='stack'] {
+  &::after {
+    background: linear-gradient(90deg, rgb(6 9 18 / 55%) 0, transparent 60%);
+  }
+
+  .image {
+    object-position: right center;
+    transform: none;
+  }
 }
 
 // The red band: a little taller than the section so the ragged edges sit in the gaps between sections.

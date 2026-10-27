@@ -9,6 +9,8 @@ export const edgerunnerAssets = {
   logo: { src: `${base}/logo/edgerunner.webp`, width: 520, height: 245 },
   heroDesktop: `${base}/images/hero-${EDGERUNNER_HERO}-pc.webp`,
   heroMobile: `${base}/images/hero-${EDGERUNNER_HERO}-mobile.webp`,
+  experience: `${base}/images/bg-experience.svg`,
+  stack: `${base}/images/bg-stack.svg`,
   education: `${base}/images/bg-education.webp`,
   contact: `${base}/images/bg-contact.webp`,
 } as const;

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 
+import { EdgeBackdrop } from '@/components/layout/EdgeBackdrop';
 import { Section } from '@/components/layout/Section';
 import { Scramble } from '@/components/ui/Scramble';
 import { experience } from '@/content/experience';
@@ -36,6 +37,7 @@ function MoreDetails({ summary, points }: MoreDetailsProps) {
 export function Experience() {
   return (
     <Section id="experience" index="03" title="Experience" className={styles.root}>
+      <EdgeBackdrop variant="experience" />
       <div className={styles.jobs}>
         {experience.map((job) => (
           <article
