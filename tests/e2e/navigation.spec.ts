@@ -191,3 +191,30 @@ test('the stack tabs keep a fixed height whatever the length of the open list', 
   expect(short).toEqual(tall);
   expect(tall[0]).toBeLessThanOrEqual(96);
 });
+
+test('copying the page gives every text once, not once for the eyes and once for screen readers', async ({
+  page,
+  context,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'select all and copy is a desktop gesture');
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/');
+  await page.locator('body').click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press('Control+A');
+  await page.keyboard.press('Control+C');
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+
+  const lines = copied
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  expect(lines.length).toBeGreaterThan(10);
+  lines.forEach((line, index) => {
+    expect(line, `line ${index} repeats the one before it`).not.toBe(lines[index - 1]);
+    const half = line.length / 2;
+    if (Number.isInteger(half) && half >= 4) {
+      expect(line.slice(0, half), `"${line}" is doubled`).not.toBe(line.slice(half));
+    }
+  });
+});
