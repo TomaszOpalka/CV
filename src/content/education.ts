@@ -4,9 +4,9 @@ export const education: readonly EducationItem[] = [
   {
     id: 'wsb-merito',
     school: 'WSB Merito University, Wrocław',
-    degree: 'Master’s Degree in Computer Science (in progress)',
+    degree: 'Master’s Degree in Computer Science',
     period: '2024 - 2026',
-    note: 'Specialization: Artificial Intelligence and Machine Learning. Deep learning in Python, project management.',
+    note: 'Specialization: Artificial Intelligence and Machine Learning. Deep learning in Python, project management. Projects: a classifier of fresh and moldy strawberries (image classification) and a Q-learning agent written from scratch in NumPy.',
   },
   {
     id: 'wskz',

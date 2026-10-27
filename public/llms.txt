@@ -1,7 +1,7 @@
 # Tomasz Opałka
 
 > Junior Fullstack Developer based in Wrocław, Poland. One year of commercial experience in production TypeScript
-> repositories (React, Next.js, Node.js), AI agent tooling, PostgreSQL and cloud deployment. Master's student in
+> repositories (React, Next.js, Node.js), AI agent tooling, PostgreSQL and cloud deployment. Master's graduate in
 > Computer Science (Artificial Intelligence and Machine Learning).
 
 ## About
@@ -9,7 +9,7 @@
 - Role: Junior Fullstack Developer (Polish: programista fullstack)
 - Location: Wrocław, Poland
 - Languages: Polish (native), English (C1), German (B1)
-- Skills: TypeScript, JavaScript, React, Next.js, Node.js, Python, FastAPI, Prisma, PostgreSQL, DynamoDB, LLM agents, MCP, AWS, Azure, Docker
+- Skills: TypeScript, JavaScript, React, Next.js, Node.js, Python, FastAPI, Prisma, PostgreSQL, DynamoDB, LLM agents, MCP, Java Spring, Machine Learning (scikit-learn, TensorFlow/Keras, PyTorch), Power BI, AWS, Azure, Docker, Terraform
 - Offer: fast, affordable websites and web applications
 
 ## Links

@@ -11,7 +11,9 @@
 
   @include mq(md) {
     grid-template-columns: minmax(0, 1fr) minmax(rem(300), rem(400));
-    grid-template-rows: repeat(var(--rows), auto);
+
+    // Fixed tab rows plus one free row: a tall list grows the free row, never the tabs.
+    grid-template-rows: repeat(var(--rows), rem(80)) auto;
     border: 0;
     background: none;
   }
@@ -126,7 +128,7 @@
 
   @include mq(md) {
     grid-column: 1;
-    grid-row: 1 / span var(--rows);
+    grid-row: 1 / -1;
     padding: $space-2 $space-8 0 0;
     animation: panel-in 260ms $ease-out;
   }
@@ -140,13 +142,6 @@
 
 .name {
   font-family: var(--font-mono);
-}
-
-.usedAt {
-  display: block;
-  margin-top: 2px;
-  font-size: rem(13);
-  color: var(--gray-400);
 }
 
 .core {
