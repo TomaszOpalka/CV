@@ -5,9 +5,9 @@
 
 html[data-theme='edgerunner'] {
   --gray-50: #f2f5ff;
-  --gray-200: #d3dbfa;
-  --gray-400: #8f9bc6;
-  --gray-600: #4a5788;
+  --gray-200: #dde3ff;
+  --gray-400: #b0bbe6;
+  --gray-600: #6877ab;
   --gray-800: #1a2244;
   --gray-900: #0b1024;
   --gray-1000: #060912;
@@ -66,4 +66,164 @@ html[data-theme='edgerunner'] #contact {
 // Keeps the long lines off the bright part of the picture.
 html[data-theme='edgerunner'] #education li p {
   max-width: 64ch;
+}
+
+// Glitches: now and then (a short burst in every cycle) the sections jump a pixel or two up and down, headings and
+// pictures split into colours, and a band of shifted hues flashes across the screen. Everything is in sync.
+@media (prefers-reduced-motion: no-preference) {
+  html[data-theme='edgerunner'] {
+    --edge-cycle: 7s;
+  }
+
+  html[data-theme='edgerunner'] section[data-section] {
+    animation: edge-shake var(--edge-cycle) steps(1, end) infinite;
+  }
+
+  html[data-theme='edgerunner']
+    :is(section[data-section] h2, #about h1 span, #contact a[href^='mailto:']) {
+    animation: edge-glitch-text var(--edge-cycle) steps(1, end) infinite;
+  }
+
+  html[data-theme='edgerunner'] :is(#about picture img, [data-variant] img) {
+    animation: edge-glitch-tint var(--edge-cycle) steps(1, end) infinite;
+  }
+
+  html[data-theme='edgerunner'] body::before {
+    content: '';
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: $z-cursor - 3;
+    height: 28px;
+    pointer-events: none;
+    opacity: 0;
+    backdrop-filter: hue-rotate(120deg) saturate(1.8);
+    animation: edge-glitch-band var(--edge-cycle) steps(1, end) infinite;
+  }
+}
+
+@keyframes edge-shake {
+  0%,
+  90.9%,
+  97%,
+  100% {
+    transform: none;
+  }
+
+  91% {
+    transform: translateY(-2px);
+  }
+
+  92.5% {
+    transform: translateY(2px);
+  }
+
+  94% {
+    transform: translateY(-1px);
+  }
+
+  95.5% {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes edge-glitch-text {
+  0%,
+  90.9%,
+  97%,
+  100% {
+    text-shadow:
+      2px 0 var(--edge-red),
+      -2px 0 var(--edge-cyan);
+    transform: none;
+  }
+
+  91% {
+    text-shadow:
+      -4px 0 var(--edge-red),
+      4px 0 var(--accent);
+    transform: translateY(-3px);
+  }
+
+  92.5% {
+    text-shadow:
+      4px 0 #ff00e6,
+      -4px 0 var(--edge-cyan);
+    transform: translateY(2px);
+  }
+
+  94% {
+    text-shadow:
+      -3px 0 var(--accent),
+      3px 0 var(--edge-red);
+    transform: translateY(-2px);
+  }
+
+  95.5% {
+    text-shadow:
+      3px 0 var(--edge-cyan),
+      -3px 0 #ff00e6;
+    transform: translateY(1px);
+  }
+}
+
+@keyframes edge-glitch-tint {
+  0%,
+  90.9%,
+  97%,
+  100% {
+    filter: none;
+  }
+
+  91% {
+    filter: hue-rotate(70deg) saturate(1.5);
+  }
+
+  92.5% {
+    filter: hue-rotate(-60deg) brightness(1.2);
+  }
+
+  94% {
+    filter: hue-rotate(160deg) saturate(1.8);
+  }
+
+  95.5% {
+    filter: hue-rotate(-120deg) contrast(1.2);
+  }
+}
+
+@keyframes edge-glitch-band {
+  0%,
+  90.9%,
+  97%,
+  100% {
+    opacity: 0;
+  }
+
+  91% {
+    top: 22vh;
+    height: 26px;
+    opacity: 1;
+    backdrop-filter: hue-rotate(120deg) saturate(1.8);
+  }
+
+  92.5% {
+    top: 58vh;
+    height: 12px;
+    opacity: 1;
+    backdrop-filter: hue-rotate(240deg) saturate(2);
+  }
+
+  94% {
+    top: 41vh;
+    height: 34px;
+    opacity: 1;
+    backdrop-filter: hue-rotate(60deg) saturate(1.6);
+  }
+
+  95.5% {
+    top: 73vh;
+    height: 10px;
+    opacity: 1;
+    backdrop-filter: hue-rotate(300deg) saturate(2.2);
+  }
 }

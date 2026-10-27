@@ -74,7 +74,7 @@ class Art:
         cw, ch = 38, 30
         for j in range(rows):
             for i in range(cols):
-                self.text(x + i * cw, y + j * ch, hexcode(r), CYAN, 0.32 + r.random() * 0.25, 15)
+                self.text(x + i * cw, y + j * ch, hexcode(r), CYAN, 0.2 + r.random() * 0.2, 15)
         cx, cy = r.randrange(cols), 0
         pts = []
         horizontal = True
@@ -124,7 +124,7 @@ def experience():
     a.ruler(58, 560, W - 40, CYAN)
     for _ in range(30):
         a.trace(W - r.randrange(0, 260), r.randrange(100, H - 60) // 20 * 20, r.choice([180, 180, 135, 225]),
-                r.randrange(3, 7), r.choice([CYAN, CYAN, CYAN, YELLOW, RED]), 0.25 + r.random() * 0.5)
+                r.randrange(3, 7), r.choice([CYAN, CYAN, CYAN, YELLOW, RED]), 0.18 + r.random() * 0.4)
     for _ in range(7):
         a.chip(r.randrange(700, W - 220), r.randrange(110, H - 110), r.choice([CYAN, CYAN, YELLOW]))
     a.matrix(1130, 190, 8, 6, 6)
@@ -167,7 +167,7 @@ def stack():
     a.matrix(760, 150, 8, 5, 5)
     for _ in range(14):
         a.trace(r.randrange(600, 1000) // 20 * 20, r.randrange(80, 820) // 20 * 20, r.choice([0, 45, 315]),
-                r.randrange(3, 6), r.choice([CYAN, CYAN, YELLOW]), 0.2 + r.random() * 0.35)
+                r.randrange(3, 6), r.choice([CYAN, CYAN, YELLOW]), 0.16 + r.random() * 0.28)
     a.ruler(840, 560, W - 40, CYAN)
     a.frame()
     a.save('bg-stack.svg', 640)

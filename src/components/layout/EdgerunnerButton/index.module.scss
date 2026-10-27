@@ -3,9 +3,9 @@
 .root {
   position: relative;
   flex: none;
-  align-self: flex-start;
-  height: rem(44);
-  margin: rem(10) 0 0 $space-2;
+  align-self: center;
+  height: rem(36);
+  margin: 0 0 0 $space-3;
   padding: 0;
   background: none;
   border: 0;
@@ -13,7 +13,7 @@
   transition: transform $duration-fast $ease-out;
 
   @include mq(md) {
-    height: rem(64);
+    height: rem(46);
     margin-left: $space-6;
   }
 

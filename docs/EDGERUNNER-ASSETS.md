@@ -25,6 +25,10 @@ Tła sekcji w motywie Edgerunner (ładowane tylko po włączeniu motywu):
   z modułami i paskami). Rysuje je skrypt `scripts/edgerunner-art.py` do plików SVG (`bg-experience.svg`, `bg-stack.svg`, po 40 do 55 kB), przy tym samym ziarnie
   wychodzi ten sam obraz. Lewa strona zanika, żeby tekst był czytelny. Można je zastąpić własnymi grafikami pod tymi samymi nazwami (SVG, WebP albo AVIF).
 
+**Glitche (tylko w motywie Edgerunner, `styles/base/_edgerunner.scss`):** co 7 sekund krótka seria (ok. pół sekundy): sekcje podskakują o 1 do 2 px w górę i w dół,
+tytuły, hero i adres e-mail rozszczepiają się kolorami (czerwony, cyjan, żółty, magenta), obrazy przesuwają barwy (`hue-rotate`), a po ekranie przeskakuje pas
+z innym odcieniem. Wszystko jest zsynchronizowane (zmienna `--edge-cycle`). Dłuższy cykl lub brak glitchy to jedna zmiana w tym pliku. Przy `prefers-reduced-motion` nie ma ich wcale.
+
 Które hero jest użyte: stała `EDGERUNNER_HERO` w `src/content/edgerunner.ts` (`'night'` czerwone miasto albo `'day'` niebieski las).
 
 Pliki w repo (zoptymalizowane z oryginałów po ok. 0,4 do 3 MB każdy, razem ok. 1,1 MB):

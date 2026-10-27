@@ -111,6 +111,41 @@ test('the section backdrops and the contact band appear with the look, and are g
   await expect(page.locator('#contact img[src*="bg-contact"]')).toHaveCount(0, { timeout: 5_000 });
 });
 
+const animationNames = (page: Page) =>
+  page.evaluate(() => ({
+    section: getComputedStyle(document.getElementById('experience')!).animationName,
+    heading: getComputedStyle(document.querySelector('#experience h2')!).animationName,
+    band: getComputedStyle(document.body, '::before').animationName,
+  }));
+
+test('the glitches run only in the Edgerunner look', async ({ page }) => {
+  test.setTimeout(60_000);
+  await openSite(page);
+  expect(await animationNames(page)).toEqual({ section: 'none', heading: 'none', band: 'none' });
+  await switchOn(page).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'edgerunner', {
+    timeout: 5_000,
+  });
+  expect(await animationNames(page)).toEqual({
+    section: 'edge-shake',
+    heading: 'edge-glitch-text',
+    band: 'edge-glitch-band',
+  });
+  // A switch made while the lightning is still fading is ignored, so wait for it to end.
+  await expect(page.locator('canvas[data-active="true"]')).toHaveCount(0, { timeout: 5_000 });
+  await switchOff(page).click();
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/, { timeout: 5_000 });
+  expect(await animationNames(page)).toEqual({ section: 'none', heading: 'none', band: 'none' });
+});
+
+test('the button fits in the header bar', async ({ page }) => {
+  await openSite(page);
+  const header = (await page.locator('body > header').boundingBox())!;
+  const button = (await switchOn(page).boundingBox())!;
+  expect(button.y).toBeGreaterThanOrEqual(header.y);
+  expect(button.y + button.height).toBeLessThanOrEqual(header.y + header.height);
+});
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
@@ -121,5 +156,6 @@ test.describe('reduced motion', () => {
       timeout: 2_000,
     });
     await expect(page.locator('canvas[data-active="true"]')).toHaveCount(0);
+    expect(await animationNames(page)).toEqual({ section: 'none', heading: 'none', band: 'none' });
   });
 });

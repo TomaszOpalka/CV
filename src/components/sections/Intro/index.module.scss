@@ -466,13 +466,9 @@
       -3px 0 var(--edge-cyan),
       0 0 24px rgb(0 0 0 / 70%);
 
+    // Glitched by the global rules in styles/base/_edgerunner.scss.
     span {
       display: inline-block;
-      animation: edge-glitch 4.2s steps(1, end) infinite;
-
-      @include reduced-motion {
-        animation: none;
-      }
     }
   }
 
@@ -510,25 +506,5 @@
     @include mq(md) {
       font-size: rem(15);
     }
-  }
-}
-
-@keyframes edge-glitch {
-  0%,
-  92%,
-  100% {
-    transform: none;
-  }
-
-  93% {
-    transform: translate(-6px, 1px) skewX(8deg);
-  }
-
-  95% {
-    transform: translate(5px, -1px);
-  }
-
-  97% {
-    transform: translate(-2px, 0) skewX(-6deg);
   }
 }

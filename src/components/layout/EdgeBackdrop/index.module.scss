@@ -40,7 +40,13 @@
 .root[data-variant='experience'],
 .root[data-variant='stack'] {
   &::after {
-    background: linear-gradient(90deg, rgb(6 9 18 / 55%) 0, transparent 60%);
+    background: linear-gradient(
+      90deg,
+      rgb(6 9 18 / 86%) 0,
+      rgb(6 9 18 / 62%) 40%,
+      rgb(6 9 18 / 14%) 72%,
+      transparent 100%
+    );
   }
 
   .image {
