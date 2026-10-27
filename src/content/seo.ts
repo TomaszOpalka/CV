@@ -8,7 +8,7 @@ export const siteUrl = new URL('https://tomaszopałka.com').origin;
 
 /** Search-engine copy. It must match what the page shows to people: no hidden text or keyword lists. */
 export const seo = {
-  title: `${profile.name} | Junior Fullstack Developer in Wrocław`,
+  title: `${profile.name} | Fullstack Developer in Wrocław`,
   description:
     'Junior Fullstack Developer (programista fullstack) in Wrocław: React, Next.js, Node.js, TypeScript and AI tooling. Fast, affordable websites and web applications.',
   jobTitle: 'Junior Fullstack Developer',
