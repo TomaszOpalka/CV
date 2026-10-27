@@ -67,7 +67,6 @@ export function Stack() {
                         {item.core && <span className={styles.srOnly}>Core: </span>}
                         {item.name}
                       </span>
-                      {item.usedAt && <span className={styles.usedAt}>{item.usedAt}</span>}
                     </li>
                   ))}
                 </ul>

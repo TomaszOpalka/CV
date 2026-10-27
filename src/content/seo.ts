@@ -19,15 +19,19 @@ export const seo = {
 } as const;
 
 /** The groups whose skills describe the profile best, in the order of `skills.ts`. */
-const KNOWS_ABOUT_GROUPS = ['frontend', 'backend', 'ai', 'databases'];
+const KNOWS_ABOUT_GROUPS = ['frontend', 'backend', 'ml', 'ai', 'databases'];
 
 /** schema.org `Person` for the home page, as a plain object (serialised by `<JsonLd>`). */
 export function personJsonLd(): Record<string, unknown> {
   const email = contactLinks.find((link) => link.url.startsWith('mailto:'));
   const github = contactLinks.find((link) => link.url.includes('github.com'));
-  const knowsAbout = skillGroups
-    .filter((group) => KNOWS_ABOUT_GROUPS.includes(group.id))
-    .flatMap((group) => group.items.map((item) => item.name));
+  const knowsAbout = [
+    ...new Set(
+      skillGroups
+        .filter((group) => KNOWS_ABOUT_GROUPS.includes(group.id))
+        .flatMap((group) => group.items.map((item) => item.name)),
+    ),
+  ];
   const school = education[0];
 
   return {
