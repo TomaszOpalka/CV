@@ -1,3 +1,4 @@
+import { EdgeBackdrop } from '@/components/layout/EdgeBackdrop';
 import { Section } from '@/components/layout/Section';
 import { contactLead, contactLinks } from '@/content/contact';
 
@@ -11,6 +12,7 @@ const [email, ...others] = contactLinks;
 export function Contact() {
   return (
     <Section id="contact" index="06" title="Contact">
+      <EdgeBackdrop variant="contact" />
       <div className={styles.wrap}>
         <p className={styles.lead}>{contactLead}</p>
         {email && (

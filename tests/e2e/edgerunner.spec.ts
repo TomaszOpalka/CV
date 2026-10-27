@@ -54,7 +54,7 @@ test('on a phone the hero uses the tall illustration with the text above the cha
   const art = page.locator('#about picture img');
   await expect
     .poll(() => art.evaluate((img: HTMLImageElement) => img.currentSrc))
-    .toContain('hero-mobile');
+    .toContain('hero-night-mobile');
   const text = (await page.locator('#about h1').boundingBox())!;
   const picture = (await page.locator('#about picture').boundingBox())!;
   expect(text.y).toBeLessThan(picture.y + picture.height * 0.3);
@@ -72,12 +72,40 @@ test('on a wide screen the text sits left and right of the character', async ({ 
   const art = page.locator('#about picture img');
   await expect
     .poll(() => art.evaluate((img: HTMLImageElement) => img.currentSrc))
-    .toContain('hero-pc');
+    .toContain('hero-night-pc');
   const title = (await page.locator('#about h1').boundingBox())!;
   const about = (await page.getByText('I specialize in TypeScript').boundingBox())!;
   const middle = 1440 / 2;
   expect(title.x + title.width).toBeLessThan(middle);
   expect(about.x).toBeGreaterThan(middle);
+});
+
+test('the education picture and the contact band appear with the look, and are gone without it', async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSite(page);
+  await expect(page.locator('#education img[src*="bg-education"]')).toHaveCount(0);
+  await expect(page.locator('#contact img[src*="bg-contact"]')).toHaveCount(0);
+
+  await switchOn(page).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'edgerunner', {
+    timeout: 5_000,
+  });
+  await expect(page.locator('#education img[src*="bg-education"]')).toHaveCount(1);
+  await expect(page.locator('#contact img[src*="bg-contact"]')).toHaveCount(1);
+  // The band has a ragged clip-path and a canvas for the interference.
+  const clip = await page
+    .locator('#contact [data-variant="contact"]')
+    .evaluate((node) => getComputedStyle(node).clipPath);
+  expect(clip).toContain('polygon');
+  await expect(page.locator('#contact [data-variant="contact"] canvas')).toHaveCount(1);
+  // The text stays ours.
+  await expect(page.locator('#contact a[href^="mailto:"]')).toBeVisible();
+
+  await switchOff(page).click();
+  await expect(page.locator('#contact img[src*="bg-contact"]')).toHaveCount(0, { timeout: 5_000 });
 });
 
 test.describe('reduced motion', () => {

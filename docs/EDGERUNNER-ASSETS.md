@@ -13,16 +13,30 @@ Reszta strony zmienia kolory (żółty akcent, granatowe tło), ma linie skanowa
 Ponowne kliknięcie przycisku wraca do zwykłego wyglądu. Przy `prefers-reduced-motion` zmiana jest natychmiastowa, bez błyskawic i bez laserowego kursora.
 Grafiki i kod efektów ładują się dopiero przy najechaniu na przycisk, więc zwykły odwiedzający nic nie pobiera.
 
-Pliki w repo (zoptymalizowane z oryginałów `.jfif` po ok. 3 MB każdy):
+Tła sekcji w motywie Edgerunner (ładowane tylko po włączeniu motywu):
 
-| Plik                                               | Rozmiar | Rola                                                  |
-| -------------------------------------------------- | ------- | ----------------------------------------------------- |
-| `public/assets/edgerunner/logo/edgerunner.webp`    | 95 kB   | przycisk w nagłówku (tło wycięte do przezroczystości) |
-| `public/assets/edgerunner/images/hero-pc.webp`     | 201 kB  | hero na PC, 1920 × 1072                               |
-| `public/assets/edgerunner/images/hero-mobile.webp` | 166 kB  | hero na telefon, 900 × 1613                           |
+- **Education:** żółta grafika (`bg-education.webp`), odbita w poziomie, żeby jasna część była po prawej, a tekst na ciemnej; góra i dół płynnie zanikają.
+- **Contact:** czerwona grafika z motocyklistą (`bg-contact.webp`) w pasie z poszarpanymi krawędziami (kształt z `engine/edgerunner/jagged.ts`), cienkimi pionowymi liniami
+  i animowaną „interferencją”: krótkie białe, różowe, cyjanowe i czarne pasy, które błyskają i znikają, oraz fragmenty obrazu przeskakujące w bok
+  (`engine/edgerunner/InterferenceCanvas.ts`, ok. 12 klatek na sekundę, tylko gdy pas jest na ekranie, przy reduced motion jedna klatka).
+  To odpowiednik krótkiego wideo, tyle że rysowany kodem: 0 kB i bez problemów z formatami w Safari.
 
-**Jak to wycofać:** usuń `components/layout/EdgerunnerFx/`, `components/layout/EdgerunnerButton/`, `engine/edgerunner/`, `content/edgerunner.ts`,
-`styles/base/_edgerunner.scss` (i jego linię w `styles/main.scss`), `public/assets/edgerunner/`, oraz części „edge” w `Header`, `Intro` i `Cursor`
+Które hero jest użyte: stała `EDGERUNNER_HERO` w `src/content/edgerunner.ts` (`'night'` czerwone miasto albo `'day'` niebieski las).
+
+Pliki w repo (zoptymalizowane z oryginałów po ok. 0,4 do 3 MB każdy, razem ok. 1,1 MB):
+
+| Plik                                                     | Rozmiar | Rola                                                  |
+| -------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| `public/assets/edgerunner/logo/edgerunner.webp`          | 95 kB   | przycisk w nagłówku (tło wycięte do przezroczystości) |
+| `public/assets/edgerunner/images/hero-night-pc.webp`     | 194 kB  | hero „night” na PC, 1920 × 1071                       |
+| `public/assets/edgerunner/images/hero-night-mobile.webp` | 153 kB  | hero „night” na telefon, 900 × 1613                   |
+| `public/assets/edgerunner/images/hero-day-pc.webp`       | 201 kB  | hero „day” na PC (do wyboru zamiast night)            |
+| `public/assets/edgerunner/images/hero-day-mobile.webp`   | 166 kB  | hero „day” na telefon                                 |
+| `public/assets/edgerunner/images/bg-education.webp`      | 132 kB  | tło sekcji Education                                  |
+| `public/assets/edgerunner/images/bg-contact.webp`        | 82 kB   | tło paska w sekcji Contact                            |
+
+**Jak to wycofać:** usuń `components/layout/EdgerunnerFx/`, `components/layout/EdgerunnerButton/`, `engine/edgerunner/`, `components/layout/EdgeBackdrop/`, `content/edgerunner.ts`,
+`styles/base/_edgerunner.scss` (i jego linię w `styles/main.scss`), `public/assets/edgerunner/`, oraz części „edge” w `Header`, `Intro`, `Cursor`, `Education` i `Contact`
 (`useTheme`, `<EdgerunnerButton />`, `data-edge`, `<picture>`, blok „Edgerunner” w `Intro/index.module.scss`).
 
 ## Gdzie wrzucać nowe grafiki i w jakim formacie

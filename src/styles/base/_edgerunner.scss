@@ -53,3 +53,17 @@ html[data-theme='edgerunner'] ::selection {
   background: var(--edge-cyan);
   color: var(--gray-1000);
 }
+
+// Sections with a picture behind them: their own stacking context, and room for the red band's ragged edges.
+html[data-theme='edgerunner'] :is(#education, #contact) {
+  isolation: isolate;
+}
+
+html[data-theme='edgerunner'] #contact {
+  padding-block: rem(88);
+}
+
+// Keeps the long lines off the bright part of the picture.
+html[data-theme='edgerunner'] #education li p {
+  max-width: 64ch;
+}

@@ -1,3 +1,4 @@
+import { EdgeBackdrop } from '@/components/layout/EdgeBackdrop';
 import { Section } from '@/components/layout/Section';
 import { Scramble } from '@/components/ui/Scramble';
 import { certificates, education, languages } from '@/content/education';
@@ -7,6 +8,7 @@ import styles from './index.module.scss';
 export function Education() {
   return (
     <Section id="education" index="05" title="Education">
+      <EdgeBackdrop variant="education" />
       <div className={styles.wrap}>
         <ul className={styles.list}>
           {education.map((item) => (
