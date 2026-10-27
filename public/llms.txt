@@ -9,7 +9,7 @@
 - Role: Junior Fullstack Developer (Polish: programista fullstack)
 - Location: Wrocław, Poland
 - Languages: Polish (native), English (C1), German (B1)
-- Skills: TypeScript, JavaScript, React, Next.js, Node.js, Python, FastAPI, Prisma, PostgreSQL, DynamoDB, LLM agents, MCP, AWS, Azure, Docker
+- Skills: TypeScript, JavaScript, React, Next.js, Node.js, Python, FastAPI, Prisma, PostgreSQL, DynamoDB, LLM agents, MCP, Java Spring, Machine Learning (scikit-learn, TensorFlow/Keras, PyTorch), Power BI, AWS, Azure, Docker, Terraform
 - Offer: fast, affordable websites and web applications
 
 ## Links
