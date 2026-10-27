@@ -3,3 +3,8 @@
 .srOnly {
   @include visually-hidden;
 }
+
+// The animated copy is only for the eyes: selecting it as well would copy every text twice.
+.visible {
+  user-select: none;
+}
