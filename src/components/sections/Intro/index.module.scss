@@ -75,6 +75,11 @@
   gap: $space-4;
 }
 
+.aboutBlock {
+  display: grid;
+  gap: $space-4;
+}
+
 // Reveal lines are staggered via --i, set inline.
 .eyebrow,
 .title,
@@ -308,5 +313,198 @@
   .canvas,
   .counter {
     display: none;
+  }
+}
+
+// "Edgerunner" look (see components/layout/EdgerunnerFx): the illustration fills the hero and the text is split around
+// the character: left and right on wide screens, at the top on phones.
+.art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  animation: art-in 700ms ease-out both;
+
+  @include reduced-motion {
+    animation: none;
+  }
+}
+
+.artImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 78%;
+
+  @include mq(md) {
+    object-position: 50% 40%;
+  }
+}
+
+@keyframes art-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.root[data-edge='true'] {
+  min-height: 100svh;
+  background: #060912;
+
+  @include mq(md) {
+    min-height: max(34rem, min(100svh, 56.25vw));
+  }
+
+  .canvas,
+  .frame,
+  .counter {
+    display: none;
+  }
+
+  .inner {
+    max-width: none;
+    padding: rem(88) $space-4 $space-8;
+    align-self: stretch;
+    align-content: start;
+    gap: $space-3;
+
+    @include mq(md) {
+      grid-template-columns: 36fr 26fr 38fr;
+      align-content: center;
+      padding: rem(88) 4vw $space-8;
+      gap: 0;
+    }
+  }
+
+  .text {
+    display: contents;
+  }
+
+  .eyebrow {
+    @include mq(md) {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: end;
+    }
+  }
+
+  .title {
+    @include mq(md) {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: start;
+    }
+  }
+
+  .aboutBlock {
+    @include mq(md) {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+  }
+}
+
+// Edgerunner typography and panels.
+.root[data-edge='true'] {
+  .art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 0%) 0,
+        rgb(0 0 0 / 0%) 2px,
+        rgb(0 240 255 / 6%) 3px
+      ),
+      linear-gradient(to bottom, rgb(4 6 18 / 82%) 0, rgb(4 6 18 / 52%) 40%, transparent 62%);
+
+    @include mq(md) {
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgb(0 0 0 / 0%) 0,
+          rgb(0 0 0 / 0%) 2px,
+          rgb(0 240 255 / 6%) 3px
+        ),
+        linear-gradient(
+          to right,
+          rgb(4 6 18 / 68%) 0,
+          transparent 34%,
+          transparent 66%,
+          rgb(4 6 18 / 68%) 100%
+        );
+    }
+  }
+
+  .eyebrow {
+    justify-self: start;
+    padding: rem(3) rem(10);
+    background: rgb(4 6 18 / 78%);
+    color: var(--edge-cyan);
+    text-shadow: 0 0 10px rgb(0 240 255 / 60%);
+
+    &::before {
+      content: '// ';
+      color: var(--accent);
+    }
+  }
+
+  .title {
+    font-style: italic;
+    font-weight: 800;
+    color: var(--gray-0);
+    text-shadow:
+      3px 0 var(--edge-red),
+      -3px 0 var(--edge-cyan),
+      0 0 24px rgb(0 0 0 / 70%);
+
+    // Glitched by the global rules in styles/base/_edgerunner.scss.
+    span {
+      display: inline-block;
+    }
+  }
+
+  .aboutBlock {
+    position: relative;
+    padding: $space-4 $space-6;
+    background: linear-gradient(135deg, rgb(4 8 26 / 80%), rgb(24 8 50 / 72%));
+    border: 1px solid rgb(0 240 255 / 55%);
+    clip-path: polygon(
+      0 0,
+      calc(100% - 18px) 0,
+      100% 18px,
+      100% 100%,
+      18px 100%,
+      0 calc(100% - 18px)
+    );
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 38px;
+      height: 3px;
+      background: var(--accent);
+    }
+  }
+
+  .about {
+    max-width: none;
+    font-size: rem(14);
+    line-height: 1.55;
+    color: var(--gray-50);
+
+    @include mq(md) {
+      font-size: rem(15);
+    }
   }
 }

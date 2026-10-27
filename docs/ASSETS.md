@@ -22,6 +22,7 @@ public/assets/
 │   └── portrait.webp              # zdjęcie profilowe (800 × 1067, ok. 110 kB)
 ├── cv/              # CV w PDF (dodamy, gdy je podeślesz)
 ├── projects/        # zrzuty ekranu projektów (faza 4)
+├── edgerunner/      # grafiki i animacje motywu „Edgerunner” (szczegóły: docs/EDGERUNNER-ASSETS.md)
 └── og/              # obrazy podglądu linków (LinkedIn, komunikatory)
 ```
 

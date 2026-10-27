@@ -1,0 +1,84 @@
+@use '@/styles/abstracts' as *;
+
+// Behind the content of the section (which must be `isolation: isolate`, see styles/base/_edgerunner.scss).
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+
+  // Shade for the text; the picture is mirrored so the busy part is on the right.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgb(6 9 18 / 92%) 0,
+      rgb(6 9 18 / 80%) 55%,
+      rgb(6 9 18 / 20%) 100%
+    );
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+// Fades into the page at the top and the bottom.
+.root[data-variant='education'],
+.root[data-variant='experience'],
+.root[data-variant='stack'] {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+}
+
+// Line art: already faded on its left, so it is shown as it is, anchored to the right, and the text shade is light.
+.root[data-variant='experience'],
+.root[data-variant='stack'] {
+  &::after {
+    background: linear-gradient(
+      90deg,
+      rgb(6 9 18 / 86%) 0,
+      rgb(6 9 18 / 62%) 40%,
+      rgb(6 9 18 / 14%) 72%,
+      transparent 100%
+    );
+  }
+
+  .image {
+    object-position: right center;
+    transform: none;
+  }
+}
+
+// The red band: a little taller than the section so the ragged edges sit in the gaps between sections.
+.root[data-variant='contact'] {
+  inset: rem(-40) 0 rem(-6);
+
+  @include mq(md) {
+    inset: rem(-48) 0 rem(-6);
+  }
+
+  // Fine vertical lines, like an old screen.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: repeating-linear-gradient(90deg, rgb(0 0 0 / 22%) 0 1px, transparent 1px 3px);
+  }
+}
+
+.noise {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+}

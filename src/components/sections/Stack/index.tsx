@@ -2,6 +2,7 @@
 
 import { useId, useState, type CSSProperties } from 'react';
 
+import { EdgeBackdrop } from '@/components/layout/EdgeBackdrop';
 import { Section } from '@/components/layout/Section';
 import { Scramble } from '@/components/ui/Scramble';
 import { skillGroups } from '@/content/skills';
@@ -24,6 +25,7 @@ export function Stack() {
 
   return (
     <Section id="stack" index="04" title="Stack" className={styles.root}>
+      <EdgeBackdrop variant="stack" />
       <div
         className={styles.stack}
         style={{ '--rows': skillGroups.length } as CSSProperties}

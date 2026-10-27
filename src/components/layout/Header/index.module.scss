@@ -39,11 +39,15 @@
 
 .brand {
   font-family: var(--font-mono);
-  font-size: rem(14);
+  font-size: rem(12);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gray-50);
   text-decoration: none;
+
+  @include mq(md) {
+    font-size: rem(14);
+  }
 }
 
 .backdrop {
@@ -204,6 +208,7 @@
   font-size: rem(12);
   font-weight: 700;
   letter-spacing: 0.1em;
+  white-space: nowrap;
   text-transform: uppercase;
   text-decoration: none;
   transition: background $duration-fast;

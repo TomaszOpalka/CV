@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 
+import { EdgerunnerButton } from '@/components/layout/EdgerunnerButton';
 import { Scramble } from '@/components/ui/Scramble';
 import { SECTIONS } from '@/content/sections';
 import { profile } from '@/content/profile';
@@ -75,6 +76,8 @@ export function Header() {
       <a className={styles.brand} href="#about" onClick={(event) => go(event, 'about')}>
         <Scramble text={profile.name} />
       </a>
+
+      <EdgerunnerButton />
 
       <div className={styles.backdrop} aria-hidden="true" onClick={() => setMenuOpen(false)} />
 

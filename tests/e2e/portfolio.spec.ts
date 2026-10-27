@@ -150,6 +150,8 @@ test('scrolling with a still mouse changes the cursor icon to the one of the sec
   test.setTimeout(60_000);
   await page.goto('/');
   await page.getByRole('button', { name: 'skip intro' }).click({ timeout: 10_000 });
+  // The cursor starts after the intro; a move made before that (easy on a loaded machine) would go unnoticed.
+  await expect(page.locator('html[data-cursor-ready]')).toHaveCount(1, { timeout: 15_000 });
   await page.mouse.move(720, 480);
 
   const averageColour = () =>

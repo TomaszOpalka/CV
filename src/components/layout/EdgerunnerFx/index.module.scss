@@ -1,0 +1,24 @@
+@use '@/styles/abstracts' as *;
+
+.laser,
+.lightning {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.laser {
+  z-index: $z-cursor + 1;
+}
+
+// Above everything, including the header and the cursor, only while it plays.
+.lightning {
+  z-index: $z-cursor + 10;
+  display: none;
+
+  &[data-active='true'] {
+    display: block;
+  }
+}
